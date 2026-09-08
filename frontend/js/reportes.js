@@ -1,6 +1,5 @@
 // ===== INICIALIZAR REPORTES =====
 document.addEventListener('DOMContentLoaded', () => {
-    // Cargar reportes de coro por defecto cuando se abre la app
     setTimeout(() => {
         cargarReporteGrupo('coro', true);
     }, 500);
@@ -11,7 +10,6 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
     try {
         const contenido = document.getElementById('reporteContent');
         
-        // Mostrar estado de carga
         if (!esInicial) {
             contenido.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-light);">Cargando reportes...</div>';
         }
@@ -21,7 +19,6 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             btn.classList.remove('active');
         });
         
-        // Marcar el botón activo
         const btnActivo = Array.from(document.querySelectorAll('.reporte-tab-btn')).find(btn => {
             return btn.textContent.toLowerCase().includes(grupo.toLowerCase());
         });
@@ -29,7 +26,6 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             btnActivo.classList.add('active');
         }
         
-        // Obtener estadísticas
         const response = await fetch(`${API_URL}/reportes/estadisticas/${grupo}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -40,7 +36,6 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         
         const estadisticas = await response.json();
         
-        // Validar que haya datos
         if (!estadisticas || estadisticas.length === 0) {
             contenido.innerHTML = `
                 <div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center;">
@@ -62,7 +57,6 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         
         const porcentajeGeneral = totalRegistros > 0 ? (totalPresentes / totalRegistros * 100).toFixed(1) : 0;
         
-        // Gráfico
         const meses = estadisticas.map(e => e.mes.split('T')[0]);
         const porcentajes = estadisticas.map(e => parseFloat(e.porcentaje || 0));
         
@@ -138,10 +132,29 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             
             <div class="filtros-tabla">
                 <h3>Detalle de Integrantes</h3>
+                
+                <div class="filtros-row">
+                    <div class="filtro-group">
+                        <label>Fecha Inicio:</label>
+                        <input type="date" id="filtroFechaInicio" onchange="aplicarFiltrosTabla('${grupo}')">
+                    </div>
+                    <div class="filtro-group">
+                        <label>Fecha Fin:</label>
+                        <input type="date" id="filtroFechaFin" onchange="aplicarFiltrosTabla('${grupo}')">
+                    </div>
+                    <div class="filtro-group">
+                        <label>Tipo de Evento:</label>
+                        <select id="filtroTipoEvento" onchange="aplicarFiltrosTabla('${grupo}')">
+                            <option value="todos">Todos</option>
+                            <option value="santo_culto">Santo Culto</option>
+                            <option value="ensayo">Ensayo</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="filtros-buttons">
-                    <button class="filter-btn active" onclick="filtrarTablaReporte('${grupo}', 'todos')">Todos</button>
-                    <button class="filter-btn" onclick="filtrarTablaReporte('${grupo}', 'santo_culto')">Santo Culto</button>
-                    <button class="filter-btn" onclick="filtrarTablaReporte('${grupo}', 'ensayo')">Ensayo</button>
+                    <button class="filter-btn active" onclick="aplicarFiltrosTabla('${grupo}')">Aplicar Filtros</button>
+                    <button class="filter-btn" onclick="limpiarFiltrosTabla('${grupo}')">Limpiar</button>
                 </div>
             </div>
             
@@ -162,11 +175,10 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             </table>
         `;
         
-        // Dibujar gráficos
         setTimeout(() => {
             dibujarGraficoLinea(meses, porcentajes);
             dibujarGraficoPie(totalPresentes, totalAusentes);
-            cargarTablaIntegrantes(grupo, 'todos');
+            cargarTablaIntegrantes(grupo, 'todos', null, null);
         }, 100);
         
     } catch (error) {
@@ -176,7 +188,6 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             contenido.innerHTML = `
                 <div style="background: #fee2e2; padding: 20px; border-radius: 12px; border-left: 4px solid #e74c3c;">
                     <p style="color: #e74c3c; margin: 0; font-weight: 600;">Error al cargar reportes</p>
-                    <p style="color: #c53030; margin: 5px 0 0 0; font-size: 14px;">${error.message}</p>
                 </div>
             `;
         }
@@ -189,7 +200,6 @@ function dibujarGraficoLinea(meses, porcentajes) {
     const ctx = document.getElementById('graficoLinea');
     if (!ctx) return;
     
-    // Destruir gráfico anterior si existe
     if (window.graficoLineaInstance) {
         window.graficoLineaInstance.destroy();
     }
@@ -245,7 +255,6 @@ function dibujarGraficoPie(presentes, ausentes) {
     const ctx = document.getElementById('graficoPie');
     if (!ctx) return;
     
-    // Destruir gráfico anterior si existe
     if (window.graficoPieInstance) {
         window.graficoPieInstance.destroy();
     }
@@ -278,7 +287,7 @@ function dibujarGraficoPie(presentes, ausentes) {
 }
 
 // ===== CARGAR TABLA INTEGRANTES =====
-async function cargarTablaIntegrantes(grupo, tipoEvento) {
+async function cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin) {
     try {
         const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -300,10 +309,12 @@ async function cargarTablaIntegrantes(grupo, tipoEvento) {
             return;
         }
         
-        // Obtener datos de asistencia para cada miembro
         for (const miembro of miembros) {
             try {
-                const url = `${API_URL}/reportes/por-miembro/${miembro.id}?tipo_evento=${tipoEvento}`;
+                let url = `${API_URL}/reportes/por-miembro/${miembro.id}?tipo_evento=${tipoEvento}`;
+                if (fechaInicio) url += `&fecha_inicio=${fechaInicio}`;
+                if (fechaFin) url += `&fecha_fin=${fechaFin}`;
+                
                 const respAsistencia = await fetch(url, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -337,7 +348,6 @@ async function cargarTablaIntegrantes(grupo, tipoEvento) {
                 tbody.appendChild(tr);
             } catch (err) {
                 console.error('Error cargando datos del miembro:', err);
-                // Continuar con el siguiente miembro
             }
         }
         
@@ -350,23 +360,20 @@ async function cargarTablaIntegrantes(grupo, tipoEvento) {
     }
 }
 
-// ===== FILTRAR TABLA =====
-async function filtrarTablaReporte(grupo, tipoEvento) {
-    // Actualizar botones activos
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+// ===== APLICAR FILTROS =====
+async function aplicarFiltrosTabla(grupo) {
+    const fechaInicio = document.getElementById('filtroFechaInicio')?.value;
+    const fechaFin = document.getElementById('filtroFechaFin')?.value;
+    const tipoEvento = document.getElementById('filtroTipoEvento')?.value || 'todos';
     
-    // Encontrar el botón correcto
-    const botones = document.querySelectorAll('.filter-btn');
-    botones.forEach(btn => {
-        if (tipoEvento === 'todos' && btn.textContent === 'Todos') {
-            btn.classList.add('active');
-        } else if (tipoEvento === 'santo_culto' && btn.textContent === 'Santo Culto') {
-            btn.classList.add('active');
-        } else if (tipoEvento === 'ensayo' && btn.textContent === 'Ensayo') {
-            btn.classList.add('active');
-        }
-    });
+    await cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin);
+}
+
+// ===== LIMPIAR FILTROS =====
+async function limpiarFiltrosTabla(grupo) {
+    document.getElementById('filtroFechaInicio').value = '';
+    document.getElementById('filtroFechaFin').value = '';
+    document.getElementById('filtroTipoEvento').value = 'todos';
     
-    // Cargar tabla filtrada
-    await cargarTablaIntegrantes(grupo, tipoEvento);
+    await cargarTablaIntegrantes(grupo, 'todos', null, null);
 }

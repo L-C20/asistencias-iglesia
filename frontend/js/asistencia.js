@@ -10,19 +10,7 @@ const VOCES = ['Soprano', 'Contralto', 'Tenor', 'Bajo'];
 
 let miembrosActuales = [];
 let grupoActual = null;
-
-// ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', () => {
-    const formNuevo = document.getElementById('formNuevoMiembro');
-    if (formNuevo) {
-        formNuevo.addEventListener('submit', guardarNuevoMiembro);
-    }
-    
-    // Cargar conteos
-    setTimeout(() => {
-        cargarConteosMiembros();
-    }, 500);
-});
+let asistenciasParaGuardar = {}; // Almacenar cambios
 
 // ===== CARGAR CONTEOS =====
 async function cargarConteosMiembros() {
@@ -31,13 +19,15 @@ async function cargarConteosMiembros() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const miembrosCoro = await respCoro.json();
-        document.getElementById('coroCount').textContent = `${miembrosCoro.length} integrantes`;
+        const coroCount = document.getElementById('coroCount');
+        if (coroCount) coroCount.textContent = `${miembrosCoro.length} integrantes`;
 
         const respOrquesta = await fetch(`${API_URL}/asistencia/miembros/orquesta`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const miembrosOrquesta = await respOrquesta.json();
-        document.getElementById('orquestaCount').textContent = `${miembrosOrquesta.length} integrantes`;
+        const orquestaCount = document.getElementById('orquestaCount');
+        if (orquestaCount) orquestaCount.textContent = `${miembrosOrquesta.length} integrantes`;
     } catch (error) {
         console.error('Error cargando conteos:', error);
     }
@@ -46,53 +36,15 @@ async function cargarConteosMiembros() {
 // ===== IR A ASISTENCIA =====
 function irAAsistencia(grupo) {
     grupoActual = grupo;
+    asistenciasParaGuardar = {}; // Limpiar cambios anteriores
     
-    // Abrir modal de configuración
     const modal = document.getElementById('modalConfigurarEvento');
-    document.getElementById('fechaEventoModal').valueAsDate = new Date();
-    modal.classList.add('show');
-}
-
-// ===== CERRAR MODAL EVENTO =====
-function cerrarModalEvento() {
-    const modal = document.getElementById('modalConfigurarEvento');
-    modal.classList.remove('show');
-}
-
-// ===== SUBMIT CONFIGURAR EVENTO =====
-document.addEventListener('DOMContentLoaded', () => {
-    const formEvento = document.getElementById('formConfigurarEvento');
-    if (formEvento) {
-        formEvento.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const tipoEvento = document.querySelector('input[name="tipoEvento"]:checked').value;
-            const fechaEvento = document.getElementById('fechaEventoModal').value;
-            
-            if (!fechaEvento) {
-                mostrarError('Selecciona una fecha');
-                return;
-            }
-            
-            // Guardar configuración
-            window.tipoEventoSeleccionado = tipoEvento;
-            window.fechaEventoSeleccionada = fechaEvento;
-            
-            // Cambiar a tab asistencia
-            const grupoNombre = grupoActual.charAt(0).toUpperCase() + grupoActual.slice(1);
-            document.getElementById('asistenciaTitle').textContent = `Registrar Asistencia - ${grupoNombre}`;
-            cambiarTab('asistencia');
-            
-            // Cerrar modal
-            cerrarModalEvento();
-            
-            // Cargar miembros
-            cargarMiembrosParaAsistencia(grupoActual);
-            
-            mostrarToast('Configuración guardada', 'success');
-        });
+    const fechaInput = document.getElementById('fechaEventoModal');
+    if (modal && fechaInput) {
+        fechaInput.valueAsDate = new Date();
+        modal.classList.add('show');
     }
-});
+}
 
 // ===== CARGAR MIEMBROS PARA ASISTENCIA =====
 async function cargarMiembrosParaAsistencia(grupo) {
@@ -105,9 +57,11 @@ async function cargarMiembrosParaAsistencia(grupo) {
         miembrosActuales = miembros;
         
         const container = document.getElementById('asistenciaListBody');
+        if (!container) return;
+        
         container.innerHTML = '';
         
-        if (miembros.length === 0) {
+        if (!miembros || miembros.length === 0) {
             const div = document.createElement('div');
             div.style.padding = '40px';
             div.style.textAlign = 'center';
@@ -129,17 +83,17 @@ async function cargarMiembrosParaAsistencia(grupo) {
                 </div>
                 <div class="miembro-switches">
                     <label class="toggle-switch presente" title="Presente">
-                        <input type="checkbox" onchange="registrarAsistenciaDirecto(${miembro.id}, '${grupo}', 'presente', this)">
+                        <input type="checkbox" data-miembro="${miembro.id}" data-tipo="presente" onchange="cambiarAsistencia(this)">
                         <span class="toggle-icon">✓</span>
                         <span class="toggle-label">P</span>
                     </label>
                     <label class="toggle-switch ausente" title="Ausente">
-                        <input type="checkbox" onchange="registrarAsistenciaDirecto(${miembro.id}, '${grupo}', 'ausente', this)">
+                        <input type="checkbox" data-miembro="${miembro.id}" data-tipo="ausente" onchange="cambiarAsistencia(this)">
                         <span class="toggle-icon">✗</span>
                         <span class="toggle-label">A</span>
                     </label>
                     <label class="toggle-switch justificado" title="Justificado">
-                        <input type="checkbox" onchange="registrarAsistenciaDirecto(${miembro.id}, '${grupo}', 'justificado', this)">
+                        <input type="checkbox" data-miembro="${miembro.id}" data-tipo="justificado" onchange="cambiarAsistencia(this)">
                         <span class="toggle-icon">?</span>
                         <span class="toggle-label">AJ</span>
                     </label>
@@ -154,72 +108,110 @@ async function cargarMiembrosParaAsistencia(grupo) {
     }
 }
 
-// ===== REGISTRAR ASISTENCIA DIRECTO =====
-async function registrarAsistenciaDirecto(miembroId, grupo, tipo, checkbox) {
-    // Desmarcar otros checkboxes de la misma fila
+// ===== CAMBIAR ASISTENCIA (SIN GUARDAR) =====
+function cambiarAsistencia(checkbox) {
+    const miembroId = checkbox.dataset.miembro;
+    const tipo = checkbox.dataset.tipo;
+    
+    // Desmarcar otros checkboxes del mismo miembro
     const row = checkbox.closest('.miembro-row');
-    const switches = row.querySelectorAll('.toggle-switch input');
+    const switches = row.querySelectorAll('input[type="checkbox"]');
     
     switches.forEach(sw => {
         if (sw !== checkbox) sw.checked = false;
     });
     
-    // Si está desmarcando, no hacer nada
-    if (!checkbox.checked) {
-        return;
+    // Almacenar cambio
+    if (checkbox.checked) {
+        asistenciasParaGuardar[miembroId] = tipo;
+    } else {
+        delete asistenciasParaGuardar[miembroId];
     }
     
+    console.log('Cambios pendientes:', asistenciasParaGuardar);
+}
+
+// ===== GUARDAR TODAS LAS ASISTENCIAS =====
+async function guardarTodasAsistencias() {
     const fecha = window.fechaEventoSeleccionada;
     const tipoEvento = window.tipoEventoSeleccionado;
     
-    // Determinar si presente y nota
-    let presente;
-    let nota = '';
-    
-    if (tipo === 'presente') {
-        presente = true;
-    } else if (tipo === 'ausente') {
-        presente = false;
-    } else if (tipo === 'justificado') {
-        presente = null;
-        nota = 'Justificado';
+    if (!fecha || !tipoEvento) {
+        mostrarError('Faltan datos del evento');
+        return;
     }
     
-    // Agregar animación de guardando
-    const label = checkbox.closest('.toggle-switch');
-    label.classList.add('saving');
+    if (Object.keys(asistenciasParaGuardar).length === 0) {
+        mostrarError('No hay cambios para guardar');
+        return;
+    }
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
     
     try {
-        const response = await fetch(`${API_URL}/asistencia/registrar`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                miembro_id: miembroId,
-                tipo_evento: tipoEvento,
-                fecha: fecha,
-                presente: presente,
-                nota: nota
-            })
-        });
+        let registrosGuardados = 0;
+        let errores = 0;
         
-        const data = await response.json();
-        
-        if (response.ok) {
-            mostrarToast('Asistencia registrada', 'success');
-            label.classList.remove('saving');
-        } else {
-            checkbox.checked = false;
-            mostrarError(data.error || 'Error al registrar');
-            label.classList.remove('saving');
+        // Guardar cada asistencia
+        for (const [miembroId, tipo] of Object.entries(asistenciasParaGuardar)) {
+            let presente;
+            let nota = '';
+            
+            if (tipo === 'presente') {
+                presente = true;
+            } else if (tipo === 'ausente') {
+                presente = false;
+            } else if (tipo === 'justificado') {
+                presente = null;
+                nota = 'Justificado';
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/asistencia/registrar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        miembro_id: parseInt(miembroId),
+                        tipo_evento: tipoEvento,
+                        fecha: fecha,
+                        presente: presente,
+                        nota: nota
+                    })
+                });
+                
+                if (response.ok) {
+                    registrosGuardados++;
+                } else {
+                    errores++;
+                }
+            } catch (err) {
+                console.error('Error guardando miembro:', err);
+                errores++;
+            }
         }
+        
+        // Mostrar resultado
+        if (registrosGuardados > 0) {
+            mostrarToast(`${registrosGuardados} asistencias guardadas correctamente`, 'success');
+            asistenciasParaGuardar = {}; // Limpiar
+            cargarMiembrosParaAsistencia(grupoActual); // Recargar
+        }
+        
+        if (errores > 0) {
+            mostrarError(`${errores} registros con error`);
+        }
+        
     } catch (error) {
         console.error('Error:', error);
-        checkbox.checked = false;
-        mostrarError('Error al registrar asistencia');
-        label.classList.remove('saving');
+        mostrarError('Error al guardar asistencias');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Guardar Asistencias';
     }
 }
 
@@ -234,6 +226,8 @@ function agregarMiembroActual() {
 
 function abrirModalAgregarMiembro(grupo) {
     const modal = document.getElementById('modalAgregarMiembro');
+    if (!modal) return;
+    
     document.getElementById('grupoNuevo').value = grupo;
     document.getElementById('nombreNuevo').value = '';
     
@@ -324,118 +318,5 @@ async function guardarNuevoMiembro(e) {
     } catch (error) {
         console.error('Error:', error);
         mostrarError('Error al agregar miembro');
-    }
-}
-
-// ===== REPORTES =====
-async function cargarReporteGrupo(grupo) {
-    try {
-        // Actualizar tabs activos
-        document.querySelectorAll('.reporte-tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const response = await fetch(`${API_URL}/reportes/estadisticas/${grupo}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const estadisticas = await response.json();
-        const contenido = document.getElementById('reporteContent');
-        
-        // Calcular totales
-        let totalRegistros = 0;
-        let totalPresentes = 0;
-        estadisticas.forEach(e => {
-            totalRegistros += parseInt(e.total_registros);
-            totalPresentes += parseInt(e.presentes);
-        });
-        
-        const porcentajeGeneral = totalRegistros > 0 ? (totalPresentes / totalRegistros * 100).toFixed(1) : 0;
-        
-        // Gráfico
-        const meses = estadisticas.map(e => e.mes.split('T')[0]);
-        const porcentajes = estadisticas.map(e => parseFloat(e.porcentaje));
-        
-        contenido.innerHTML = `
-            <div class="reporte-stats">
-                <div class="stat-card">
-                    <h4>Total de eventos</h4>
-                    <p class="stat-number">${totalRegistros}</p>
-                </div>
-                <div class="stat-card">
-                    <h4>Asistencias</h4>
-                    <p class="stat-number">${totalPresentes}</p>
-                </div>
-                <div class="stat-card">
-                    <h4>Porcentaje general</h4>
-                    <p class="stat-number">${porcentajeGeneral}%</p>
-                </div>
-            </div>
-            
-            <div class="chart-container">
-                <canvas id="graficoReporte"></canvas>
-            </div>
-            
-            <h3 style="color: var(--primary); margin-top: 30px;">Detalle por mes</h3>
-            <table class="tabla-reportes">
-                <thead>
-                    <tr>
-                        <th>Mes</th>
-                        <th>Eventos</th>
-                        <th>Presentes</th>
-                        <th>Ausentes</th>
-                        <th>% Asistencia</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${estadisticas.map(e => `
-                        <tr>
-                            <td>${e.mes}</td>
-                            <td>${e.total_registros}</td>
-                            <td>${e.presentes}</td>
-                            <td>${e.ausentes}</td>
-                            <td class="porcentaje">${e.porcentaje}%</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-        
-        // Dibujar gráfico
-        setTimeout(() => {
-            const ctx = document.getElementById('graficoReporte');
-            if (ctx) {
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: meses,
-                        datasets: [{
-                            label: '% Asistencia',
-                            data: porcentajes,
-                            borderColor: '#4a90e2',
-                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: true }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        }
-                    }
-                });
-            }
-        }, 100);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('Error al cargar reportes');
     }
 }
