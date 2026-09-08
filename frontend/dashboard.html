@@ -13,6 +13,12 @@
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </div>
             <h1>Sistema</h1>
             <p>Asistencia</p>
         </div>
@@ -20,19 +26,27 @@
         <ul class="sidebar-menu">
             <li>
                 <div class="sidebar-menu-item active" onclick="cambiarTab('inicio'); cerrarSidebarMobil()">
-                    <span>●</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
                     <span>Inicio</span>
                 </div>
             </li>
             <li>
                 <div class="sidebar-menu-item" onclick="cambiarTab('asistencia'); cerrarSidebarMobil()">
-                    <span>●</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
                     <span>Asistencia</span>
                 </div>
             </li>
             <li>
                 <div class="sidebar-menu-item" onclick="cambiarTab('reportes'); cerrarSidebarMobil()">
-                    <span>●</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
                     <span>Reportes</span>
                 </div>
             </li>
@@ -44,7 +58,13 @@
     </div>
 
     <!-- TOGGLE BUTTON -->
-    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
 
     <!-- MAIN CONTENT -->
     <div class="main-content" id="mainContent">
@@ -70,7 +90,14 @@
                 <div class="cards-container">
                     <!-- TARJETA CORO -->
                     <div class="card-grupo" onclick="irAAsistencia('coro')">
-                        <div class="card-icon">🎤</div>
+                        <div class="card-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
                         <h3>Coro</h3>
                         <p id="coroCount" class="card-count">0 integrantes</p>
                         <div class="card-footer">
@@ -80,7 +107,14 @@
 
                     <!-- TARJETA ORQUESTA -->
                     <div class="card-grupo" onclick="irAAsistencia('orquesta')">
-                        <div class="card-icon">🎻</div>
+                        <div class="card-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M9 19c-4.3 1.4 -4.3 -2.5 0 -4s12.3 -5 12 -9c0 -6 -4 -6.5 -12 -2.5s-4.2 16 -4 19.1"></path>
+                                <path d="M12 12v.01"></path>
+                                <path d="M8 11v.01"></path>
+                                <path d="M16 11v.01"></path>
+                            </svg>
+                        </div>
                         <h3>Orquesta</h3>
                         <p id="orquestaCount" class="card-count">0 integrantes</p>
                         <div class="card-footer">
@@ -104,25 +138,14 @@
                     </div>
                 </div>
 
-                <div class="tabla-container">
-                    <table class="tabla-miembros tabla-asistencia-inline">
-                        <thead>
-                            <tr>
-                                <th style="width: 50%;">Nombre</th>
-                                <th style="width: 25%;">Detalle</th>
-                                <th style="width: 10%; text-align: center;">P</th>
-                                <th style="width: 10%; text-align: center;">A</th>
-                                <th style="width: 5%; text-align: center;">AJ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="asistenciaTableBody">
-                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">Cargando miembros...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="asistencia-lista">
+                    <div id="asistenciaListBody" class="lista-miembros">
+                        <!-- Se llena con JavaScript -->
+                    </div>
                 </div>
 
                 <div class="tab-footer">
-                    <button class="btn btn-primary" onclick="agregarMiembroActual()">+ Agregar Miembro</button>
+                    <button class="btn btn-primary" onclick="agregarMiembroActual()">Agregar Miembro</button>
                 </div>
             </div>
 
@@ -178,35 +201,6 @@
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal()">Cancelar</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Popup Flotante Minimalista -->
-    <div id="popupAsistencia" class="popup-asistencia">
-        <div class="popup-content">
-            <button class="popup-close" onclick="cerrarPopup()">✕</button>
-            
-            <div class="popup-miembro">
-                <h4 id="popupNombre"></h4>
-                <p id="popupDetalle"></p>
-            </div>
-
-            <div class="popup-opciones">
-                <button class="popup-btn presente" onclick="registrarPopup('presente')" title="Presente">
-                    <span>✓</span>
-                    <span>P</span>
-                </button>
-                <button class="popup-btn ausente" onclick="registrarPopup('ausente')" title="Ausente">
-                    <span>✗</span>
-                    <span>A</span>
-                </button>
-                <button class="popup-btn justificado" onclick="registrarPopup('justificado')" title="Justificado">
-                    <span>?</span>
-                    <span>AJ</span>
-                </button>
-            </div>
-
-            <p class="popup-hint">Presiona una opción para registrar</p>
         </div>
     </div>
 

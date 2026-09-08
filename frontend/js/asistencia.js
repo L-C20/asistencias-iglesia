@@ -10,7 +10,6 @@ const VOCES = ['Soprano', 'Contralto', 'Tenor', 'Bajo'];
 
 let miembrosActuales = [];
 let grupoActual = null;
-let miembroActualPopup = null;
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -47,7 +46,8 @@ async function cargarConteosMiembros() {
 // ===== IR A ASISTENCIA =====
 function irAAsistencia(grupo) {
     grupoActual = grupo;
-    document.getElementById('asistenciaTitle').textContent = `Registrar Asistencia - ${grupo.charAt(0).toUpperCase() + grupo.slice(1)}`;
+    const grupoNombre = grupo.charAt(0).toUpperCase() + grupo.slice(1);
+    document.getElementById('asistenciaTitle').textContent = `Registrar Asistencia - ${grupoNombre}`;
     cambiarTab('asistencia');
     
     // Cargar fecha actual
@@ -67,43 +67,48 @@ async function cargarMiembrosParaAsistencia(grupo) {
         const miembros = await response.json();
         miembrosActuales = miembros;
         
-        const tbody = document.getElementById('asistenciaTableBody');
-        tbody.innerHTML = '';
+        const container = document.getElementById('asistenciaListBody');
+        container.innerHTML = '';
         
         if (miembros.length === 0) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = '<td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">No hay miembros registrados</td>';
-            tbody.appendChild(tr);
+            const div = document.createElement('div');
+            div.style.padding = '40px';
+            div.style.textAlign = 'center';
+            div.style.color = 'var(--text-light)';
+            div.textContent = 'No hay miembros registrados';
+            container.appendChild(div);
             return;
         }
         
         miembros.forEach(miembro => {
-            const tr = document.createElement('tr');
             const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
             
-            tr.innerHTML = `
-                <td>${miembro.nombre}</td>
-                <td>${detalleExtra}</td>
-                <td style="text-align: center;">
-                    <label class="checkbox-tabla presente">
-                        <input type="checkbox" onchange="abrirPopupAsistencia(${miembro.id}, '${miembro.nombre}', '${detalleExtra}', 'presente')">
-                        <span class="checkbox-visual-tabla">✓</span>
+            const row = document.createElement('div');
+            row.className = 'miembro-row';
+            row.innerHTML = `
+                <div class="miembro-info">
+                    <span class="miembro-nombre">${miembro.nombre}</span>
+                    <span class="miembro-detalle">${detalleExtra}</span>
+                </div>
+                <div class="miembro-switches">
+                    <label class="toggle-switch presente" title="Presente">
+                        <input type="checkbox" onchange="registrarAsistenciaDirecto(${miembro.id}, '${grupo}', 'presente', this)">
+                        <span class="toggle-icon">✓</span>
+                        <span class="toggle-label">P</span>
                     </label>
-                </td>
-                <td style="text-align: center;">
-                    <label class="checkbox-tabla ausente">
-                        <input type="checkbox" onchange="abrirPopupAsistencia(${miembro.id}, '${miembro.nombre}', '${detalleExtra}', 'ausente')">
-                        <span class="checkbox-visual-tabla">✗</span>
+                    <label class="toggle-switch ausente" title="Ausente">
+                        <input type="checkbox" onchange="registrarAsistenciaDirecto(${miembro.id}, '${grupo}', 'ausente', this)">
+                        <span class="toggle-icon">✗</span>
+                        <span class="toggle-label">A</span>
                     </label>
-                </td>
-                <td style="text-align: center;">
-                    <label class="checkbox-tabla justificado">
-                        <input type="checkbox" onchange="abrirPopupAsistencia(${miembro.id}, '${miembro.nombre}', '${detalleExtra}', 'justificado')">
-                        <span class="checkbox-visual-tabla">?</span>
+                    <label class="toggle-switch justificado" title="Justificado">
+                        <input type="checkbox" onchange="registrarAsistenciaDirecto(${miembro.id}, '${grupo}', 'justificado', this)">
+                        <span class="toggle-icon">?</span>
+                        <span class="toggle-label">AJ</span>
                     </label>
-                </td>
+                </div>
             `;
-            tbody.appendChild(tr);
+            container.appendChild(row);
         });
         
     } catch (error) {
@@ -112,29 +117,25 @@ async function cargarMiembrosParaAsistencia(grupo) {
     }
 }
 
-// ===== ABRIR POPUP ASISTENCIA =====
-function abrirPopupAsistencia(miembroId, nombre, detalle, tipo) {
-    miembroActualPopup = {
-        id: miembroId,
-        nombre: nombre,
-        detalle: detalle,
-        tipo: tipo
-    };
+// ===== REGISTRAR ASISTENCIA DIRECTO =====
+async function registrarAsistenciaDirecto(miembroId, grupo, tipo, checkbox) {
+    // Desmarcar otros checkboxes de la misma fila
+    const row = checkbox.closest('.miembro-row');
+    const switches = row.querySelectorAll('.toggle-switch input');
     
-    document.getElementById('popupNombre').textContent = nombre;
-    document.getElementById('popupDetalle').textContent = detalle;
+    switches.forEach(sw => {
+        if (sw !== checkbox) sw.checked = false;
+    });
     
-    const popup = document.getElementById('popupAsistencia');
-    popup.classList.add('show');
-}
-
-// ===== REGISTRAR DESDE POPUP =====
-async function registrarPopup(tipo) {
-    if (!miembroActualPopup) return;
+    // Si está desmarcando, no hacer nada
+    if (!checkbox.checked) {
+        return;
+    }
     
     const fecha = document.getElementById('fechaEvento').value;
     const tipoEvento = document.getElementById('tipoEvento').value;
     
+    // Determinar si presente y nota
     let presente;
     let nota = '';
     
@@ -147,6 +148,10 @@ async function registrarPopup(tipo) {
         nota = 'Justificado';
     }
     
+    // Agregar animación de guardando
+    const label = checkbox.closest('.toggle-switch');
+    label.classList.add('saving');
+    
     try {
         const response = await fetch(`${API_URL}/asistencia/registrar`, {
             method: 'POST',
@@ -155,7 +160,7 @@ async function registrarPopup(tipo) {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                miembro_id: miembroActualPopup.id,
+                miembro_id: miembroId,
                 tipo_evento: tipoEvento,
                 fecha: fecha,
                 presente: presente,
@@ -167,25 +172,18 @@ async function registrarPopup(tipo) {
         
         if (response.ok) {
             mostrarToast('Asistencia registrada', 'success');
-            cerrarPopup();
-            cargarMiembrosParaAsistencia(grupoActual);
+            label.classList.remove('saving');
         } else {
+            checkbox.checked = false;
             mostrarError(data.error || 'Error al registrar');
+            label.classList.remove('saving');
         }
     } catch (error) {
         console.error('Error:', error);
+        checkbox.checked = false;
         mostrarError('Error al registrar asistencia');
+        label.classList.remove('saving');
     }
-}
-
-// ===== CERRAR POPUP =====
-function cerrarPopup() {
-    const popup = document.getElementById('popupAsistencia');
-    popup.classList.add('closing');
-    setTimeout(() => {
-        popup.classList.remove('show', 'closing');
-        miembroActualPopup = null;
-    }, 300);
 }
 
 // ===== AGREGAR MIEMBRO =====

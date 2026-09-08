@@ -1495,3 +1495,276 @@ body.dashboard-page {
         font-size: 12px;
     }
 }
+
+/* ============ ASISTENCIA LISTA ============ */
+.asistencia-lista {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.lista-miembros {
+    display: flex;
+    flex-direction: column;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.miembro-row {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.miembro-row:hover {
+    background: var(--light);
+}
+
+.miembro-row:last-child {
+    border-bottom: none;
+}
+
+.miembro-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.miembro-nombre {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 15px;
+}
+
+.miembro-detalle {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.miembro-switches {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* ============ TOGGLE SWITCH ============ */
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: var(--transition);
+    background: var(--light);
+    border: 2px solid var(--border);
+    min-width: 50px;
+}
+
+.toggle-switch:hover {
+    border-color: var(--primary);
+    background: rgba(74, 144, 226, 0.05);
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-label {
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+/* PRESENTE */
+.toggle-switch.presente {
+    color: #26a69a;
+}
+
+.toggle-switch.presente input:checked ~ .toggle-label {
+    color: white;
+}
+
+.toggle-switch.presente input:checked {
+    display: none;
+}
+
+.toggle-switch.presente input:checked ~ .toggle-icon {
+    background: linear-gradient(135deg, #26a69a 0%, #4db8a8 100%);
+    color: white;
+}
+
+.toggle-switch.presente:hover:not(:has(input:checked)) {
+    border-color: #26a69a;
+}
+
+/* AUSENTE */
+.toggle-switch.ausente {
+    color: #e74c3c;
+}
+
+.toggle-switch.ausente input:checked ~ .toggle-label {
+    color: white;
+}
+
+.toggle-switch.ausente input:checked ~ .toggle-icon {
+    background: linear-gradient(135deg, #e74c3c 0%, #ec7063 100%);
+    color: white;
+}
+
+.toggle-switch.ausente:hover:not(:has(input:checked)) {
+    border-color: #e74c3c;
+}
+
+/* JUSTIFICADO */
+.toggle-switch.justificado {
+    color: #ff9800;
+}
+
+.toggle-switch.justificado input:checked ~ .toggle-label {
+    color: white;
+}
+
+.toggle-switch.justificado input:checked ~ .toggle-icon {
+    background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+    color: white;
+}
+
+.toggle-switch.justificado:hover:not(:has(input:checked)) {
+    border-color: #ff9800;
+}
+
+.toggle-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    transition: var(--transition);
+    background: white;
+    border: 2px solid currentColor;
+}
+
+.toggle-switch input:checked ~ .toggle-icon {
+    border: none;
+    color: white;
+}
+
+.toggle-switch input:checked {
+    display: none;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .miembro-row {
+        padding: 12px 15px;
+    }
+
+    .miembro-nombre {
+        font-size: 14px;
+    }
+
+    .miembro-detalle {
+        font-size: 12px;
+    }
+
+    .toggle-switch {
+        min-width: 44px;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .toggle-label {
+        font-size: 11px;
+    }
+
+    .toggle-icon {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+
+    .lista-miembros {
+        max-height: 60vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .miembro-row {
+        padding: 10px 12px;
+    }
+
+    .miembro-switches {
+        gap: 8px;
+    }
+
+    .toggle-switch {
+        min-width: 40px;
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .toggle-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+
+    .lista-miembros {
+        max-height: 50vh;
+    }
+}
+
+/* ============ ANIMACIÓN DE GUARDADO ============ */
+@keyframes checkPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.toggle-switch.saving .toggle-icon {
+    animation: checkPulse 0.4s ease-out;
+}
+
+/* ============ SIDEBAR LOGO ============ */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    color: white;
+}
+
+.sidebar-logo svg {
+    stroke-width: 2;
+}
+
+/* ============ SVG EN SIDEBAR ============ */
+.sidebar-menu-item svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.sidebar-toggle svg {
+    width: 24px;
+    height: 24px;
+}
