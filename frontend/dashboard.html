@@ -95,10 +95,60 @@
                     <label>Nombre:</label>
                     <input type="text" id="nombreNuevo" required>
                 </div>
+                
+                <div class="form-group" id="formInstrumento">
+                    <label id="labelInstrumento">Instrumento:</label>
+                    <select id="instrumentoNuevo" class="form-control" style="display: none;">
+                        <option value="">-- Seleccionar instrumento --</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="formVoz">
+                    <label id="labelVoz">Voz:</label>
+                    <select id="vozNueva" class="form-control" style="display: none;">
+                        <option value="">-- Seleccionar voz --</option>
+                    </select>
+                </div>
+                
                 <input type="hidden" id="grupoNuevo">
-                <button type="submit" class="btn btn-success">Agregar</button>
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">Agregar</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal()">Cancelar</button>
+                </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal para tabla de miembros -->
+    <div id="modalTablaMiembros" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close" onclick="cerrarModalTabla()">&times;</span>
+            <h3>Miembros del Grupo</h3>
+            
+            <div class="form-group">
+                <label>Filtrar:</label>
+                <input type="text" id="filtroMiembros" class="form-control" placeholder="Buscar por instrumento o voz...">
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="tabla-asistencia">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Instrumento / Voz</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaMiembrosBody">
+                        <!-- Se llena con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="cerrarModalTabla()">Cerrar</button>
+            </div>
         </div>
     </div>
 

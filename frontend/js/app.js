@@ -197,3 +197,80 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', logout);
     }
 });
+
+// AGREGAR ESTAS FUNCIONES A app.js
+
+// ===== CERRAR MODAL =====
+function cerrarModal() {
+    document.getElementById('modalAgregarMiembro').classList.remove('show');
+}
+
+function cerrarModalTabla() {
+    document.getElementById('modalTablaMiembros').classList.remove('show');
+}
+
+// ===== MOSTRAR USUARIO ACTUAL =====
+function mostrarUsuario() {
+    const userSpan = document.getElementById('usuarioActual');
+    if (userSpan && usuarioActual) {
+        userSpan.textContent = `👤 ${usuarioActual.usuario}`;
+    }
+}
+
+// ===== LOGOUT =====
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    window.location.href = '/';
+}
+
+// ===== CAMBIAR TAB =====
+function cambiarTab(tabName) {
+    // Ocultar todos los tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Desactivar todos los botones
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Activar tab y botón seleccionado
+    document.getElementById(tabName).classList.add('active');
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+}
+
+// ===== MENSAJES =====
+function mostrarMensajeExito(mensaje) {
+    const div = document.createElement('div');
+    div.className = 'success-message show';
+    div.textContent = mensaje;
+    document.body.appendChild(div);
+    
+    setTimeout(() => {
+        div.remove();
+    }, 3000);
+}
+
+// ===== CERRAR MODAL AL HACER CLICK FUERA =====
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('modalAgregarMiembro');
+    const tablaMiembros = document.getElementById('modalTablaMiembros');
+    
+    if (e.target === modal) {
+        cerrarModal();
+    }
+    
+    if (e.target === tablaMiembros) {
+        cerrarModalTabla();
+    }
+});
+
+// ===== CERRAR MODAL CON ESC =====
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        cerrarModal();
+        cerrarModalTabla();
+    }
+});
