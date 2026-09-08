@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Asistencia</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/sidebar-svg-styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 </head>
@@ -48,9 +49,22 @@
             </div>
 
             <ul class="sidebar-menu">
-                <li><div class="sidebar-menu-item active" onclick="cambiarTab('inicio')"><span>●</span><span>Inicio</span></div></li>
-                <li><div class="sidebar-menu-item" onclick="cambiarTab('asistencia')"><span>●</span><span>Asistencia</span></div></li>
-                <li><div class="sidebar-menu-item" onclick="cambiarTab('reportes')"><span>●</span><span>Reportes</span></div></li>
+                <li><div class="sidebar-menu-item active" onclick="cambiarTab('inicio')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Inicio</span>
+                </div></li>
+                <li><div class="sidebar-menu-item" onclick="cambiarTab('reportes')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Reportes</span>
+                </div></li>
             </ul>
 
             <div class="sidebar-footer">
@@ -72,20 +86,43 @@
                 <div id="inicio" class="tab-content active">
                     <div class="inicio-header">
                         <h2>Bienvenido</h2>
-                        <p>Selecciona un grupo</p>
+                        <p>Selecciona un grupo para registrar asistencia</p>
                     </div>
 
                     <div class="cards-container">
                         <div class="card-grupo" onclick="irAAsistencia('coro')">
+                            <div class="card-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
                             <h3>Coro</h3>
                             <p id="coroCount" class="card-count">0 integrantes</p>
-                            <div class="card-footer"><span class="card-action">Registrar →</span></div>
+                            <div class="card-footer">
+                                <span class="card-action">Registrar asistencia →</span>
+                            </div>
                         </div>
 
                         <div class="card-grupo" onclick="irAAsistencia('orquesta')">
+                            <div class="card-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M18 3a6 6 0 0 0-6 6v12"></path>
+                                    <path d="M6 9a4 4 0 0 0 4 4"></path>
+                                    <circle cx="9" cy="3" r="1.5"></circle>
+                                    <path d="M20 12a2 2 0 0 0-2 2"></path>
+                                    <path d="M6 21v-2a2 2 0 0 1 2-2"></path>
+                                    <path d="M18 21v-4a2 2 0 0 1 2-2"></path>
+                                    <circle cx="12" cy="2.5" r="1.5"></circle>
+                                </svg>
+                            </div>
                             <h3>Orquesta</h3>
                             <p id="orquestaCount" class="card-count">0 integrantes</p>
-                            <div class="card-footer"><span class="card-action">Registrar →</span></div>
+                            <div class="card-footer">
+                                <span class="card-action">Registrar asistencia →</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -93,7 +130,13 @@
                 <div id="asistencia" class="tab-content">
                     <div class="asistencia-header">
                         <h2 id="asistenciaTitle">Registrar Asistencia</h2>
-                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">Atrás</button>
+                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                            Atrás
+                        </button>
                     </div>
 
                     <div class="asistencia-lista">
@@ -101,20 +144,54 @@
                     </div>
 
                     <div class="tab-footer">
-                        <button class="btn btn-success" onclick="guardarTodasAsistencias()">Guardar Asistencias</button>
-                        <button class="btn btn-primary" onclick="agregarMiembroActual()">Agregar Miembro</button>
+                        <button class="btn btn-success" onclick="guardarTodasAsistencias()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Guardar Asistencias
+                        </button>
+                        <button class="btn btn-primary" onclick="agregarMiembroActual()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"></path>
+                            </svg>
+                            Agregar Miembro
+                        </button>
                     </div>
                 </div>
 
                 <div id="reportes" class="tab-content">
                     <div class="reportes-header">
-                        <h2>Reportes</h2>
+                        <h2>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; margin-right: 12px; vertical-align: middle;">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="9" x2="9" y2="15"></line>
+                                <line x1="15" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                            Reportes
+                        </h2>
                         <p>Análisis de asistencia</p>
                     </div>
 
                     <div class="reportes-tabs">
-                        <button class="reporte-tab-btn active" onclick="cargarReporteGrupo('coro')">Coro</button>
-                        <button class="reporte-tab-btn" onclick="cargarReporteGrupo('orquesta')">Orquesta</button>
+                        <button class="reporte-tab-btn active" onclick="cargarReporteGrupo('coro')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            Coro
+                        </button>
+                        <button class="reporte-tab-btn" onclick="cargarReporteGrupo('orquesta')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 3a6 6 0 0 0-6 6v12"></path>
+                                <path d="M6 9a4 4 0 0 0 4 4"></path>
+                                <circle cx="9" cy="3" r="1.5"></circle>
+                            </svg>
+                            Orquesta
+                        </button>
                     </div>
 
                     <div id="reporteContent" class="reporte-content"></div>
@@ -127,9 +204,19 @@
     <!-- MODALES -->
     <div id="modalConfigurarEvento" class="modal">
         <div class="modal-content modal-evento">
-            <span class="close" onclick="cerrarModalEvento()">&times;</span>
-            <h3>Configurar Evento</h3>
-            <p class="modal-subtitle">Selecciona tipo y fecha</p>
+            <span class="close" onclick="cerrarModalEvento()">×</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <div>
+                    <h3 style="margin: 0 0 4px 0;">Configurar Evento</h3>
+                    <p class="modal-subtitle">Selecciona el tipo de evento y la fecha</p>
+                </div>
+            </div>
             
             <form id="formConfigurarEvento">
                 <div class="form-group">
@@ -137,22 +224,48 @@
                     <div class="radio-options">
                         <label class="radio-option">
                             <input type="radio" name="tipoEvento" value="santo_culto" checked>
-                            <span class="radio-label"><span class="radio-circle"></span><span class="radio-text">Santo Culto</span></span>
+                            <span class="radio-label">
+                                <span class="radio-circle"></span>
+                                <span class="radio-text">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; margin-right: 6px; vertical-align: middle;">
+                                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"></path>
+                                        <path d="M12 6v6l4 2"></path>
+                                    </svg>
+                                    Santo Culto
+                                </span>
+                            </span>
                         </label>
                         <label class="radio-option">
                             <input type="radio" name="tipoEvento" value="ensayo">
-                            <span class="radio-label"><span class="radio-circle"></span><span class="radio-text">Ensayo</span></span>
+                            <span class="radio-label">
+                                <span class="radio-circle"></span>
+                                <span class="radio-text">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; margin-right: 6px; vertical-align: middle;">
+                                        <circle cx="12" cy="12" r="1"></circle>
+                                        <path d="M12 1v6m0 6v6"></path>
+                                        <path d="M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24"></path>
+                                        <path d="M1 12h6m6 0h6"></path>
+                                        <path d="M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24"></path>
+                                    </svg>
+                                    Ensayo
+                                </span>
+                            </span>
                         </label>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>Fecha:</label>
+                    <label>Fecha del Evento:</label>
                     <input type="date" id="fechaEventoModal" class="form-control" required>
                 </div>
                 
                 <div style="display: flex; gap: 12px; margin-top: 30px;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">Continuar</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Continuar
+                    </button>
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalEvento()">Cancelar</button>
                 </div>
             </form>
@@ -161,8 +274,13 @@
 
     <div id="modalAgregarMiembro" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="cerrarModal()">&times;</span>
-            <h3>Agregar Miembro</h3>
+            <span class="close" onclick="cerrarModal()">×</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                <h3 style="margin: 0;">Agregar Nuevo Miembro</h3>
+            </div>
             <form id="formNuevoMiembro">
                 <div class="form-group">
                     <label>Nombre:</label>
@@ -182,7 +300,12 @@
                 <input type="hidden" id="grupoNuevo">
                 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn btn-success" style="flex: 1;">Agregar</button>
+                    <button type="submit" class="btn btn-success" style="flex: 1;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Agregar
+                    </button>
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal()">Cancelar</button>
                 </div>
             </form>
