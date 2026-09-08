@@ -3,34 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistencia - Login</title>
+    <title>Panel de Asistencia</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 </head>
-<body class="login-page">
-    <div class="login-container">
-        <div class="login-box">
-            <h1>📋 Asistencia</h1>
-            <h2>Orquesta y Coro</h2>
-            
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="usuario">Usuario:</label>
-                    <input type="text" id="usuario" name="usuario" required>
-                </div>
+<body>
+    
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="login-page" style="display: flex;">
+        <div class="login-container">
+            <div class="login-box">
+                <h1>Asistencia</h1>
+                <h2>Sistema de Control</h2>
                 
-                <div class="form-group">
-                    <label for="password">Contraseña:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" id="usuario" placeholder="usuario1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="password" placeholder="sigme" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar</button>
+                </form>
                 
-                <button type="submit" class="btn btn-primary">Ingresar</button>
-            </form>
-            
-            <p class="login-hint">Usuario: usuario1 a usuario4<br>Contraseña: sigme</p>
-            <div id="loginError" class="error-message"></div>
+                <div class="login-hint">
+                    Demo: usuario1 / sigme
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboardPage" class="dashboard-page" style="display: none;">
+        
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>Sistema</h1>
+                <p>Asistencia</p>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><div class="sidebar-menu-item active" onclick="cambiarTab('inicio')"><span>●</span><span>Inicio</span></div></li>
+                <li><div class="sidebar-menu-item" onclick="cambiarTab('asistencia')"><span>●</span><span>Asistencia</span></div></li>
+                <li><div class="sidebar-menu-item" onclick="cambiarTab('reportes')"><span>●</span><span>Reportes</span></div></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-danger" id="logoutBtn" style="width: 100%;">Salir</button>
+            </div>
+        </div>
+
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+
+        <div class="main-content" id="mainContent">
+            
+            <nav class="navbar">
+                <h1>Panel de Asistencia</h1>
+                <span id="usuarioActual" class="usuario-info"></span>
+            </nav>
+
+            <div class="container">
+                
+                <div id="inicio" class="tab-content active">
+                    <div class="inicio-header">
+                        <h2>Bienvenido</h2>
+                        <p>Selecciona un grupo</p>
+                    </div>
+
+                    <div class="cards-container">
+                        <div class="card-grupo" onclick="irAAsistencia('coro')">
+                            <h3>Coro</h3>
+                            <p id="coroCount" class="card-count">0 integrantes</p>
+                            <div class="card-footer"><span class="card-action">Registrar →</span></div>
+                        </div>
+
+                        <div class="card-grupo" onclick="irAAsistencia('orquesta')">
+                            <h3>Orquesta</h3>
+                            <p id="orquestaCount" class="card-count">0 integrantes</p>
+                            <div class="card-footer"><span class="card-action">Registrar →</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="asistencia" class="tab-content">
+                    <div class="asistencia-header">
+                        <h2 id="asistenciaTitle">Registrar Asistencia</h2>
+                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">Atrás</button>
+                    </div>
+
+                    <div class="asistencia-lista">
+                        <div id="asistenciaListBody" class="lista-miembros"></div>
+                    </div>
+
+                    <div class="tab-footer">
+                        <button class="btn btn-primary" onclick="agregarMiembroActual()">Agregar Miembro</button>
+                    </div>
+                </div>
+
+                <div id="reportes" class="tab-content">
+                    <div class="reportes-header">
+                        <h2>Reportes</h2>
+                        <p>Análisis de asistencia</p>
+                    </div>
+
+                    <div class="reportes-tabs">
+                        <button class="reporte-tab-btn active" onclick="cargarReporteGrupo('coro')">Coro</button>
+                        <button class="reporte-tab-btn" onclick="cargarReporteGrupo('orquesta')">Orquesta</button>
+                    </div>
+
+                    <div id="reporteContent" class="reporte-content"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES -->
+    <div id="modalConfigurarEvento" class="modal">
+        <div class="modal-content modal-evento">
+            <span class="close" onclick="cerrarModalEvento()">&times;</span>
+            <h3>Configurar Evento</h3>
+            <p class="modal-subtitle">Selecciona tipo y fecha</p>
+            
+            <form id="formConfigurarEvento">
+                <div class="form-group">
+                    <label>Tipo de Evento:</label>
+                    <div class="radio-options">
+                        <label class="radio-option">
+                            <input type="radio" name="tipoEvento" value="santo_culto" checked>
+                            <span class="radio-label"><span class="radio-circle"></span><span class="radio-text">Santo Culto</span></span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipoEvento" value="ensayo">
+                            <span class="radio-label"><span class="radio-circle"></span><span class="radio-text">Ensayo</span></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Fecha:</label>
+                    <input type="date" id="fechaEventoModal" class="form-control" required>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Continuar</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalEvento()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalAgregarMiembro" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h3>Agregar Miembro</h3>
+            <form id="formNuevoMiembro">
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input type="text" id="nombreNuevo" required>
+                </div>
+                
+                <div class="form-group" id="formInstrumento">
+                    <label id="labelInstrumento">Instrumento:</label>
+                    <select id="instrumentoNuevo" class="form-control" style="display: none;"></select>
+                </div>
+                
+                <div class="form-group" id="formVoz">
+                    <label id="labelVoz">Voz:</label>
+                    <select id="vozNueva" class="form-control" style="display: none;"></select>
+                </div>
+                
+                <input type="hidden" id="grupoNuevo">
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">Agregar</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
     <script src="js/app.js"></script>
+    <script src="js/asistencia.js"></script>
+    <script src="js/reportes.js"></script>
 </body>
 </html>
