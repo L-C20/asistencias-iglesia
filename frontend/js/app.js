@@ -179,16 +179,23 @@ function mostrarToast(mensaje, tipo = 'info') {
 }
 
 // ===== INICIALIZAR APLICACIÓN =====
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
+    console.log('initApp() llamado');
+    
     const storedToken = localStorage.getItem('token');
     const storedUsuario = localStorage.getItem('usuario');
     
     const loginPage = document.getElementById('loginPage');
     const dashboardPage = document.getElementById('dashboardPage');
     
+    console.log('loginPage:', loginPage);
+    console.log('dashboardPage:', dashboardPage);
+    
     // Validar que existan los elementos
     if (!loginPage || !dashboardPage) {
         console.error('Error: No se encontraron los elementos loginPage o dashboardPage en el HTML');
+        console.error('loginPage exists:', !!loginPage);
+        console.error('dashboardPage exists:', !!dashboardPage);
         return;
     }
     
@@ -274,7 +281,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
+}
+
+// Ejecutar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    // El DOM ya está cargado (scripts al final del body)
+    initApp();
+}
 
 // ===== DETECTAR CAMBIO DE TAMAÑO =====
 window.addEventListener('resize', () => {
