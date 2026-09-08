@@ -96,8 +96,10 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                     <div class="stat-header">
                         <h4>Ausencias</h4>
                         <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                            <path d="M6 18c0 1 1 2 2 2h8c1 0 2-1 2-2"></path>
+                            <path d="M9 9h6"></path>
+                            <path d="M9 13h6"></path>
+                            <circle cx="12" cy="12" r="9"></circle>
                         </svg>
                     </div>
                     <p class="stat-number">${totalAusentes}</p>
@@ -105,10 +107,12 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
-                        <h4>Tasa de Asistencia</h4>
+                        <h4>% Asistencia</h4>
                         <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                            <polyline points="17 6 23 6 23 12"></polyline>
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                            <path d="M21 3v5h-5"></path>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                            <path d="M3 21v-5h5"></path>
                         </svg>
                     </div>
                     <p class="stat-number">${porcentajeGeneral}%</p>

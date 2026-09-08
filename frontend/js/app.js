@@ -1,62 +1,16 @@
-const API_URL = '/api';
+// ===== VARIABLES GLOBALES =====
 let token = null;
-let usuarioActual = null;
-
-// ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', () => {
-    // Si estamos en login
-    if (document.getElementById('loginForm')) {
-        document.getElementById('loginForm').addEventListener('submit', login);
-    }
-    
-    // Si estamos en dashboard
-    if (document.querySelector('.sidebar')) {
-        // Verificar token
-        verificarToken();
-        
-        // Tabs
-        const tabButtons = document.querySelectorAll('.sidebar-menu-item');
-        if (tabButtons.length > 0) {
-            tabButtons.forEach((btn, index) => {
-                btn.addEventListener('click', () => {
-                    const tabs = ['coro', 'orquesta', 'reportes'];
-                    if (tabs[index]) cambiarTab(tabs[index]);
-                });
-            });
-        }
-        
-        // Logout
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', logout);
-        }
-        
-        // Modal
-        const formNuevo = document.getElementById('formNuevoMiembro');
-        if (formNuevo) {
-            formNuevo.addEventListener('submit', guardarNuevoMiembro);
-        }
-        
-        // Cargar fecha actual (con verificación)
-        const fechaCoro = document.getElementById('fechaCoro');
-        const fechaOrquesta = document.getElementById('fechaOrquesta');
-        
-        if (fechaCoro) fechaCoro.valueAsDate = new Date();
-        if (fechaOrquesta) fechaOrquesta.valueAsDate = new Date();
-        
-        // Cargar miembros de coro automáticamente
-        setTimeout(() => {
-            cargarMiembros('coro');
-        }, 500);
-    }
-});
+const API_URL = 'https://asistencias-iglesia-production.up.railway.app/api';
 
 // ===== LOGIN =====
-async function login(e) {
-    e.preventDefault();
-    const usuario = document.getElementById('usuario').value;
-    const password = document.getElementById('password').value;
-    const errorDiv = document.getElementById('loginError');
+async function loginUser() {
+    const usuario = document.getElementById('usuario')?.value;
+    const password = document.getElementById('password')?.value;
+    
+    if (!usuario || !password) {
+        mostrarError('Por favor completa todos los campos');
+        return;
+    }
     
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
@@ -67,119 +21,128 @@ async function login(e) {
         
         const data = await response.json();
         
-        if (!response.ok) {
-            errorDiv.textContent = data.error || 'Error en el login';
-            errorDiv.classList.add('show');
-            return;
+        if (response.ok) {
+            token = data.token;
+            localStorage.setItem('token', token);
+            localStorage.setItem('usuario', usuario);
+            
+            // Mostrar página de dashboard
+            document.querySelector('.login-page').style.display = 'none';
+            document.querySelector('.dashboard-page').style.display = 'flex';
+            
+            // Cargar usuario actual
+            document.getElementById('usuarioActual').textContent = `Bienvenido, ${usuario}`;
+            
+            // Cargar datos iniciales
+            setTimeout(() => {
+                cargarConteosMiembros();
+                cargarReporteGrupo('coro', true);
+            }, 500);
+            
+            mostrarToast('Sesión iniciada correctamente', 'success');
+        } else {
+            mostrarError(data.error || 'Credenciales inválidas');
         }
-        
-        token = data.token;
-        usuarioActual = data.user;
-        localStorage.setItem('token', token);
-        localStorage.setItem('usuario', JSON.stringify(usuarioActual));
-        
-        window.location.href = '/dashboard';
-        
     } catch (error) {
         console.error('Error:', error);
-        errorDiv.textContent = 'Error de conexión';
-        errorDiv.classList.add('show');
-    }
-}
-
-// ===== VERIFICAR TOKEN =====
-async function verificarToken() {
-    token = localStorage.getItem('token');
-    usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
-    
-    if (!token) {
-        window.location.href = '/';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/auth/verify`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('usuario');
-            window.location.href = '/';
-        } else {
-            mostrarUsuario();
-        }
-    } catch (error) {
-        console.error('Error verificando token:', error);
-        window.location.href = '/';
-    }
-}
-
-// ===== MOSTRAR USUARIO ACTUAL =====
-function mostrarUsuario() {
-    const userSpan = document.getElementById('usuarioActual');
-    if (userSpan && usuarioActual) {
-        userSpan.textContent = usuarioActual.usuario;
+        mostrarError('Error al iniciar sesión');
     }
 }
 
 // ===== LOGOUT =====
 function logout() {
+    token = null;
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
-    window.location.href = '/';
+    
+    // Volver a login
+    document.querySelector('.login-page').style.display = 'flex';
+    document.querySelector('.dashboard-page').style.display = 'none';
+    document.getElementById('usuario').value = '';
+    document.getElementById('password').value = '';
+    
+    mostrarToast('Sesión cerrada', 'success');
 }
 
 // ===== CAMBIAR TAB =====
 function cambiarTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tab => {
+    // Ocultar todas las tabs
+    const allTabs = document.querySelectorAll('.tab-content');
+    allTabs.forEach(tab => {
         tab.classList.remove('active');
     });
     
-    document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+    // Remover active de todos los menu items
+    const allMenuItems = document.querySelectorAll('.sidebar-menu-item');
+    allMenuItems.forEach(item => {
         item.classList.remove('active');
     });
     
-    document.getElementById(tabName).classList.add('active');
+    // Mostrar la tab seleccionada
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
     
+    // Marcar menu item como activo
     const menuItems = document.querySelectorAll('.sidebar-menu-item');
-    if (tabName === 'inicio') menuItems[0].classList.add('active');
-    else if (tabName === 'asistencia') menuItems[1].classList.add('active');
-    else if (tabName === 'reportes') menuItems[2].classList.add('active');
+    if (tabName === 'inicio') {
+        menuItems[0]?.classList.add('active');
+    } else if (tabName === 'asistencia') {
+        menuItems[1]?.classList.add('active');
+    } else if (tabName === 'reportes') {
+        menuItems[2]?.classList.add('active');
+    }
+    
+    // Cerrar sidebar en mobile
+    cerrarSidebarMobil();
 }
 
-// ===== SIDEBAR =====
+// ===== TOGGLE SIDEBAR =====
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('mainContent');
     
-    sidebar.classList.toggle('collapsed');
-    mainContent.classList.toggle('sidebar-collapsed');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+    }
+    if (mainContent) {
+        mainContent.classList.toggle('sidebar-collapsed');
+    }
 }
 
+// ===== CERRAR SIDEBAR MOBILE =====
 function cerrarSidebarMobil() {
+    const sidebar = document.getElementById('sidebar');
     if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.add('collapsed');
-        document.getElementById('mainContent').classList.add('sidebar-collapsed');
+        sidebar?.classList.add('collapsed');
     }
 }
 
-// Cerrar sidebar al hacer click fuera
-document.addEventListener('click', (e) => {
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.getElementById('sidebarToggle');
-    
-    if (sidebar && toggle && window.innerWidth <= 768 && 
-        !sidebar.contains(e.target) && 
-        !toggle.contains(e.target) &&
-        !sidebar.classList.contains('collapsed')) {
-        sidebar.classList.add('collapsed');
-        document.getElementById('mainContent').classList.add('sidebar-collapsed');
+// ===== CERRAR MODAL GENÉRICO =====
+function cerrarModal() {
+    const modal = document.getElementById('modalAgregarMiembro');
+    if (modal) {
+        modal.classList.remove('show');
     }
-});
+    document.getElementById('formNuevoMiembro')?.reset();
+}
 
-// ===== NOTIFICACIONES TOAST =====
-function mostrarToast(mensaje, tipo = 'success') {
+// ===== CERRAR MODAL EVENTO =====
+function cerrarModalEvento() {
+    const modal = document.getElementById('modalConfigurarEvento');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+// ===== MOSTRAR ERROR =====
+function mostrarError(mensaje) {
+    mostrarToast(mensaje, 'error');
+}
+
+// ===== MOSTRAR TOAST =====
+function mostrarToast(mensaje, tipo = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
     
@@ -192,7 +155,6 @@ function mostrarToast(mensaje, tipo = 'success') {
     
     container.appendChild(toast);
     
-    // Auto remover después de 3 segundos
     setTimeout(() => {
         toast.classList.add('removing');
         setTimeout(() => {
@@ -201,115 +163,85 @@ function mostrarToast(mensaje, tipo = 'success') {
     }, 3000);
 }
 
-function mostrarMensajeExito(mensaje) {
-    mostrarToast(mensaje, 'success');
-}
-
-function mostrarError(mensaje) {
-    mostrarToast(mensaje, 'error');
-}
-
-function mostrarInfo(mensaje) {
-    mostrarToast(mensaje, 'info');
-}
-
-// ===== MODAL =====
-function abrirModal(grupo) {
-    document.getElementById('grupoNuevo').value = grupo;
-    document.getElementById('nombreNuevo').value = '';
-    document.getElementById('modalAgregarMiembro').classList.add('show');
-}
-
-function cerrarModal() {
-    document.getElementById('modalAgregarMiembro').classList.remove('show');
-}
-
-function cerrarModalAsistencia() {
-    document.getElementById('modalAsistencia').classList.remove('show');
-    miembroEnEdicion = null;
-    grupoEnEdicion = null;
-}
-
-function agregarMiembroCoro() {
-    abrirModalAgregarMiembro('coro');
-}
-
-function agregarMiembroOrquesta() {
-    abrirModalAgregarMiembro('orquesta');
-}
-
-// ===== GUARDAR NUEVO MIEMBRO =====
-async function guardarNuevoMiembro(e) {
-    e.preventDefault();
+// ===== INICIALIZAR APLICACIÓN =====
+document.addEventListener('DOMContentLoaded', () => {
+    const storedToken = localStorage.getItem('token');
+    const storedUsuario = localStorage.getItem('usuario');
     
-    const nombre = document.getElementById('nombreNuevo').value;
-    const grupo = document.getElementById('grupoNuevo').value;
-    const instrumento = document.getElementById('instrumentoNuevo').value;
-    const voz = document.getElementById('vozNueva').value;
-    
-    if (!nombre) {
-        mostrarError('El nombre es requerido');
-        return;
+    // Si hay token guardado, mostrar dashboard
+    if (storedToken) {
+        token = storedToken;
+        document.querySelector('.login-page').style.display = 'none';
+        document.querySelector('.dashboard-page').style.display = 'flex';
+        document.getElementById('usuarioActual').textContent = `Bienvenido, ${storedUsuario}`;
+        
+        // Cargar datos
+        setTimeout(() => {
+            cargarConteosMiembros();
+            cambiarTab('inicio');
+        }, 300);
+    } else {
+        // Mostrar login
+        document.querySelector('.login-page').style.display = 'flex';
+        document.querySelector('.dashboard-page').style.display = 'none';
     }
     
-    if (grupo === 'orquesta' && !instrumento) {
-        mostrarError('Debe seleccionar un instrumento');
-        return;
+    // Logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
     }
     
-    if (grupo === 'coro' && !voz) {
-        mostrarError('Debe seleccionar una voz');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/asistencia/miembro/nuevo`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                nombre: nombre,
-                grupo: grupo,
-                instrumento: grupo === 'orquesta' ? instrumento : null,
-                voz: grupo === 'coro' ? voz : null
-            })
+    // Form login
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            loginUser();
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            cerrarModal();
-            mostrarMensajeExito('Miembro agregado correctamente');
-            cargarMiembros(grupo);
-        } else {
-            mostrarError(data.error || 'Error al agregar miembro');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('Error al agregar miembro');
-    }
-}
-
-// ===== CERRAR MODALES CON CLICK FUERA =====
-document.addEventListener('click', (e) => {
-    const modal = document.getElementById('modalAgregarMiembro');
-    const modalAsistencia = document.getElementById('modalAsistencia');
-    
-    if (e.target === modal) {
-        cerrarModal();
     }
     
-    if (e.target === modalAsistencia) {
-        cerrarModalAsistencia();
+    // Form evento
+    const formEvento = document.getElementById('formConfigurarEvento');
+    if (formEvento) {
+        formEvento.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const tipoEvento = document.querySelector('input[name="tipoEvento"]:checked').value;
+            const fechaEvento = document.getElementById('fechaEventoModal').value;
+            
+            if (!fechaEvento) {
+                mostrarError('Selecciona una fecha');
+                return;
+            }
+            
+            // Guardar configuración
+            window.tipoEventoSeleccionado = tipoEvento;
+            window.fechaEventoSeleccionada = fechaEvento;
+            
+            // Cambiar a tab asistencia
+            const grupoNombre = grupoActual.charAt(0).toUpperCase() + grupoActual.slice(1);
+            const titleEl = document.getElementById('asistenciaTitle');
+            if (titleEl) {
+                titleEl.textContent = `Registrar Asistencia - ${grupoNombre}`;
+            }
+            cambiarTab('asistencia');
+            
+            // Cerrar modal
+            cerrarModalEvento();
+            
+            // Cargar miembros
+            cargarMiembrosParaAsistencia(grupoActual);
+            
+            mostrarToast('Configuración guardada', 'success');
+        });
     }
 });
 
-// ===== CERRAR MODALES CON ESC =====
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        cerrarModal();
-        cerrarModalAsistencia();
+// ===== DETECTAR CAMBIO DE TAMAÑO =====
+window.addEventListener('resize', () => {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth > 768) {
+        sidebar?.classList.remove('collapsed');
     }
 });
