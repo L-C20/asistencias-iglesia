@@ -26,17 +26,22 @@ async function loginUser() {
             localStorage.setItem('token', token);
             localStorage.setItem('usuario', usuario);
             
-            // Mostrar página de dashboard
-            document.querySelector('.login-page').style.display = 'none';
-            document.querySelector('.dashboard-page').style.display = 'flex';
+            const loginPage = document.getElementById('loginPage');
+            const dashboardPage = document.getElementById('dashboardPage');
             
-            // Cargar usuario actual
-            document.getElementById('usuarioActual').textContent = `Bienvenido, ${usuario}`;
+            if (loginPage && dashboardPage) {
+                loginPage.style.display = 'none';
+                dashboardPage.style.display = 'flex';
+            }
             
-            // Cargar datos iniciales
+            const usuarioActual = document.getElementById('usuarioActual');
+            if (usuarioActual) {
+                usuarioActual.textContent = `Bienvenido, ${usuario}`;
+            }
+            
             setTimeout(() => {
                 cargarConteosMiembros();
-                cargarReporteGrupo('coro', true);
+                cambiarTab('inicio');
             }, 500);
             
             mostrarToast('Sesión iniciada correctamente', 'success');
@@ -58,11 +63,15 @@ function logout() {
     const loginPage = document.getElementById('loginPage');
     const dashboardPage = document.getElementById('dashboardPage');
     
-    // Volver a login
-    loginPage.style.display = 'flex';
-    dashboardPage.style.display = 'none';
-    document.getElementById('usuario').value = '';
-    document.getElementById('password').value = '';
+    if (loginPage && dashboardPage) {
+        loginPage.style.display = 'flex';
+        dashboardPage.style.display = 'none';
+    }
+    
+    const usuario = document.getElementById('usuario');
+    const password = document.getElementById('password');
+    if (usuario) usuario.value = '';
+    if (password) password.value = '';
     
     mostrarToast('Sesión cerrada', 'success');
 }
@@ -128,7 +137,10 @@ function cerrarModal() {
     if (modal) {
         modal.classList.remove('show');
     }
-    document.getElementById('formNuevoMiembro')?.reset();
+    const form = document.getElementById('formNuevoMiembro');
+    if (form) {
+        form.reset();
+    }
 }
 
 // ===== CERRAR MODAL EVENTO =====
@@ -174,16 +186,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginPage = document.getElementById('loginPage');
     const dashboardPage = document.getElementById('dashboardPage');
     
+    // Validar que existan los elementos
+    if (!loginPage || !dashboardPage) {
+        console.error('Error: No se encontraron los elementos loginPage o dashboardPage en el HTML');
+        return;
+    }
+    
     // Si hay token guardado, mostrar dashboard
     if (storedToken && storedUsuario) {
         token = storedToken;
         loginPage.style.display = 'none';
         dashboardPage.style.display = 'flex';
-        document.getElementById('usuarioActual').textContent = `Bienvenido, ${storedUsuario}`;
+        
+        const usuarioActual = document.getElementById('usuarioActual');
+        if (usuarioActual) {
+            usuarioActual.textContent = `Bienvenido, ${storedUsuario}`;
+        }
         
         // Cargar datos
         setTimeout(() => {
-            cargarConteosMiembros();
+            if (typeof cargarConteosMiembros === 'function') {
+                cargarConteosMiembros();
+            }
             cambiarTab('inicio');
         }, 300);
     } else {
@@ -213,8 +237,16 @@ document.addEventListener('DOMContentLoaded', () => {
         formEvento.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            const tipoEvento = document.querySelector('input[name="tipoEvento"]:checked').value;
-            const fechaEvento = document.getElementById('fechaEventoModal').value;
+            const tipoEventoRadio = document.querySelector('input[name="tipoEvento"]:checked');
+            const fechaEventoEl = document.getElementById('fechaEventoModal');
+            
+            if (!tipoEventoRadio || !fechaEventoEl) {
+                mostrarError('Error: Faltan elementos del formulario');
+                return;
+            }
+            
+            const tipoEvento = tipoEventoRadio.value;
+            const fechaEvento = fechaEventoEl.value;
             
             if (!fechaEvento) {
                 mostrarError('Selecciona una fecha');
@@ -226,20 +258,20 @@ document.addEventListener('DOMContentLoaded', () => {
             window.fechaEventoSeleccionada = fechaEvento;
             
             // Cambiar a tab asistencia
-            const grupoNombre = grupoActual.charAt(0).toUpperCase() + grupoActual.slice(1);
-            const titleEl = document.getElementById('asistenciaTitle');
-            if (titleEl) {
-                titleEl.textContent = `Registrar Asistencia - ${grupoNombre}`;
+            if (typeof grupoActual !== 'undefined') {
+                const grupoNombre = grupoActual.charAt(0).toUpperCase() + grupoActual.slice(1);
+                const titleEl = document.getElementById('asistenciaTitle');
+                if (titleEl) {
+                    titleEl.textContent = `Registrar Asistencia - ${grupoNombre}`;
+                }
+                cambiarTab('asistencia');
+                cerrarModalEvento();
+                
+                if (typeof cargarMiembrosParaAsistencia === 'function') {
+                    cargarMiembrosParaAsistencia(grupoActual);
+                }
+                mostrarToast('Configuración guardada', 'success');
             }
-            cambiarTab('asistencia');
-            
-            // Cerrar modal
-            cerrarModalEvento();
-            
-            // Cargar miembros
-            cargarMiembrosParaAsistencia(grupoActual);
-            
-            mostrarToast('Configuración guardada', 'success');
         });
     }
 });
