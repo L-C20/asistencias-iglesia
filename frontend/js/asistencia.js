@@ -46,16 +46,53 @@ async function cargarConteosMiembros() {
 // ===== IR A ASISTENCIA =====
 function irAAsistencia(grupo) {
     grupoActual = grupo;
-    const grupoNombre = grupo.charAt(0).toUpperCase() + grupo.slice(1);
-    document.getElementById('asistenciaTitle').textContent = `Registrar Asistencia - ${grupoNombre}`;
-    cambiarTab('asistencia');
     
-    // Cargar fecha actual
-    document.getElementById('fechaEvento').valueAsDate = new Date();
-    
-    // Cargar miembros
-    cargarMiembrosParaAsistencia(grupo);
+    // Abrir modal de configuración
+    const modal = document.getElementById('modalConfigurarEvento');
+    document.getElementById('fechaEventoModal').valueAsDate = new Date();
+    modal.classList.add('show');
 }
+
+// ===== CERRAR MODAL EVENTO =====
+function cerrarModalEvento() {
+    const modal = document.getElementById('modalConfigurarEvento');
+    modal.classList.remove('show');
+}
+
+// ===== SUBMIT CONFIGURAR EVENTO =====
+document.addEventListener('DOMContentLoaded', () => {
+    const formEvento = document.getElementById('formConfigurarEvento');
+    if (formEvento) {
+        formEvento.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const tipoEvento = document.querySelector('input[name="tipoEvento"]:checked').value;
+            const fechaEvento = document.getElementById('fechaEventoModal').value;
+            
+            if (!fechaEvento) {
+                mostrarError('Selecciona una fecha');
+                return;
+            }
+            
+            // Guardar configuración
+            window.tipoEventoSeleccionado = tipoEvento;
+            window.fechaEventoSeleccionada = fechaEvento;
+            
+            // Cambiar a tab asistencia
+            const grupoNombre = grupoActual.charAt(0).toUpperCase() + grupoActual.slice(1);
+            document.getElementById('asistenciaTitle').textContent = `Registrar Asistencia - ${grupoNombre}`;
+            cambiarTab('asistencia');
+            
+            // Cerrar modal
+            cerrarModalEvento();
+            
+            // Cargar miembros
+            cargarMiembrosParaAsistencia(grupoActual);
+            
+            mostrarToast('Configuración guardada', 'success');
+        });
+    }
+});
 
 // ===== CARGAR MIEMBROS PARA ASISTENCIA =====
 async function cargarMiembrosParaAsistencia(grupo) {
@@ -132,8 +169,8 @@ async function registrarAsistenciaDirecto(miembroId, grupo, tipo, checkbox) {
         return;
     }
     
-    const fecha = document.getElementById('fechaEvento').value;
-    const tipoEvento = document.getElementById('tipoEvento').value;
+    const fecha = window.fechaEventoSeleccionada;
+    const tipoEvento = window.tipoEventoSeleccionado;
     
     // Determinar si presente y nota
     let presente;

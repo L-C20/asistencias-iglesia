@@ -128,14 +128,7 @@
             <div id="asistencia" class="tab-content">
                 <div class="asistencia-header">
                     <h2 id="asistenciaTitle">Registrar Asistencia</h2>
-                    <div class="asistencia-controls">
-                        <select id="tipoEvento" class="form-control">
-                            <option value="santo_culto">Santo Culto</option>
-                            <option value="ensayo">Ensayo</option>
-                        </select>
-                        <input type="date" id="fechaEvento" class="form-control">
-                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">Atrás</button>
-                    </div>
+                    <button class="btn btn-secondary" onclick="cambiarTab('inicio')">Atrás</button>
                 </div>
 
                 <div class="asistencia-lista">
@@ -166,6 +159,47 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Modal para Configurar Evento -->
+    <div id="modalConfigurarEvento" class="modal">
+        <div class="modal-content modal-evento">
+            <span class="close" onclick="cerrarModalEvento()">&times;</span>
+            <h3>Configurar Evento</h3>
+            <p class="modal-subtitle">Selecciona el tipo de evento y la fecha</p>
+            
+            <form id="formConfigurarEvento">
+                <div class="form-group">
+                    <label>Tipo de Evento:</label>
+                    <div class="radio-options">
+                        <label class="radio-option">
+                            <input type="radio" name="tipoEvento" value="santo_culto" checked>
+                            <span class="radio-label">
+                                <span class="radio-circle"></span>
+                                <span class="radio-text">Santo Culto</span>
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipoEvento" value="ensayo">
+                            <span class="radio-label">
+                                <span class="radio-circle"></span>
+                                <span class="radio-text">Ensayo</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Fecha del Evento:</label>
+                    <input type="date" id="fechaEventoModal" class="form-control" required>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Continuar</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalEvento()">Cancelar</button>
+                </div>
+            </form>
         </div>
     </div>
 
