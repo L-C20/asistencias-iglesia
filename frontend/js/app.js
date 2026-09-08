@@ -132,24 +132,19 @@ function logout() {
 
 // ===== CAMBIAR TAB =====
 function cambiarTab(tabName) {
-    // Ocultar todos los tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
     
-    // Desactivar todos los items del sidebar
     document.querySelectorAll('.sidebar-menu-item').forEach(item => {
         item.classList.remove('active');
     });
     
-    // Activar tab seleccionado
-    const activeTab = document.getElementById(tabName);
-    if (activeTab) activeTab.classList.add('active');
+    document.getElementById(tabName).classList.add('active');
     
-    // Activar item del sidebar
     const menuItems = document.querySelectorAll('.sidebar-menu-item');
-    if (tabName === 'coro') menuItems[0].classList.add('active');
-    else if (tabName === 'orquesta') menuItems[1].classList.add('active');
+    if (tabName === 'inicio') menuItems[0].classList.add('active');
+    else if (tabName === 'asistencia') menuItems[1].classList.add('active');
     else if (tabName === 'reportes') menuItems[2].classList.add('active');
 }
 
