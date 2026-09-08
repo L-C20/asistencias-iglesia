@@ -1,113 +1,65 @@
-const API_URL = '/api';
-let token = null;
-let usuarioActual = null;
-
-// ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', () => {
-    // Si estamos en login
-    if (document.getElementById('loginForm')) {
-        document.getElementById('loginForm').addEventListener('submit', login);
-    }
+// ===== SIDEBAR =====
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
     
-    // Si estamos en dashboard
-    if (document.querySelector('.tab-button')) {
-        // Verificar token
-        verificarToken();
-        
-        // Tabs
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.addEventListener('click', () => cambiarTab(btn.dataset.tab));
-        });
-        
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('submit', logout);
-        
-        // Modal
-        document.getElementById('formNuevoMiembro').addEventListener('submit', guardarNuevoMiembro);
-        
-        // Cargar fecha actual
-        document.getElementById('fechaCoro').valueAsDate = new Date();
-        document.getElementById('fechaOrquesta').valueAsDate = new Date();
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('sidebar-collapsed');
+}
+
+function cerrarSidebarMobil() {
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.add('collapsed');
+        document.getElementById('mainContent').classList.add('sidebar-collapsed');
+    }
+}
+
+// Cerrar sidebar al hacer click fuera
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    
+    if (window.innerWidth <= 768 && 
+        !sidebar.contains(e.target) && 
+        !toggle.contains(e.target) &&
+        !sidebar.classList.contains('collapsed')) {
+        sidebar.classList.add('collapsed');
+        document.getElementById('mainContent').classList.add('sidebar-collapsed');
     }
 });
 
-// ===== LOGIN =====
-async function login(e) {
-    e.preventDefault();
-    const usuario = document.getElementById('usuario').value;
-    const password = document.getElementById('password').value;
-    const errorDiv = document.getElementById('loginError');
+// ===== NOTIFICACIONES TOAST =====
+function mostrarToast(mensaje, tipo = 'success') {
+    const container = document.getElementById('toastContainer');
     
-    try {
-        const response = await fetch(`${API_URL}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario, password })
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            errorDiv.textContent = data.error || 'Error en el login';
-            errorDiv.classList.add('show');
-            return;
-        }
-        
-        token = data.token;
-        usuarioActual = data.user;
-        localStorage.setItem('token', token);
-        localStorage.setItem('usuario', JSON.stringify(usuarioActual));
-        
-        window.location.href = '/dashboard';
-        
-    } catch (error) {
-        console.error('Error:', error);
-        errorDiv.textContent = 'Error de conexión';
-        errorDiv.classList.add('show');
-    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `
+        <span class="toast-icon"></span>
+        <span>${mensaje}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remover después de 3 segundos
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => {
+            toast.remove();
+        }, 400);
+    }, 3000);
 }
 
-// ===== VERIFICAR TOKEN =====
-async function verificarToken() {
-    token = localStorage.getItem('token');
-    usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
-    
-    if (!token) {
-        window.location.href = '/';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/auth/verify`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('usuario');
-            window.location.href = '/';
-        } else {
-            mostrarUsuario();
-        }
-    } catch (error) {
-        console.error('Error verificando token:', error);
-        window.location.href = '/';
-    }
+function mostrarMensajeExito(mensaje) {
+    mostrarToast(mensaje, 'success');
 }
 
-// ===== MOSTRAR USUARIO ACTUAL =====
-function mostrarUsuario() {
-    const userSpan = document.getElementById('usuarioActual');
-    if (userSpan && usuarioActual) {
-        userSpan.textContent = `👤 ${usuarioActual.usuario}`;
-    }
+function mostrarError(mensaje) {
+    mostrarToast(mensaje, 'error');
 }
 
-// ===== LOGOUT =====
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
-    window.location.href = '/';
+function mostrarInfo(mensaje) {
+    mostrarToast(mensaje, 'info');
 }
 
 // ===== CAMBIAR TAB =====
@@ -117,80 +69,55 @@ function cambiarTab(tabName) {
         tab.classList.remove('active');
     });
     
-    // Desactivar todos los botones
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
+    // Desactivar todos los items del sidebar
+    document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+        item.classList.remove('active');
     });
     
-    // Activar tab y botón seleccionado
+    // Activar tab seleccionado
     document.getElementById(tabName).classList.add('active');
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Activar item del sidebar
+    const menuItems = document.querySelectorAll('.sidebar-menu-item');
+    if (tabName === 'coro') menuItems[0].classList.add('active');
+    else if (tabName === 'orquesta') menuItems[1].classList.add('active');
+    else if (tabName === 'reportes') menuItems[2].classList.add('active');
 }
 
-// ===== MODAL =====
-function abrirModal(grupo) {
-    document.getElementById('grupoNuevo').value = grupo;
-    document.getElementById('nombreNuevo').value = '';
-    document.getElementById('modalAgregarMiembro').classList.add('show');
-}
-
+// ===== MODAL FUNCTIONS =====
 function cerrarModal() {
     document.getElementById('modalAgregarMiembro').classList.remove('show');
 }
 
-function agregarMiembroCoro() {
-    abrirModal('coro');
+function cerrarModalAsistencia() {
+    document.getElementById('modalAsistencia').classList.remove('show');
+    miembroEnEdicion = null;
+    grupoEnEdicion = null;
 }
 
-function agregarMiembroOrquesta() {
-    abrirModal('orquesta');
-}
-
-// ===== GUARDAR NUEVO MIEMBRO =====
-async function guardarNuevoMiembro(e) {
-    e.preventDefault();
+// ===== CERRAR MODALES CON CLICK FUERA =====
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('modalAgregarMiembro');
+    const modalAsistencia = document.getElementById('modalAsistencia');
     
-    const nombre = document.getElementById('nombreNuevo').value;
-    const grupo = document.getElementById('grupoNuevo').value;
-    
-    try {
-        const response = await fetch(`${API_URL}/asistencia/miembro/nuevo`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ nombre, grupo })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            cerrarModal();
-            mostrarMensajeExito('Miembro agregado correctamente');
-            cargarMiembros(grupo);
-        } else {
-            alert('Error: ' + data.error);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al agregar miembro');
+    if (e.target === modal) {
+        cerrarModal();
     }
-}
-
-// ===== MENSAJES =====
-function mostrarMensajeExito(mensaje) {
-    const div = document.createElement('div');
-    div.className = 'success-message show';
-    div.textContent = mensaje;
-    document.body.appendChild(div);
     
-    setTimeout(() => {
-        div.remove();
-    }, 3000);
-}
+    if (e.target === modalAsistencia) {
+        cerrarModalAsistencia();
+    }
+});
 
-// ===== LOGOUT BOTÓN =====
+// ===== CERRAR MODALES CON ESC =====
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        cerrarModal();
+        cerrarModalAsistencia();
+    }
+});
+
+// ===== LOGOUT =====
 document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
@@ -198,79 +125,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// AGREGAR ESTAS FUNCIONES A app.js
-
-// ===== CERRAR MODAL =====
-function cerrarModal() {
-    document.getElementById('modalAgregarMiembro').classList.remove('show');
-}
-
-function cerrarModalTabla() {
-    document.getElementById('modalTablaMiembros').classList.remove('show');
-}
-
-// ===== MOSTRAR USUARIO ACTUAL =====
-function mostrarUsuario() {
-    const userSpan = document.getElementById('usuarioActual');
-    if (userSpan && usuarioActual) {
-        userSpan.textContent = `👤 ${usuarioActual.usuario}`;
-    }
-}
-
-// ===== LOGOUT =====
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     window.location.href = '/';
 }
 
-// ===== CAMBIAR TAB =====
-function cambiarTab(tabName) {
-    // Ocultar todos los tabs
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Desactivar todos los botones
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Activar tab y botón seleccionado
-    document.getElementById(tabName).classList.add('active');
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+// ===== MOSTRAR USUARIO ACTUAL =====
+function mostrarUsuario() {
+    const userSpan = document.getElementById('usuarioActual');
+    if (userSpan && usuarioActual) {
+        userSpan.textContent = `${usuarioActual.usuario}`;
+    }
 }
 
-// ===== MENSAJES =====
-function mostrarMensajeExito(mensaje) {
-    const div = document.createElement('div');
-    div.className = 'success-message show';
-    div.textContent = mensaje;
-    document.body.appendChild(div);
+// ===== FECHAS POR DEFECTO =====
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('fechaCoro').valueAsDate = new Date();
+    document.getElementById('fechaOrquesta').valueAsDate = new Date();
     
+    // Cargar miembros de coro automáticamente
     setTimeout(() => {
-        div.remove();
-    }, 3000);
-}
-
-// ===== CERRAR MODAL AL HACER CLICK FUERA =====
-document.addEventListener('click', (e) => {
-    const modal = document.getElementById('modalAgregarMiembro');
-    const tablaMiembros = document.getElementById('modalTablaMiembros');
-    
-    if (e.target === modal) {
-        cerrarModal();
-    }
-    
-    if (e.target === tablaMiembros) {
-        cerrarModalTabla();
-    }
-});
-
-// ===== CERRAR MODAL CON ESC =====
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        cerrarModal();
-        cerrarModalTabla();
-    }
+        cargarMiembros('coro');
+    }, 500);
 });

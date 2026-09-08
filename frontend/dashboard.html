@@ -3,85 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Asistencia</title>
+    <title>Panel de Asistencia</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="navbar-content">
-            <h1>📋 Asistencia - Orquesta y Coro</h1>
+<body class="dashboard-page">
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>Sistema</h1>
+            <p>Asistencia</p>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <div class="sidebar-menu-item active" onclick="cambiarTab('coro'); cerrarSidebarMobil()">
+                    <span>●</span>
+                    <span>Coro</span>
+                </div>
+            </li>
+            <li>
+                <div class="sidebar-menu-item" onclick="cambiarTab('orquesta'); cerrarSidebarMobil()">
+                    <span>●</span>
+                    <span>Orquesta</span>
+                </div>
+            </li>
+            <li>
+                <div class="sidebar-menu-item" onclick="cambiarTab('reportes'); cerrarSidebarMobil()">
+                    <span>●</span>
+                    <span>Reportes</span>
+                </div>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="btn btn-danger" style="width: 100%; margin: 0;" id="logoutBtn">Salir</button>
+        </div>
+    </div>
+
+    <!-- TOGGLE BUTTON -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content" id="mainContent">
+        
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <h1>Panel de Asistencia</h1>
             <div class="navbar-buttons">
                 <span id="usuarioActual" class="usuario-info"></span>
-                <button id="logoutBtn" class="btn btn-danger">Cerrar sesión</button>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <div class="container">
-        <div class="tabs">
-            <button class="tab-button active" data-tab="coro">🎤 Coro</button>
-            <button class="tab-button" data-tab="orquesta">🎻 Orquesta</button>
-            <button class="tab-button" data-tab="reportes">📊 Reportes</button>
-        </div>
-
-        <!-- TAB: CORO -->
-        <div id="coro" class="tab-content active">
-            <div class="tab-header">
-                <h2>Coro</h2>
-                <div class="controls">
-                    <select id="tipoEventoCoro" class="form-control">
-                        <option value="santo_culto">Santo Culto</option>
-                        <option value="ensayo">Ensayo</option>
-                    </select>
-                    <input type="date" id="fechaCoro" class="form-control">
-                    <button class="btn btn-success" onclick="cargarMiembros('coro')">Cargar</button>
-                </div>
-            </div>
-            <div id="coroList" class="miembros-list"></div>
-            <div class="tab-footer">
-                <button class="btn btn-primary" onclick="agregarMiembroCoro()">+ Agregar Miembro</button>
-            </div>
-        </div>
-
-        <!-- TAB: ORQUESTA -->
-        <div id="orquesta" class="tab-content">
-            <div class="tab-header">
-                <h2>Orquesta</h2>
-                <div class="controls">
-                    <select id="tipoEventoOrquesta" class="form-control">
-                        <option value="santo_culto">Santo Culto</option>
-                        <option value="ensayo">Ensayo</option>
-                    </select>
-                    <input type="date" id="fechaOrquesta" class="form-control">
-                    <button class="btn btn-success" onclick="cargarMiembros('orquesta')">Cargar</button>
-                </div>
-            </div>
-            <div id="orquestaList" class="miembros-list"></div>
-            <div class="tab-footer">
-                <button class="btn btn-primary" onclick="agregarMiembroOrquesta()">+ Agregar Miembro</button>
-            </div>
-        </div>
-
-        <!-- TAB: REPORTES -->
-        <div id="reportes" class="tab-content">
-            <div class="tab-header">
-                <h2>📊 Reportes</h2>
-            </div>
-            <div class="reportes-container">
-                <div class="reporte-section">
-                    <h3>Selecciona un grupo:</h3>
-                    <div class="reporte-buttons">
-                        <button class="btn btn-info" onclick="cargarReporte('coro')">📈 Reportes Coro</button>
-                        <button class="btn btn-info" onclick="cargarReporte('orquesta')">📈 Reportes Orquesta</button>
+        <!-- CONTAINER -->
+        <div class="container">
+            
+            <!-- TAB: CORO -->
+            <div id="coro" class="tab-content active">
+                <div class="tab-header">
+                    <h2>Coro</h2>
+                    <div class="controls">
+                        <select id="tipoEventoCoro" class="form-control">
+                            <option value="santo_culto">Santo Culto</option>
+                            <option value="ensayo">Ensayo</option>
+                        </select>
+                        <input type="date" id="fechaCoro" class="form-control">
+                        <button class="btn btn-success" onclick="cargarMiembros('coro')">Cargar</button>
                     </div>
                 </div>
-                
-                <div id="reporteContent" class="reporte-content">
-                    <!-- Se llena con JavaScript -->
+
+                <div class="tabla-container">
+                    <table class="tabla-miembros">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Nombre</th>
+                                <th style="width: 30%;">Voz</th>
+                                <th style="width: 20%; text-align: center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coroTableBody">
+                            <tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-light);">Cargando miembros...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-footer">
+                    <button class="btn btn-primary" onclick="agregarMiembroCoro()">Agregar Miembro</button>
                 </div>
             </div>
+
+            <!-- TAB: ORQUESTA -->
+            <div id="orquesta" class="tab-content">
+                <div class="tab-header">
+                    <h2>Orquesta</h2>
+                    <div class="controls">
+                        <select id="tipoEventoOrquesta" class="form-control">
+                            <option value="santo_culto">Santo Culto</option>
+                            <option value="ensayo">Ensayo</option>
+                        </select>
+                        <input type="date" id="fechaOrquesta" class="form-control">
+                        <button class="btn btn-success" onclick="cargarMiembros('orquesta')">Cargar</button>
+                    </div>
+                </div>
+
+                <div class="tabla-container">
+                    <table class="tabla-miembros">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Nombre</th>
+                                <th style="width: 30%;">Instrumento</th>
+                                <th style="width: 20%; text-align: center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orquestaTableBody">
+                            <tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-light);">Cargando miembros...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-footer">
+                    <button class="btn btn-primary" onclick="agregarMiembroOrquesta()">Agregar Miembro</button>
+                </div>
+            </div>
+
+            <!-- TAB: REPORTES -->
+            <div id="reportes" class="tab-content">
+                <div class="tab-header">
+                    <h2>Reportes</h2>
+                </div>
+                <div class="reportes-container">
+                    <div class="reporte-section">
+                        <h3>Selecciona un grupo:</h3>
+                        <div class="reporte-buttons">
+                            <button class="btn btn-info" onclick="cargarReporte('coro')">Reportes Coro</button>
+                            <button class="btn btn-info" onclick="cargarReporte('orquesta')">Reportes Orquesta</button>
+                        </div>
+                    </div>
+                    
+                    <div id="reporteContent" class="reporte-content">
+                        <!-- Se llena con JavaScript -->
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -120,37 +186,59 @@
         </div>
     </div>
 
-    <!-- Modal para tabla de miembros -->
-    <div id="modalTablaMiembros" class="modal">
-        <div class="modal-content modal-large">
-            <span class="close" onclick="cerrarModalTabla()">&times;</span>
-            <h3>Miembros del Grupo</h3>
+    <!-- Modal para marcar asistencia -->
+    <div id="modalAsistencia" class="modal">
+        <div class="modal-content modal-asistencia">
+            <span class="close" onclick="cerrarModalAsistencia()">&times;</span>
+            <h3>Registrar Asistencia</h3>
             
-            <div class="form-group">
-                <label>Filtrar:</label>
-                <input type="text" id="filtroMiembros" class="form-control" placeholder="Buscar por instrumento o voz...">
+            <div class="asistencia-miembro">
+                <div class="miembro-header">
+                    <div>
+                        <h4 id="nombreMiembroAsistencia" style="margin: 0; color: var(--primary); font-size: 18px;"></h4>
+                        <p id="detalleAsistencia" style="margin: 5px 0 0 0; color: var(--text-light); font-size: 14px;"></p>
+                    </div>
+                </div>
             </div>
-            
-            <div style="overflow-x: auto;">
-                <table class="tabla-asistencia">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Instrumento / Voz</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaMiembrosBody">
-                        <!-- Se llena con JavaScript -->
-                    </tbody>
-                </table>
+
+            <div class="asistencia-opciones">
+                <label class="checkbox-elegante">
+                    <input type="radio" name="asistencia" value="presente" id="radioPresente">
+                    <span class="checkbox-visual presente-visual">✓</span>
+                    <span class="checkbox-label">
+                        <span class="label-texto">Presente</span>
+                        <span class="label-codigo">P</span>
+                    </span>
+                </label>
+
+                <label class="checkbox-elegante">
+                    <input type="radio" name="asistencia" value="ausente" id="radioAusente">
+                    <span class="checkbox-visual ausente-visual">✗</span>
+                    <span class="checkbox-label">
+                        <span class="label-texto">Ausente</span>
+                        <span class="label-codigo">A</span>
+                    </span>
+                </label>
+
+                <label class="checkbox-elegante">
+                    <input type="radio" name="asistencia" value="justificado" id="radioJustificado">
+                    <span class="checkbox-visual justificado-visual">?</span>
+                    <span class="checkbox-label">
+                        <span class="label-texto">Justificado</span>
+                        <span class="label-codigo">AJ</span>
+                    </span>
+                </label>
             </div>
-            
-            <div style="margin-top: 20px; text-align: right;">
-                <button class="btn btn-secondary" onclick="cerrarModalTabla()">Cerrar</button>
+
+            <div style="margin-top: 25px; display: flex; gap: 10px;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="guardarAsistencia()">Guardar</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalAsistencia()">Cancelar</button>
             </div>
         </div>
     </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <script src="js/app.js"></script>
     <script src="js/asistencia.js"></script>

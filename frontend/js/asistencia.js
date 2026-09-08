@@ -26,6 +26,8 @@ const VOCES = [
 ];
 
 let miembrosActuales = [];
+let miembroEnEdicion = null;
+let grupoEnEdicion = null;
 
 // ===== CARGAR MIEMBROS =====
 async function cargarMiembros(grupo) {
@@ -37,40 +39,77 @@ async function cargarMiembros(grupo) {
     const miembros = await response.json();
     miembrosActuales = miembros;
     
-    const container = document.getElementById(`${grupo}List`);
-    container.innerHTML = '';
+    const tableBodyId = grupo === 'coro' ? 'coroTableBody' : 'orquestaTableBody';
+    const tbody = document.getElementById(tableBodyId);
+    
+    tbody.innerHTML = '';
+    
+    if (miembros.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="3" style="text-align: center; padding: 30px; color: var(--text-light);">No hay miembros registrados</td>';
+      tbody.appendChild(tr);
+      return;
+    }
     
     miembros.forEach(miembro => {
-      const detalleExtra = grupo === 'coro' 
-        ? `<small>${miembro.voz || '—'}</small>`
-        : `<small>${miembro.instrumento || '—'}</small>`;
+      const tr = document.createElement('tr');
+      const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
       
-      const div = document.createElement('div');
-      div.className = 'miembro-item';
-      div.innerHTML = `
-        <div class="miembro-info">
-          <span class="miembro-nombre">${miembro.nombre}</span>
-          ${detalleExtra}
-        </div>
-        <div class="miembro-buttons">
-          <button class="btn btn-check presente" onclick="registrarAsistencia(${miembro.id}, '${grupo}', true)">✓ Presente</button>
-          <button class="btn btn-check ausente" onclick="registrarAsistencia(${miembro.id}, '${grupo}', false)">✗ Ausente</button>
-          <button class="btn btn-check justificado" onclick="registrarAsistencia(${miembro.id}, '${grupo}', null, 'Justificado')">? Justificado</button>
-        </div>
+      tr.innerHTML = `
+        <td>${miembro.nombre}</td>
+        <td>${detalleExtra}</td>
+        <td style="text-align: center;">
+          <button class="btn-cargar-asistencia" onclick="abrirModalAsistencia(${miembro.id}, '${grupo}', '${miembro.nombre}', '${detalleExtra}')">
+            Cargar
+          </button>
+        </td>
       `;
-      container.appendChild(div);
+      tbody.appendChild(tr);
     });
+    
+    mostrarToast('Miembros cargados', 'success');
     
   } catch (error) {
     console.error('Error:', error);
-    alert('Error al cargar miembros');
+    mostrarError('Error al cargar miembros');
   }
 }
 
-// ===== REGISTRAR ASISTENCIA =====
-async function registrarAsistencia(miembroId, grupo, presente, nota = '') {
-  const fecha = grupo === 'coro' ? document.getElementById('fechaCoro').value : document.getElementById('fechaOrquesta').value;
-  const tipoEvento = grupo === 'coro' ? document.getElementById('tipoEventoCoro').value : document.getElementById('tipoEventoOrquesta').value;
+// ===== ABRIR MODAL DE ASISTENCIA =====
+function abrirModalAsistencia(miembroId, grupo, nombre, detalle) {
+  miembroEnEdicion = miembroId;
+  grupoEnEdicion = grupo;
+  
+  document.getElementById('nombreMiembroAsistencia').textContent = nombre;
+  document.getElementById('detalleAsistencia').textContent = detalle;
+  
+  // Limpiar selección
+  document.querySelectorAll('input[name="asistencia"]').forEach(radio => {
+    radio.checked = false;
+  });
+  
+  document.getElementById('modalAsistencia').classList.add('show');
+}
+
+// ===== GUARDAR ASISTENCIA =====
+async function guardarAsistencia() {
+  const opcionSeleccionada = document.querySelector('input[name="asistencia"]:checked');
+  
+  if (!opcionSeleccionada) {
+    mostrarError('Debe seleccionar una opción');
+    return;
+  }
+  
+  const presente = opcionSeleccionada.value === 'presente' ? true : 
+                   opcionSeleccionada.value === 'ausente' ? false : null;
+  const nota = opcionSeleccionada.value === 'justificado' ? 'Justificado' : '';
+  
+  const fecha = grupoEnEdicion === 'coro' 
+    ? document.getElementById('fechaCoro').value 
+    : document.getElementById('fechaOrquesta').value;
+  const tipoEvento = grupoEnEdicion === 'coro' 
+    ? document.getElementById('tipoEventoCoro').value 
+    : document.getElementById('tipoEventoOrquesta').value;
   
   try {
     const response = await fetch(`${API_URL}/asistencia/registrar`, {
@@ -80,7 +119,7 @@ async function registrarAsistencia(miembroId, grupo, presente, nota = '') {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        miembro_id: miembroId,
+        miembro_id: miembroEnEdicion,
         tipo_evento: tipoEvento,
         fecha: fecha,
         presente: presente,
@@ -91,24 +130,23 @@ async function registrarAsistencia(miembroId, grupo, presente, nota = '') {
     const data = await response.json();
     
     if (response.ok) {
-      mostrarMensajeExito('Asistencia registrada');
-      cargarMiembros(grupo);
+      mostrarToast('Asistencia registrada', 'success');
+      cerrarModalAsistencia();
     } else {
-      alert('Error: ' + data.error);
+      mostrarError(data.error || 'Error al registrar asistencia');
     }
   } catch (error) {
     console.error('Error:', error);
-    alert('Error al registrar asistencia');
+    mostrarError('Error al registrar asistencia');
   }
 }
 
-// ===== MODAL MEJORADO =====
+// ===== AGREGAR MIEMBRO =====
 function abrirModalAgregarMiembro(grupo) {
   const modal = document.getElementById('modalAgregarMiembro');
   document.getElementById('grupoNuevo').value = grupo;
   document.getElementById('nombreNuevo').value = '';
   
-  // Limpiar y llenar selects
   const selectInstrumento = document.getElementById('instrumentoNuevo');
   const selectVoz = document.getElementById('vozNueva');
   
@@ -162,17 +200,17 @@ async function guardarNuevoMiembro(e) {
   const voz = document.getElementById('vozNueva').value;
   
   if (!nombre) {
-    alert('El nombre es requerido');
+    mostrarError('El nombre es requerido');
     return;
   }
   
   if (grupo === 'orquesta' && !instrumento) {
-    alert('Debe seleccionar un instrumento');
+    mostrarError('Debe seleccionar un instrumento');
     return;
   }
   
   if (grupo === 'coro' && !voz) {
-    alert('Debe seleccionar una voz');
+    mostrarError('Debe seleccionar una voz');
     return;
   }
   
@@ -195,91 +233,19 @@ async function guardarNuevoMiembro(e) {
     
     if (response.ok) {
       cerrarModal();
-      mostrarMensajeExito('Miembro agregado correctamente');
+      mostrarToast('Miembro agregado correctamente', 'success');
       cargarMiembros(grupo);
-      
-      // Mostrar tabla
-      mostrarTablaMiembros(grupo);
     } else {
-      alert('Error: ' + data.error);
+      mostrarError(data.error || 'Error al agregar miembro');
     }
   } catch (error) {
     console.error('Error:', error);
-    alert('Error al agregar miembro');
+    mostrarError('Error al agregar miembro');
   }
 }
 
-// ===== TABLA CON FILTROS =====
-function mostrarTablaMiembros(grupo) {
-  const modal = document.getElementById('modalTablaMiembros');
-  if (!modal) return;
-  
-  modal.classList.add('show');
-  actualizarTablaMiembros(grupo);
-}
-
-function actualizarTablaMiembros(grupo) {
-  const filtro = document.getElementById('filtroMiembros').value;
-  const tbody = document.getElementById('tablaMiembrosBody');
-  
-  if (!tbody) return;
-  
-  tbody.innerHTML = '';
-  
-  let miembrosFiltrados = miembrosActuales;
-  
-  if (filtro) {
-    if (grupo === 'orquesta') {
-      miembrosFiltrados = miembrosActuales.filter(m => 
-        m.instrumento && m.instrumento.toLowerCase().includes(filtro.toLowerCase())
-      );
-    } else {
-      miembrosFiltrados = miembrosActuales.filter(m => 
-        m.voz && m.voz.toLowerCase().includes(filtro.toLowerCase())
-      );
-    }
-  }
-  
-  if (miembrosFiltrados.length === 0) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = '<td colspan="3" style="text-align: center; padding: 20px;">No hay miembros</td>';
-    tbody.appendChild(tr);
-    return;
-  }
-  
-  miembrosFiltrados.forEach(miembro => {
-    const tr = document.createElement('tr');
-    const detalleExtra = grupo === 'coro' ? miembro.voz : miembro.instrumento;
-    
-    tr.innerHTML = `
-      <td>${miembro.nombre}</td>
-      <td>${detalleExtra || '—'}</td>
-      <td>
-        <button class="btn btn-sm btn-danger" onclick="eliminarMiembro(${miembro.id}, '${grupo}')">Eliminar</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function eliminarMiembro(id, grupo) {
-  if (confirm('¿Está seguro de que desea eliminar este miembro?')) {
-    // Aquí iría la llamada para eliminar en BD
-    console.log('Eliminar miembro:', id);
-    mostrarMensajeExito('Miembro eliminado');
-  }
-}
-
-// ===== EVENTOS =====
+// ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', () => {
-  const filtro = document.getElementById('filtroMiembros');
-  if (filtro) {
-    filtro.addEventListener('input', () => {
-      const grupo = document.querySelector('.tab-content.active').id;
-      actualizarTablaMiembros(grupo);
-    });
-  }
-  
   const formNuevo = document.getElementById('formNuevoMiembro');
   if (formNuevo) {
     formNuevo.addEventListener('submit', guardarNuevoMiembro);
