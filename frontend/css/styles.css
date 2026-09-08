@@ -5,23 +5,26 @@
 }
 
 :root {
-    --primary: #1e40af;
-    --primary-light: #3b82f6;
-    --primary-dark: #1e3a8a;
-    --secondary: #0f766e;
-    --success: #059669;
-    --success-light: #10b981;
-    --info: #0284c7;
-    --warning: #d97706;
-    --danger: #dc2626;
-    --light: #f8fafc;
-    --light-gray: #e2e8f0;
-    --dark: #0f172a;
-    --text: #1f2937;
-    --text-light: #6b7280;
-    --border: #e5e7eb;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --primary: #4a90e2;
+    --primary-light: #6ba3f5;
+    --primary-dark: #2e5c8a;
+    --secondary: #00b8a9;
+    --secondary-light: #1ecfb8;
+    --secondary-dark: #008b7f;
+    --success: #26a69a;
+    --success-light: #4db8a8;
+    --info: #00bcd4;
+    --warning: #ff9800;
+    --danger: #e74c3c;
+    --light: #f5f8fa;
+    --light-gray: #e8eef5;
+    --gray: #9ca3af;
+    --dark: #1a1f36;
+    --text: #2d3748;
+    --text-light: #718096;
+    --border: #d8dfe8;
+    --shadow: 0 10px 30px rgba(74, 144, 226, 0.12);
+    --shadow-sm: 0 2px 8px rgba(74, 144, 226, 0.08);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -38,7 +41,7 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 50%, #0f766e 100%);
+    background: linear-gradient(135deg, #4a90e2 0%, #2e5c8a 50%, #00b8a9 100%);
     min-height: 100vh;
     position: relative;
     overflow: hidden;
@@ -73,7 +76,7 @@ html, body {
     background: white;
     padding: 50px 40px;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 60px rgba(74, 144, 226, 0.25);
     animation: slideUp 0.8s ease-out;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -139,7 +142,7 @@ html, body {
     outline: none;
     border-color: var(--primary);
     background: white;
-    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
 .login-hint {
@@ -186,7 +189,7 @@ body.dashboard-page {
 /* ============ SIDEBAR ============ */
 .sidebar {
     width: 260px;
-    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(180deg, #4a90e2 0%, #3d7bc4 100%);
     color: white;
     padding: 25px 0;
     position: fixed;
@@ -195,7 +198,7 @@ body.dashboard-page {
     height: 100vh;
     overflow-y: auto;
     z-index: 1000;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 2px 0 10px rgba(74, 144, 226, 0.15);
     transition: var(--transition);
 }
 
@@ -205,7 +208,7 @@ body.dashboard-page {
 
 .sidebar-header {
     padding: 0 25px 30px 25px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     margin-bottom: 20px;
 }
 
@@ -218,7 +221,7 @@ body.dashboard-page {
 
 .sidebar-header p {
     font-size: 13px;
-    opacity: 0.8;
+    opacity: 0.85;
     margin: 0;
 }
 
@@ -236,7 +239,7 @@ body.dashboard-page {
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
     border-radius: 10px;
     transition: var(--transition);
@@ -246,14 +249,14 @@ body.dashboard-page {
 }
 
 .sidebar-menu-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     color: white;
 }
 
 .sidebar-menu-item.active {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.18);
     color: white;
-    border-left-color: white;
+    border-left-color: #00b8a9;
 }
 
 .sidebar-menu-item i {
@@ -271,7 +274,7 @@ body.dashboard-page {
     left: 0;
     right: 0;
     padding: 20px 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .sidebar-toggle {
@@ -388,7 +391,7 @@ body.dashboard-page {
 
 .tab-button.active {
     color: var(--primary);
-    border-bottom-color: var(--primary);
+    border-bottom-color: var(--secondary);
     background: var(--light);
 }
 
@@ -449,7 +452,7 @@ body.dashboard-page {
 .form-control:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
 /* ============ BUTTONS ============ */
@@ -476,53 +479,53 @@ body.dashboard-page {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    background: linear-gradient(135deg, #4a90e2 0%, #6ba3f5 100%);
     color: white;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    background: linear-gradient(135deg, #3d7bc4 0%, #4a90e2 100%);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, var(--success) 0%, var(--success-light) 100%);
+    background: linear-gradient(135deg, #26a69a 0%, #4db8a8 100%);
     color: white;
 }
 
 .btn-success:hover {
-    background: linear-gradient(135deg, #047857 0%, var(--success) 100%);
+    background: linear-gradient(135deg, #1f8b7f 0%, #26a69a 100%);
 }
 
 .btn-info {
-    background: linear-gradient(135deg, var(--info) 0%, #0369a1 100%);
+    background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
     color: white;
 }
 
 .btn-info:hover {
-    background: linear-gradient(135deg, #0555a1 0%, var(--info) 100%);
+    background: linear-gradient(135deg, #0097a7 0%, #00bcd4 100%);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, var(--danger) 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #e74c3c 0%, #ec7063 100%);
     color: white;
 }
 
 .btn-danger:hover {
-    background: linear-gradient(135deg, #b91c1c 0%, var(--danger) 100%);
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, var(--text-light) 0%, #9ca3af 100%);
+    background: linear-gradient(135deg, #9ca3af 0%, #b4bcc4 100%);
     color: white;
 }
 
 .btn-secondary:hover {
-    background: linear-gradient(135deg, #4b5563 0%, var(--text-light) 100%);
+    background: linear-gradient(135deg, #757b84 0%, #9ca3af 100%);
 }
 
 .btn-cargar-asistencia {
     padding: 8px 16px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    background: linear-gradient(135deg, #4a90e2 0%, #6ba3f5 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -553,7 +556,7 @@ body.dashboard-page {
 }
 
 .tabla-miembros thead {
-    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+    background: linear-gradient(90deg, #4a90e2 0%, #6ba3f5 100%);
     color: white;
 }
 
@@ -594,6 +597,80 @@ body.dashboard-page {
     font-size: 13px;
 }
 
+/* ============ CHECKBOXES EN TABLA ============ */
+.checkbox-tabla {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.checkbox-tabla input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-visual-tabla {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    transition: var(--transition);
+    border: 2px solid var(--border);
+    background: white;
+}
+
+/* PRESENTE */
+.checkbox-tabla.presente .checkbox-visual-tabla {
+    background: linear-gradient(135deg, #26a69a 0%, #4db8a8 100%);
+    border-color: #26a69a;
+    color: white;
+}
+
+.checkbox-tabla.presente input[type="checkbox"]:checked ~ .checkbox-visual-tabla {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4px rgba(38, 166, 154, 0.2);
+}
+
+/* AUSENTE */
+.checkbox-tabla.ausente .checkbox-visual-tabla {
+    background: linear-gradient(135deg, #e74c3c 0%, #ec7063 100%);
+    border-color: #e74c3c;
+    color: white;
+}
+
+.checkbox-tabla.ausente input[type="checkbox"]:checked ~ .checkbox-visual-tabla {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.2);
+}
+
+/* JUSTIFICADO */
+.checkbox-tabla.justificado .checkbox-visual-tabla {
+    background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+    border-color: #ff9800;
+    color: white;
+}
+
+.checkbox-tabla.justificado input[type="checkbox"]:checked ~ .checkbox-visual-tabla {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2);
+}
+
+/* HOVER */
+.checkbox-tabla:hover .checkbox-visual-tabla {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-sm);
+}
+
+.checkbox-tabla input[type="checkbox"]:checked ~ .checkbox-visual-tabla {
+    font-weight: bold;
+}
+
 /* ============ MODAL ============ */
 .modal {
     display: none;
@@ -624,11 +701,6 @@ body.dashboard-page {
     animation: slideUp 0.4s ease-out;
 }
 
-.modal-asistencia {
-    width: 90%;
-    max-width: 500px;
-}
-
 .modal-content h3 {
     color: var(--primary);
     margin-bottom: 25px;
@@ -648,102 +720,6 @@ body.dashboard-page {
 
 .close:hover {
     color: var(--danger);
-}
-
-/* ============ CHECKBOX ELEGANTE ============ */
-.asistencia-opciones {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 25px;
-}
-
-.checkbox-elegante {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 16px;
-    background: white;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: var(--transition);
-    position: relative;
-}
-
-.checkbox-elegante:hover {
-    border-color: var(--primary);
-    background: var(--light);
-}
-
-.checkbox-elegante input[type="radio"] {
-    display: none;
-}
-
-.checkbox-elegante input[type="radio"]:checked + .checkbox-visual {
-    transform: scale(1.1);
-    box-shadow: var(--shadow);
-}
-
-.checkbox-visual {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    flex-shrink: 0;
-    transition: var(--transition);
-    box-shadow: var(--shadow-sm);
-}
-
-.presente-visual {
-    background: linear-gradient(135deg, var(--success) 0%, var(--success-light) 100%);
-}
-
-.checkbox-elegante input[type="radio"]:checked + .presente-visual {
-    background: linear-gradient(135deg, #047857 0%, var(--success) 100%);
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
-}
-
-.ausente-visual {
-    background: linear-gradient(135deg, var(--danger) 0%, #ef4444 100%);
-}
-
-.checkbox-elegante input[type="radio"]:checked + .ausente-visual {
-    background: linear-gradient(135deg, #b91c1c 0%, var(--danger) 100%);
-    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
-}
-
-.justificado-visual {
-    background: linear-gradient(135deg, var(--warning) 0%, #f59e0b 100%);
-}
-
-.checkbox-elegante input[type="radio"]:checked + .justificado-visual {
-    background: linear-gradient(135deg, #b45309 0%, var(--warning) 100%);
-    box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.2);
-}
-
-.checkbox-label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.label-texto {
-    font-weight: 600;
-    color: var(--text);
-    font-size: 15px;
-}
-
-.label-codigo {
-    font-size: 12px;
-    color: var(--text-light);
-    font-weight: 500;
-    letter-spacing: 0.5px;
 }
 
 /* ============ TAB FOOTER ============ */
@@ -775,7 +751,7 @@ body.dashboard-page {
     background: white;
     padding: 16px 20px;
     border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(74, 144, 226, 0.15);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -787,18 +763,18 @@ body.dashboard-page {
 }
 
 .toast.success {
-    border-left: 4px solid var(--success);
-    color: var(--success);
+    border-left: 4px solid #26a69a;
+    color: #26a69a;
 }
 
 .toast.error {
-    border-left: 4px solid var(--danger);
-    color: var(--danger);
+    border-left: 4px solid #e74c3c;
+    color: #e74c3c;
 }
 
 .toast.info {
-    border-left: 4px solid var(--info);
-    color: var(--info);
+    border-left: 4px solid #00bcd4;
+    color: #00bcd4;
 }
 
 .toast-icon {
@@ -889,7 +865,7 @@ body.dashboard-page {
 }
 
 .tabla-asistencia th {
-    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+    background: linear-gradient(90deg, #4a90e2 0%, #6ba3f5 100%);
     color: white;
     padding: 16px 14px;
     text-align: left;
@@ -1022,10 +998,10 @@ body.dashboard-page {
         font-size: 13px;
     }
 
-    .checkbox-visual {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+    .checkbox-visual-tabla {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
     }
 
     .btn-cargar-asistencia {

@@ -75,16 +75,18 @@
                 </div>
 
                 <div class="tabla-container">
-                    <table class="tabla-miembros">
+                    <table class="tabla-miembros tabla-asistencia-inline">
                         <thead>
                             <tr>
-                                <th style="width: 50%;">Nombre</th>
-                                <th style="width: 30%;">Voz</th>
-                                <th style="width: 20%; text-align: center;">Acción</th>
+                                <th style="width: 40%;">Nombre</th>
+                                <th style="width: 20%;">Voz</th>
+                                <th style="width: 15%; text-align: center;">P</th>
+                                <th style="width: 15%; text-align: center;">A</th>
+                                <th style="width: 10%; text-align: center;">AJ</th>
                             </tr>
                         </thead>
                         <tbody id="coroTableBody">
-                            <tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-light);">Cargando miembros...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">Cargando miembros...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -109,16 +111,18 @@
                 </div>
 
                 <div class="tabla-container">
-                    <table class="tabla-miembros">
+                    <table class="tabla-miembros tabla-asistencia-inline">
                         <thead>
                             <tr>
-                                <th style="width: 50%;">Nombre</th>
-                                <th style="width: 30%;">Instrumento</th>
-                                <th style="width: 20%; text-align: center;">Acción</th>
+                                <th style="width: 40%;">Nombre</th>
+                                <th style="width: 20%;">Instrumento</th>
+                                <th style="width: 15%; text-align: center;">P</th>
+                                <th style="width: 15%; text-align: center;">A</th>
+                                <th style="width: 10%; text-align: center;">AJ</th>
                             </tr>
                         </thead>
                         <tbody id="orquestaTableBody">
-                            <tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-light);">Cargando miembros...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">Cargando miembros...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -183,57 +187,6 @@
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal()">Cancelar</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Modal para marcar asistencia -->
-    <div id="modalAsistencia" class="modal">
-        <div class="modal-content modal-asistencia">
-            <span class="close" onclick="cerrarModalAsistencia()">&times;</span>
-            <h3>Registrar Asistencia</h3>
-            
-            <div class="asistencia-miembro">
-                <div class="miembro-header">
-                    <div>
-                        <h4 id="nombreMiembroAsistencia" style="margin: 0; color: var(--primary); font-size: 18px;"></h4>
-                        <p id="detalleAsistencia" style="margin: 5px 0 0 0; color: var(--text-light); font-size: 14px;"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="asistencia-opciones">
-                <label class="checkbox-elegante">
-                    <input type="radio" name="asistencia" value="presente" id="radioPresente">
-                    <span class="checkbox-visual presente-visual">✓</span>
-                    <span class="checkbox-label">
-                        <span class="label-texto">Presente</span>
-                        <span class="label-codigo">P</span>
-                    </span>
-                </label>
-
-                <label class="checkbox-elegante">
-                    <input type="radio" name="asistencia" value="ausente" id="radioAusente">
-                    <span class="checkbox-visual ausente-visual">✗</span>
-                    <span class="checkbox-label">
-                        <span class="label-texto">Ausente</span>
-                        <span class="label-codigo">A</span>
-                    </span>
-                </label>
-
-                <label class="checkbox-elegante">
-                    <input type="radio" name="asistencia" value="justificado" id="radioJustificado">
-                    <span class="checkbox-visual justificado-visual">?</span>
-                    <span class="checkbox-label">
-                        <span class="label-texto">Justificado</span>
-                        <span class="label-codigo">AJ</span>
-                    </span>
-                </label>
-            </div>
-
-            <div style="margin-top: 25px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" style="flex: 1;" onclick="guardarAsistencia()">Guardar</button>
-                <button class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalAsistencia()">Cancelar</button>
-            </div>
         </div>
     </div>
 

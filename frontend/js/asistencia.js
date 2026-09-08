@@ -26,8 +26,6 @@ const VOCES = [
 ];
 
 let miembrosActuales = [];
-let miembroEnEdicion = null;
-let grupoEnEdicion = null;
 
 // ===== CARGAR MIEMBROS =====
 async function cargarMiembros(grupo) {
@@ -46,7 +44,7 @@ async function cargarMiembros(grupo) {
     
     if (miembros.length === 0) {
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td colspan="3" style="text-align: center; padding: 30px; color: var(--text-light);">No hay miembros registrados</td>';
+      tr.innerHTML = '<td colspan="5" style="text-align: center; padding: 30px; color: var(--text-light);">No hay miembros registrados</td>';
       tbody.appendChild(tr);
       return;
     }
@@ -59,9 +57,22 @@ async function cargarMiembros(grupo) {
         <td>${miembro.nombre}</td>
         <td>${detalleExtra}</td>
         <td style="text-align: center;">
-          <button class="btn-cargar-asistencia" onclick="abrirModalAsistencia(${miembro.id}, '${grupo}', '${miembro.nombre}', '${detalleExtra}')">
-            Cargar
-          </button>
+          <label class="checkbox-tabla presente" title="Presente">
+            <input type="checkbox" onchange="registrarAsistenciaRapido(${miembro.id}, '${grupo}', 'presente', this)">
+            <span class="checkbox-visual-tabla">✓</span>
+          </label>
+        </td>
+        <td style="text-align: center;">
+          <label class="checkbox-tabla ausente" title="Ausente">
+            <input type="checkbox" onchange="registrarAsistenciaRapido(${miembro.id}, '${grupo}', 'ausente', this)">
+            <span class="checkbox-visual-tabla">✗</span>
+          </label>
+        </td>
+        <td style="text-align: center;">
+          <label class="checkbox-tabla justificado" title="Justificado">
+            <input type="checkbox" onchange="registrarAsistenciaRapido(${miembro.id}, '${grupo}', 'justificado', this)">
+            <span class="checkbox-visual-tabla">?</span>
+          </label>
         </td>
       `;
       tbody.appendChild(tr);
@@ -75,41 +86,44 @@ async function cargarMiembros(grupo) {
   }
 }
 
-// ===== ABRIR MODAL DE ASISTENCIA =====
-function abrirModalAsistencia(miembroId, grupo, nombre, detalle) {
-  miembroEnEdicion = miembroId;
-  grupoEnEdicion = grupo;
+// ===== REGISTRAR ASISTENCIA RÁPIDO (SIN MODAL) =====
+async function registrarAsistenciaRapido(miembroId, grupo, tipo, checkbox) {
+  // Desmarcar otros checkboxes de la misma fila
+  const row = checkbox.closest('tr');
+  const checkboxes = row.querySelectorAll('input[type="checkbox"]');
   
-  document.getElementById('nombreMiembroAsistencia').textContent = nombre;
-  document.getElementById('detalleAsistencia').textContent = detalle;
-  
-  // Limpiar selección
-  document.querySelectorAll('input[name="asistencia"]').forEach(radio => {
-    radio.checked = false;
+  checkboxes.forEach(cb => {
+    if (cb !== checkbox) cb.checked = false;
   });
   
-  document.getElementById('modalAsistencia').classList.add('show');
-}
-
-// ===== GUARDAR ASISTENCIA =====
-async function guardarAsistencia() {
-  const opcionSeleccionada = document.querySelector('input[name="asistencia"]:checked');
-  
-  if (!opcionSeleccionada) {
-    mostrarError('Debe seleccionar una opción');
+  // Si está desmarcando, no hacer nada
+  if (!checkbox.checked) {
     return;
   }
   
-  const presente = opcionSeleccionada.value === 'presente' ? true : 
-                   opcionSeleccionada.value === 'ausente' ? false : null;
-  const nota = opcionSeleccionada.value === 'justificado' ? 'Justificado' : '';
-  
-  const fecha = grupoEnEdicion === 'coro' 
+  const fecha = grupo === 'coro' 
     ? document.getElementById('fechaCoro').value 
     : document.getElementById('fechaOrquesta').value;
-  const tipoEvento = grupoEnEdicion === 'coro' 
+  const tipoEvento = grupo === 'coro' 
     ? document.getElementById('tipoEventoCoro').value 
     : document.getElementById('tipoEventoOrquesta').value;
+  
+  // Determinar si presente y nota
+  let presente;
+  let nota = '';
+  
+  if (tipo === 'presente') {
+    presente = true;
+  } else if (tipo === 'ausente') {
+    presente = false;
+  } else if (tipo === 'justificado') {
+    presente = null;
+    nota = 'Justificado';
+  }
+  
+  // Agregar animación de guardando
+  const label = checkbox.closest('.checkbox-tabla');
+  label.classList.add('saving');
   
   try {
     const response = await fetch(`${API_URL}/asistencia/registrar`, {
@@ -119,7 +133,7 @@ async function guardarAsistencia() {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        miembro_id: miembroEnEdicion,
+        miembro_id: miembroId,
         tipo_evento: tipoEvento,
         fecha: fecha,
         presente: presente,
@@ -131,13 +145,17 @@ async function guardarAsistencia() {
     
     if (response.ok) {
       mostrarToast('Asistencia registrada', 'success');
-      cerrarModalAsistencia();
+      label.classList.remove('saving');
     } else {
-      mostrarError(data.error || 'Error al registrar asistencia');
+      checkbox.checked = false;
+      mostrarError(data.error || 'Error al registrar');
+      label.classList.remove('saving');
     }
   } catch (error) {
     console.error('Error:', error);
+    checkbox.checked = false;
     mostrarError('Error al registrar asistencia');
+    label.classList.remove('saving');
   }
 }
 
