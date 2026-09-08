@@ -55,9 +55,12 @@ function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     
+    const loginPage = document.getElementById('loginPage');
+    const dashboardPage = document.getElementById('dashboardPage');
+    
     // Volver a login
-    document.querySelector('.login-page').style.display = 'flex';
-    document.querySelector('.dashboard-page').style.display = 'none';
+    loginPage.style.display = 'flex';
+    dashboardPage.style.display = 'none';
     document.getElementById('usuario').value = '';
     document.getElementById('password').value = '';
     
@@ -168,11 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const storedToken = localStorage.getItem('token');
     const storedUsuario = localStorage.getItem('usuario');
     
+    const loginPage = document.getElementById('loginPage');
+    const dashboardPage = document.getElementById('dashboardPage');
+    
     // Si hay token guardado, mostrar dashboard
-    if (storedToken) {
+    if (storedToken && storedUsuario) {
         token = storedToken;
-        document.querySelector('.login-page').style.display = 'none';
-        document.querySelector('.dashboard-page').style.display = 'flex';
+        loginPage.style.display = 'none';
+        dashboardPage.style.display = 'flex';
         document.getElementById('usuarioActual').textContent = `Bienvenido, ${storedUsuario}`;
         
         // Cargar datos
@@ -182,8 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     } else {
         // Mostrar login
-        document.querySelector('.login-page').style.display = 'flex';
-        document.querySelector('.dashboard-page').style.display = 'none';
+        loginPage.style.display = 'flex';
+        dashboardPage.style.display = 'none';
     }
     
     // Logout button
