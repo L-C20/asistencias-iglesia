@@ -1,0 +1,113 @@
+# Sistema de Asistencia - Orquesta y Coro
+
+Sistema simple de registro de asistencia para orquesta y coro de la iglesia.
+
+## Características
+
+- ✅ Registro de asistencia en tiempo real
+- ✅ Dos pestañas separadas (Coro / Orquesta)
+- ✅ Dos tipos de eventos (Santo Culto / Ensayo)
+- ✅ 4 usuarios con credenciales simples
+- ✅ Reportes con gráficos
+- ✅ Exportar a Excel
+- ✅ Base de datos PostgreSQL
+
+## Instalación Local
+
+### Requisitos
+- Node.js 18+
+- PostgreSQL 12+
+
+### Pasos
+
+1. **Clonar o descargar el proyecto**
+```bash
+cd asistencia-iglesia
+```
+
+2. **Instalar dependencias**
+```bash
+npm install
+```
+
+3. **Configurar variables de entorno (.env)**
+```
+DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/asistencia_iglesia
+PORT=3000
+JWT_SECRET=tu_secreto_super_seguro_aqui_2024
+USERS=usuario1:sigme,usuario2:sigme,usuario3:sigme,usuario4:sigme
+NODE_ENV=development
+```
+
+4. **Crear base de datos PostgreSQL**
+```sql
+CREATE DATABASE asistencia_iglesia;
+```
+
+5. **Ejecutar servidor**
+```bash
+npm start
+```
+
+El servidor estará disponible en `http://localhost:3000`
+
+## Usuarios por defecto
+
+| Usuario | Contraseña |
+|---------|-----------|
+| usuario1 | sigme |
+| usuario2 | sigme |
+| usuario3 | sigme |
+| usuario4 | sigme |
+
+## Despliegue en Render
+
+1. Crear repositorio en GitHub
+2. Conectar a Render
+3. Configurar variables de entorno en Render
+4. Render detectará `package.json` automáticamente
+5. Desplegar
+
+## Despliegue en Railway
+
+1. Conectar GitHub a Railway
+2. Crear servicio PostgreSQL
+3. Configurar `DATABASE_URL` con la BD
+4. Desplegar
+
+## Estructura
+
+```
+asistencia-iglesia/
+├── server.js           # Servidor principal
+├── database.js         # Conexión y setup BD
+├── package.json        # Dependencias
+├── .env               # Variables de entorno
+├── routes/
+│   ├── auth.js        # Login y JWT
+│   ├── asistencia.js  # CRUD de asistencias
+│   └── reportes.js    # Reportes y Excel
+└── frontend/          # HTML/CSS/JS (próximo paso)
+```
+
+## Endpoints API
+
+### Autenticación
+- `POST /api/auth/login` - Login de usuarios
+- `GET /api/auth/verify` - Verificar token
+
+### Asistencia
+- `GET /api/asistencia/miembros/:grupo` - Listar miembros
+- `POST /api/asistencia/registrar` - Registrar asistencia
+- `GET /api/asistencia/:grupo/:fecha/:tipoEvento` - Obtener asistencia
+- `POST /api/asistencia/miembro/nuevo` - Agregar miembro
+
+### Reportes
+- `GET /api/reportes/estadisticas/:grupo` - Estadísticas por mes
+- `GET /api/reportes/por-miembro/:grupo/:mes` - Asistencia por miembro
+- `GET /api/reportes/exportar/:grupo/:fechaInicio/:fechaFin` - Descargar Excel
+- `GET /api/reportes/general` - Estadísticas generales
+
+## Licencia
+
+ISC
