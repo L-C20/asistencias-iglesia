@@ -1,114 +1,129 @@
-console.log('🔧 configuracion.js iniciando');
-
-// Verificar que variables globales existan
-if (typeof API_URL === 'undefined') {
-    console.warn('⚠️ API_URL no está definida aún');
-}
-if (typeof token === 'undefined') {
-    console.warn('⚠️ token no está definida aún');
-}
+console.log('🔧 configuracion-v2.js iniciando');
 
 // ===== CARGAR USUARIOS =====
 async function cargarUsuarios() {
     try {
+        console.log('═══════════════════════════════════════');
         console.log('👥 [cargarUsuarios] Iniciando...');
-        console.log('   API_URL:', API_URL);
-        console.log('   Token:', token ? '✅' : '❌');
+        console.log('═══════════════════════════════════════');
         
-        if (!API_URL || !token) {
-            console.error('❌ Faltan API_URL o token');
-            const tbody = document.getElementById('usuariosTableBody');
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Error: No autenticado</td></tr>';
-            }
+        // Verificar variables globales
+        if (typeof API_URL === 'undefined') {
+            console.error('❌ API_URL no definida');
+            mostrarErrorEnTabla('API_URL no definida');
             return;
         }
         
+        if (typeof token === 'undefined') {
+            console.error('❌ token no definido');
+            mostrarErrorEnTabla('Token no definido');
+            return;
+        }
+        
+        console.log('✅ API_URL:', API_URL);
+        console.log('✅ Token disponible');
+        
         const url = `${API_URL}/usuarios`;
-        console.log('📡 Fetch a:', url);
+        console.log('📡 Haciendo fetch a:', url);
         
         const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
         });
         
         console.log('📊 Response status:', response.status);
+        console.log('📊 Response headers:', response.headers);
         
         if (!response.ok) {
-            console.error('❌ Error:', response.status, response.statusText);
-            const tbody = document.getElementById('usuariosTableBody');
-            if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Error al cargar usuarios (${response.status})</td></tr>`;
-            }
+            const errorText = await response.text();
+            console.error('❌ Error HTTP:', response.status, errorText);
+            mostrarErrorEnTabla(`Error ${response.status}: ${errorText}`);
             return;
         }
         
         const usuarios = await response.json();
-        console.log('✅ Usuarios obtenidos:', usuarios.length);
+        console.log('✅ Usuarios obtenidos:', usuarios);
+        console.log('   Cantidad:', usuarios.length);
+        
+        if (!Array.isArray(usuarios)) {
+            console.error('❌ Usuarios no es un array:', typeof usuarios);
+            mostrarErrorEnTabla('Respuesta inválida del servidor');
+            return;
+        }
         
         renderizarTablaUsuarios(usuarios);
         
     } catch (error) {
-        console.error('❌ Error en cargarUsuarios:', error);
-        const tbody = document.getElementById('usuariosTableBody');
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Error: ${error.message}</td></tr>`;
-        }
+        console.error('❌ Error crítico:', error);
+        console.error('   Nombre:', error.name);
+        console.error('   Mensaje:', error.message);
+        console.error('   Stack:', error.stack);
+        mostrarErrorEnTabla(`Error: ${error.message}`);
+    }
+}
+
+// ===== MOSTRAR ERROR EN TABLA =====
+function mostrarErrorEnTabla(mensaje) {
+    const tbody = document.getElementById('usuariosTableBody');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">⚠️ ${mensaje}</td></tr>`;
     }
 }
 
 // ===== RENDERIZAR TABLA USUARIOS =====
 function renderizarTablaUsuarios(usuarios) {
-    console.log('🎨 Renderizando tabla de usuarios');
+    console.log('🎨 [renderizarTablaUsuarios] Renderizando:', usuarios.length, 'usuarios');
     
     const tbody = document.getElementById('usuariosTableBody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('❌ usuariosTableBody no encontrado');
+        return;
+    }
     
     tbody.innerHTML = '';
     
     if (!usuarios || usuarios.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No hay usuarios registrados</td></tr>';
+        console.log('ℹ️ No hay usuarios');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-light);">No hay usuarios registrados</td></tr>';
         return;
     }
     
-    usuarios.forEach(usuario => {
+    usuarios.forEach((usuario, idx) => {
+        console.log(`  ${idx + 1}. ${usuario.usuario} (${usuario.rol})`);
+        
         const tr = document.createElement('tr');
         tr.id = `usuario-row-${usuario.id}`;
         tr.innerHTML = `
-            <td class="celda-nombre">${usuario.usuario}</td>
-            <td class="celda-detalle">
-                <span class="badge badge-info">${usuario.rol === 'admin' ? 'Administrador' : 'Usuario'}</span>
+            <td class="celda-nombre" style="padding: 12px; border-bottom: 1px solid var(--border);">${usuario.usuario || 'N/A'}</td>
+            <td class="celda-detalle" style="padding: 12px; border-bottom: 1px solid var(--border);">
+                <span class="badge" style="background: #e3f2fd; color: #1565c0; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                    ${usuario.rol === 'admin' ? 'Administrador' : 'Usuario'}
+                </span>
             </td>
-            <td class="celda-detalle">
-                <span class="badge ${usuario.activo ? 'badge-success' : 'badge-danger'}">
+            <td class="celda-detalle" style="padding: 12px; border-bottom: 1px solid var(--border);">
+                <span class="badge" style="background: ${usuario.activo ? '#d1fae5' : '#fee2e2'}; color: ${usuario.activo ? '#065f46' : '#991b1b'}; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
                     ${usuario.activo ? 'Activo' : 'Inactivo'}
                 </span>
             </td>
-            <td class="celda-acciones">
-                <button class="btn btn-sm btn-secondary" type="button" onclick="editarUsuario(${usuario.id}); return false;" title="Editar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                    </svg>
+            <td class="celda-acciones" style="padding: 12px; border-bottom: 1px solid var(--border); display: flex; gap: 6px;">
+                <button class="btn btn-sm btn-secondary" type="button" onclick="editarUsuario(${usuario.id}); return false;" title="Editar" style="padding: 6px 10px; font-size: 11px;">
+                    ✏️
                 </button>
-                <button class="btn btn-sm btn-warning" type="button" onclick="resetearPassword(${usuario.id}); return false;" title="Resetear Contraseña">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                        <path d="M21 3v5h-5"></path>
-                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                        <path d="M3 21v-5h5"></path>
-                    </svg>
+                <button class="btn btn-sm btn-warning" type="button" onclick="resetearPassword(${usuario.id}); return false;" title="Resetear Contraseña" style="padding: 6px 10px; font-size: 11px;">
+                    🔑
                 </button>
-                <button class="btn btn-sm btn-danger" type="button" onclick="eliminarUsuarioConfirm(${usuario.id}); return false;" title="Eliminar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
+                <button class="btn btn-sm btn-danger" type="button" onclick="eliminarUsuarioConfirm(${usuario.id}); return false;" title="Eliminar" style="padding: 6px 10px; font-size: 11px;">
+                    🗑️
                 </button>
             </td>
         `;
         tbody.appendChild(tr);
     });
     
-    console.log('✅ Tabla renderizada');
+    console.log('✅ Tabla renderizada correctamente');
 }
 
 // ===== ABRIR MODAL NUEVO USUARIO =====
@@ -116,7 +131,11 @@ function abrirModalNuevoUsuario() {
     console.log('📝 Abriendo modal nuevo usuario');
     
     const modal = document.getElementById('modalNuevoUsuario');
-    if (!modal) return;
+    if (!modal) {
+        console.error('❌ Modal no encontrado');
+        mostrarError('Modal no encontrado');
+        return;
+    }
     
     document.getElementById('modalUsuarioTitulo').textContent = 'Nuevo Usuario';
     document.getElementById('usuarioNuevo').value = '';
@@ -125,6 +144,7 @@ function abrirModalNuevoUsuario() {
     document.getElementById('formNuevoUsuario').reset();
     
     modal.classList.add('show');
+    console.log('✅ Modal abierto');
 }
 
 // ===== CERRAR MODAL USUARIO =====
@@ -143,14 +163,14 @@ async function guardarNuevoUsuario(e) {
     const password = document.getElementById('passwordNuevo').value;
     const rol = document.getElementById('rolNuevo').value;
     
+    console.log('💾 Guardando nuevo usuario:', usuario);
+    
     if (!usuario || !password || !rol) {
         mostrarError('Completa todos los campos');
         return;
     }
     
     try {
-        console.log('💾 Guardando nuevo usuario:', usuario);
-        
         const response = await fetch(`${API_URL}/usuarios/crear`, {
             method: 'POST',
             headers: {
@@ -199,7 +219,7 @@ async function resetearPassword(usuarioId) {
         const data = await response.json();
         
         if (response.ok) {
-            mostrarToast(`✅ Contraseña reseteada a: ${data.nuevaPassword}`, 'success');
+            mostrarToast(`✅ Nueva contraseña: ${data.nuevaPassword}`, 'success');
             cargarUsuarios();
         } else {
             mostrarError(data.error || 'Error al resetear contraseña');
@@ -291,4 +311,4 @@ function inicializarConfiguracion() {
     cargarUsuarios();
 }
 
-console.log('✅ configuracion.js CARGADO');
+console.log('✅ configuracion-v2.js CARGADO COMPLETAMENTE');
