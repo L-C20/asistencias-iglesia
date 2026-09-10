@@ -1,7 +1,8 @@
-console.log('📊 reportes-v14.js iniciando');
+console.log('📊 reportes-v15.js iniciando');
 
 // ===== VARIABLES GLOBALES =====
 let currentGrupo = 'coro';
+let chartInstances = {};
 
 // ===== CARGAR REPORTE GRUPO =====
 async function cargarReporteGrupo(grupo, esInicial = false) {
@@ -102,7 +103,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             <div class="reporte-graficos">
                 <div class="grafico-contenedor">
                     <h3>Distribución General</h3>
-                    <canvas id="graficoPie" height="250"></canvas>
+                    <canvas id="graficoPie"></canvas>
                 </div>
             </div>
 
@@ -151,14 +152,12 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         if (contenido) {
             contenido.innerHTML = html;
             console.log('✅ Reportes renderizados');
-        } else {
-            console.error('❌ reporteContent no encontrado');
         }
         
-        // Dibujar gráfico pie
+        // Dibujar gráfico después de que el DOM esté listo
         setTimeout(() => {
             dibujarGraficoPie(totalPresentes, totalAusentes, totalJustificados);
-        }, 100);
+        }, 200);
         
     } catch (error) {
         console.error('❌ Error en cargarReporteGrupo:', error);
@@ -180,52 +179,67 @@ function mostrarMensajeReportes(mensaje) {
 // ===== DIBUJAR GRÁFICO PIE =====
 function dibujarGraficoPie(presentes, ausentes, justificados) {
     try {
+        console.log('🎨 [dibujarGraficoPie] Dibujando gráfico');
+        console.log('   Presentes:', presentes);
+        console.log('   Ausentes:', ausentes);
+        console.log('   Justificados:', justificados);
+        
         const ctx = document.getElementById('graficoPie');
         if (!ctx) {
-            console.warn('⚠️ Canvas graficoPie no encontrado');
+            console.error('❌ Canvas graficoPie no encontrado');
             return;
         }
         
-        // Destruir gráfico anterior si existe
-        if (window.pieChart) {
-            window.pieChart.destroy();
-        }
-        
-        // Verificar que Chart esté disponible
+        // Verificar Chart.js
         if (typeof Chart === 'undefined') {
-            console.warn('⚠️ Chart.js no está disponible');
+            console.error('❌ Chart.js no está disponible');
+            setTimeout(() => dibujarGraficoPie(presentes, ausentes, justificados), 500);
             return;
         }
         
-        window.pieChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Presentes', 'Ausentes', 'Justificados'],
-                datasets: [{
-                    data: [presentes, ausentes, justificados],
-                    backgroundColor: [
-                        '#10b981',
-                        '#ef4444',
-                        '#f59e0b'
-                    ],
-                    borderColor: ['white'],
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+        // Destruir gráfico anterior
+        if (chartInstances[currentGrupo]) {
+            try {
+                chartInstances[currentGrupo].destroy();
+            } catch (e) {
+                console.warn('⚠️ Error destruyendo gráfico anterior');
+            }
+        }
+        
+        // Crear gráfico
+        try {
+            chartInstances[currentGrupo] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Presentes', 'Ausentes', 'Justificados'],
+                    datasets: [{
+                        data: [presentes, ausentes, justificados],
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                        borderColor: 'white',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: { size: 12, weight: '600' },
+                                usePointStyle: true
+                            }
+                        }
                     }
                 }
-            }
-        });
-        
-        console.log('✅ Gráfico dibujado');
+            });
+            console.log('✅ Gráfico dibujado exitosamente');
+        } catch (chartError) {
+            console.error('❌ Error creando Chart:', chartError);
+        }
     } catch (error) {
-        console.error('❌ Error dibujando gráfico:', error);
+        console.error('❌ Error en dibujarGraficoPie:', error);
     }
 }
 
@@ -248,4 +262,4 @@ function toggleExpandibleFila(filaId) {
     }
 }
 
-console.log('✅ reportes-v14.js CARGADO');
+console.log('✅ reportes-v15.js CARGADO');
