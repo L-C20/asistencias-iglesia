@@ -31,7 +31,7 @@ router.get('/estadisticas/:grupo', verifyToken, async (req, res) => {
             COUNT(*) as total_registros,
             SUM(CASE WHEN presente = true THEN 1 ELSE 0 END) as presentes,
             SUM(CASE WHEN presente = false THEN 1 ELSE 0 END) as ausentes,
-            SUM(CASE WHEN presente = 'justified' THEN 1 ELSE 0 END) as justificados
+            SUM(CASE WHEN presente::text = 'justified' THEN 1 ELSE 0 END) as justificados
           FROM registro_asistencia 
           WHERE miembro_id = $1`,
           [miembro.id]
@@ -111,7 +111,7 @@ router.get('/resumen/:grupo', verifyToken, async (req, res) => {
         COUNT(*) as total_registros,
         SUM(CASE WHEN presente = true THEN 1 ELSE 0 END) as total_presentes,
         SUM(CASE WHEN presente = false THEN 1 ELSE 0 END) as total_ausentes,
-        SUM(CASE WHEN presente = 'justified' THEN 1 ELSE 0 END) as total_justificados
+        SUM(CASE WHEN presente::text = 'justified' THEN 1 ELSE 0 END) as total_justificados
       FROM registro_asistencia ra
       JOIN miembros m ON ra.miembro_id = m.id
       WHERE m.grupo = $1`,
