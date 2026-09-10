@@ -1648,13 +1648,69 @@ body {
 }
 
 
-/* ============ LISTA DE MIEMBROS ============ */
-.lista-miembros-container {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
-    gap: 16px !important;
-    margin-bottom: 24px !important;
+/* ============ TABLA MIEMBROS ============ */
+.tabla-miembros {
+    background: white !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
     width: 100% !important;
+    margin-bottom: 24px !important;
+}
+
+.tabla-datos {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+.tabla-datos thead {
+    background: var(--light) !important;
+    border-bottom: 2px solid var(--border) !important;
+}
+
+.tabla-datos thead th {
+    padding: 16px !important;
+    text-align: left !important;
+    font-weight: 700 !important;
+    color: var(--primary) !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.tabla-datos tbody tr {
+    border-bottom: 1px solid var(--border) !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.tabla-datos tbody tr:hover {
+    background-color: var(--light) !important;
+}
+
+.tabla-datos tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+.tabla-datos td {
+    padding: 14px 16px !important;
+    font-size: 13px !important;
+    color: var(--text) !important;
+}
+
+.celda-nombre {
+    font-weight: 600 !important;
+    color: var(--primary) !important;
+    min-width: 200px !important;
+}
+
+.celda-detalle {
+    color: var(--text-light) !important;
+}
+
+.celda-acciones {
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: flex-end !important;
 }
 
 .card-miembro {

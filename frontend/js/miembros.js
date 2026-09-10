@@ -13,20 +13,9 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
     try {
         console.log('🔍 Iniciando cargarMiembrosPorFiltro:', { grupo, filtro });
         
-        // Verificar que existan las variables globales
-        if (!API_URL || !token) {
-            console.error('❌ Faltan variables globales:', { API_URL, token: token ? 'existe' : 'no existe' });
-            mostrarError('Error: Variables no inicializadas');
-            return;
-        }
-        
-        console.log('📡 Fetch a:', `${API_URL}/asistencia/miembros/${grupo}`);
-        
         const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        console.log('📊 Response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`Error: ${response.status}`);
@@ -49,60 +38,54 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         const containerId = grupo === 'coro' ? 'listaMiembrosCoro' : 'listaMiembrosOrquesta';
         const container = document.getElementById(containerId);
         
-        console.log('🎯 Buscando contenedor:', containerId);
-        console.log('🎯 Contenedor encontrado:', !!container);
-        
         if (!container) {
             console.error('❌ Contenedor no encontrado:', containerId);
             return;
         }
         
-        // Limpiar contenedor
-        container.innerHTML = '';
-        
-        if (!miembros || miembros.length === 0) {
-            console.log('ℹ️ Sin miembros para mostrar');
-            const div = document.createElement('div');
-            div.style.padding = '40px';
-            div.style.textAlign = 'center';
-            div.style.color = 'var(--text-light)';
-            div.textContent = 'No hay integrantes registrados' + (filtro ? ' con este filtro' : '');
-            container.appendChild(div);
+        const tbody = container.querySelector('tbody');
+        if (!tbody) {
+            console.error('❌ tbody no encontrado en tabla');
             return;
         }
         
-        console.log('🎨 Creando', miembros.length, 'tarjetas');
+        // Limpiar tbody
+        tbody.innerHTML = '';
         
-        // Crear cards para cada miembro con ID único
+        if (!miembros || miembros.length === 0) {
+            console.log('ℹ️ Sin miembros para mostrar');
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-light);">No hay integrantes registrados${filtro ? ' con este filtro' : ''}</td></tr>`;
+            return;
+        }
+        
+        console.log('🎨 Creando', miembros.length, 'filas de tabla');
+        
+        // Crear filas para cada miembro
         miembros.forEach((miembro, index) => {
             const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
             
-            const card = document.createElement('div');
-            card.className = 'card-miembro';
-            card.id = `miembro-card-${grupo}-${miembro.id}`;
-            card.innerHTML = `
-                <div class="miembro-card-content">
-                    <div class="miembro-card-info">
-                        <h3 class="miembro-nombre">${miembro.nombre}</h3>
-                        <p class="miembro-tipo">${detalleExtra}</p>
-                    </div>
-                    <div class="miembro-card-actions">
-                        <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}, '${grupo}'); return false;" title="Editar">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                            </svg>
-                        </button>
-                        <button class="btn btn-sm btn-danger" type="button" onclick="eliminarMiembroConfirm(${miembro.id}, '${grupo}'); return false;" title="Eliminar">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+            const tr = document.createElement('tr');
+            tr.className = 'tabla-row';
+            tr.id = `miembro-row-${grupo}-${miembro.id}`;
+            tr.innerHTML = `
+                <td class="celda-nombre">${miembro.nombre}</td>
+                <td class="celda-detalle">${detalleExtra}</td>
+                <td class="celda-acciones">
+                    <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}, '${grupo}'); return false;" title="Editar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn btn-sm btn-danger" type="button" onclick="eliminarMiembroConfirm(${miembro.id}, '${grupo}'); return false;" title="Eliminar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </td>
             `;
-            container.appendChild(card);
-            console.log(`✅ Card ${index + 1}/${miembros.length} creada para ${miembro.nombre}`);
+            tbody.appendChild(tr);
+            console.log(`✅ Fila ${index + 1}/${miembros.length} creada para ${miembro.nombre}`);
         });
         
         console.log('✨ Carga completada');
@@ -274,4 +257,4 @@ function cerrarModal() {
     document.getElementById('formNuevoMiembro').reset();
 }
 
-console.log('✅ miembros-v3.js cargado');
+console.log('✅ miembros-v4.js cargado');
