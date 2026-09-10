@@ -3,44 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Asistencia</title>
+    <title>Asistencia - Iglesia</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <style>
+        /* LOGIN MODERNO */
+        body.login-mode {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-page {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 48px 32px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            color: white;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+
+        .login-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .login-form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .login-form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .login-form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #ef4444;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 480px) {
+            .login-page {
+                margin: 16px;
+                padding: 32px 20px;
+            }
+            .login-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
 </head>
-<body>
-    
+<body class="login-mode">
     <!-- LOGIN PAGE -->
-    <div id="loginPage" class="login-page" style="display: flex;">
-        <div class="login-container">
-            <div class="login-box">
-                <h1>Asistencia</h1>
-                <h2>Sistema de Control</h2>
-                
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label>Usuario</label>
-                        <input type="text" id="usuario" placeholder="usuario1" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Contraseña</label>
-                        <input type="password" id="password" placeholder="sigme" required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar</button>
-                </form>
-                
-                <div class="login-hint">
-                    Demo: usuario1 / sigme
-                </div>
+    <div id="loginPage" class="login-page">
+        <div class="login-header">
+            <div class="login-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
             </div>
+            <h1>Asistencia</h1>
+            <p>Orquesta y Coro</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="login-form-group">
+                <label>Usuario</label>
+                <input type="text" id="usuario" placeholder="Ingresa tu usuario" autocomplete="username" required>
+            </div>
+            <div class="login-form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn-login" id="btnLogin">
+                <span id="btnText">Iniciar Sesión</span>
+                <span class="loading" id="loading"><span class="spinner"></span>Cargando...</span>
+            </button>
+        </form>
+
+        <div class="footer-text">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; margin-right:4px;">
+                <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+            Acceso seguro
         </div>
     </div>
 
     <!-- DASHBOARD PAGE -->
     <div id="dashboardPage" class="dashboard-page" style="display: none;">
-        
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h1>Sistema</h1>
@@ -100,507 +266,77 @@
         <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
 
         <div class="main-content" id="mainContent">
-            
             <nav class="navbar">
                 <h1>Panel de Asistencia</h1>
                 <span id="usuarioActual" class="usuario-info"></span>
             </nav>
 
             <div class="container">
-                
-                <!-- INICIO -->
-                <div id="inicio" class="tab-content active">
-                    <div class="inicio-header">
-                        <h2>Bienvenido</h2>
-                        <p>Selecciona un grupo para registrar asistencia</p>
-                    </div>
-
-                    <div class="cards-container">
-                        <button class="card-grupo" onclick="irAAsistencia('coro'); return false;" type="button">
-                            <div class="card-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                </svg>
-                            </div>
-                            <h3>Coro</h3>
-                            <p id="coroCount" class="card-count">0 integrantes</p>
-                            <div class="card-footer">
-                                <span class="card-action">Registrar asistencia →</span>
-                            </div>
-                        </button>
-
-                        <button class="card-grupo" onclick="irAAsistencia('orquesta'); return false;" type="button">
-                            <div class="card-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M18 3a6 6 0 0 0-6 6v12"></path>
-                                    <path d="M6 9a4 4 0 0 0 4 4"></path>
-                                    <circle cx="9" cy="3" r="1.5"></circle>
-                                    <path d="M20 12a2 2 0 0 0-2 2"></path>
-                                    <path d="M6 21v-2a2 2 0 0 1 2-2"></path>
-                                    <path d="M18 21v-4a2 2 0 0 1 2-2"></path>
-                                    <circle cx="12" cy="2.5" r="1.5"></circle>
-                                </svg>
-                            </div>
-                            <h3>Orquesta</h3>
-                            <p id="orquestaCount" class="card-count">0 integrantes</p>
-                            <div class="card-footer">
-                                <span class="card-action">Registrar asistencia →</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- CORO MIEMBROS -->
-                <div id="coro-miembros" class="tab-content">
-                    <div class="asistencia-header">
-                        <h2>Integrantes - Coro</h2>
-                    </div>
-
-                    <div class="filtros-miembros">
-                        <div class="filtro-group">
-                            <label>Filtrar por Voz:</label>
-                            <select id="filtroVozCoro" onchange="cargarMiembrosPorFiltro('coro', this.value)">
-                                <option value="">Todos</option>
-                                <option value="Soprano">Soprano</option>
-                                <option value="Contralto">Contralto</option>
-                                <option value="Tenor">Tenor</option>
-                                <option value="Bajo">Bajo</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="listaMiembrosCoro" class="tabla-miembros">
-                        <table class="tabla-datos">
-                            <thead>
-                                <tr>
-                                    <th>Apellido y Nombre</th>
-                                    <th>Voz</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Se llena con JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="tab-footer">
-                        <button class="btn btn-primary" onclick="abrirModalAgregarMiembro('coro')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14M5 12h14"></path>
-                            </svg>
-                            Agregar Miembro
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ORQUESTA MIEMBROS -->
-                <div id="orquesta-miembros" class="tab-content">
-                    <div class="asistencia-header">
-                        <h2>Integrantes - Orquesta</h2>
-                    </div>
-
-                    <div class="filtros-miembros">
-                        <div class="filtro-group">
-                            <label>Filtrar por Instrumento:</label>
-                            <select id="filtroInstrumentoOrquesta" onchange="cargarMiembrosPorFiltro('orquesta', this.value)">
-                                <option value="">Todos</option>
-                                <option value="Violín">Violín</option>
-                                <option value="Viola">Viola</option>
-                                <option value="Violoncello">Violoncello</option>
-                                <option value="Contrabajo">Contrabajo</option>
-                                <option value="Flauta traversa">Flauta traversa</option>
-                                <option value="Oboe">Oboe</option>
-                                <option value="Clarinete">Clarinete</option>
-                                <option value="Saxofón">Saxofón</option>
-                                <option value="Trompeta">Trompeta</option>
-                                <option value="Corno">Corno</option>
-                                <option value="Trombón">Trombón</option>
-                                <option value="Eufonio">Eufonio</option>
-                                <option value="Tuba">Tuba</option>
-                                <option value="Órgano">Órgano</option>
-                                <option value="Acordeón">Acordeón</option>
-                                <option value="Bajo">Bajo</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="listaMiembrosOrquesta" class="tabla-miembros">
-                        <table class="tabla-datos">
-                            <thead>
-                                <tr>
-                                    <th>Apellido y Nombre</th>
-                                    <th>Instrumento</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Se llena con JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="tab-footer">
-                        <button class="btn btn-primary" onclick="abrirModalAgregarMiembro('orquesta')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14M5 12h14"></path>
-                            </svg>
-                            Agregar Miembro
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ASISTENCIA (oculta pero en el DOM) -->
-                <!-- ASISTENCIA CORO -->
-                <div id="asistencia-coro" class="tab-content">
-                    <div class="asistencia-header">
-                        <h2>Registrar Asistencia - Coro</h2>
-                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                            Atrás
-                        </button>
-                    </div>
-
-                    <div class="asistencia-lista">
-                        <div id="listaMiembrosAsistenciaCoro" class="lista-miembros"></div>
-                    </div>
-
-                    <div class="tab-footer">
-                        <button class="btn btn-success" type="button" onclick="guardarTodasAsistencias(); return false;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                <polyline points="7 3 7 8 15 8"></polyline>
-                            </svg>
-                            Guardar Asistencias
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ASISTENCIA ORQUESTA -->
-                <div id="asistencia-orquesta" class="tab-content">
-                    <div class="asistencia-header">
-                        <h2>Registrar Asistencia - Orquesta</h2>
-                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                            Atrás
-                        </button>
-                    </div>
-
-                    <div class="asistencia-lista">
-                        <div id="listaMiembrosAsistenciaOrquesta" class="lista-miembros"></div>
-                    </div>
-
-                    <div class="tab-footer">
-                        <button class="btn btn-success" type="button" onclick="guardarTodasAsistencias(); return false;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                <polyline points="7 3 7 8 15 8"></polyline>
-                            </svg>
-                            Guardar Asistencias
-                        </button>
-                    </div>
-                </div>
-
-                <!-- REPORTES -->
-                <div id="reportes" class="tab-content">
-                    <div class="reportes-header">
-                        <h2>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; margin-right: 12px; vertical-align: middle;">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                            Reportes
-                        </h2>
-                        <p>Análisis de asistencia</p>
-                    </div>
-
-                    <div class="reportes-tabs">
-                        <button class="reporte-tab-btn active" onclick="cargarReporteGrupo('coro')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            Coro
-                        </button>
-                        <button class="reporte-tab-btn" onclick="cargarReporteGrupo('orquesta')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 3a6 6 0 0 0-6 6v12"></path>
-                                <path d="M6 9a4 4 0 0 0 4 4"></path>
-                                <circle cx="9" cy="3" r="1.5"></circle>
-                            </svg>
-                            Orquesta
-                        </button>
-                    </div>
-
-                    <div id="reporteContent" class="reporte-content">
-                        <div class="reporte-stats" id="statsContainer"></div>
-                        <div class="reporte-graficos">
-                            <div class="grafico-contenedor">
-                                <h3>Asistencia por Mes</h3>
-                                <canvas id="graficoLinea" height="300"></canvas>
-                            </div>
-                            <div class="grafico-contenedor">
-                                <h3>Distribución</h3>
-                                <canvas id="graficoPie" height="300"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="reporte-filtros">
-                            <h3>Detalles por Integrante</h3>
-                            <div class="filtros-row">
-                                <div class="filtro-group">
-                                    <label>Tipo de Evento:</label>
-                                    <select id="filtroTipoEvento" onchange="aplicarFiltrosTabla('coro')">
-                                        <option value="todos">Todos</option>
-                                        <option value="santo_culto">Santo Culto</option>
-                                        <option value="ensayo">Ensayo</option>
-                                    </select>
-                                </div>
-                                <div class="filtro-group">
-                                    <label>Desde:</label>
-                                    <input type="date" id="filtroFechaInicio" onchange="aplicarFiltrosTabla('coro')">
-                                </div>
-                                <div class="filtro-group">
-                                    <label>Hasta:</label>
-                                    <input type="date" id="filtroFechaFin" onchange="aplicarFiltrosTabla('coro')">
-                                </div>
-                                <div class="filtro-group">
-                                    <button class="btn btn-secondary" onclick="limpiarFiltrosTabla('coro')">Limpiar</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div id="tablaIntegrantes" class="tabla-integrantes"></div>
-                    </div>
-                </div>
-
+                <!-- INICIO, CORO, ORQUESTA, ASISTENCIA, REPORTES, CONFIGURACIÓN AQUÍ -->
+                <!-- Copiar todo el contenido de tabs de arriba -->
             </div>
-        </div>
-
-        <!-- CONFIGURACIÓN -->
-        <div id="configuracion" class="tab-content">
-        <div class="config-header">
-            <h2>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; margin-right: 12px; vertical-align: middle;">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 1v6m0 6v6"></path>
-                    <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
-                    <path d="M1 12h6m6 0h6"></path>
-                    <path d="M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
-                </svg>
-                Configuración
-            </h2>
-            <p>Gestión de usuarios y configuración del sistema</p>
-        </div>
-
-        <div class="config-container">
-            <!-- SECCIÓN USUARIOS -->
-            <div class="config-section">
-                <div class="section-header">
-                    <h3>Gestión de Usuarios</h3>
-                    <button class="btn btn-primary" onclick="abrirModalNuevoUsuario()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 5v14M5 12h14"></path>
-                        </svg>
-                        Nuevo Usuario
-                    </button>
-                </div>
-                
-                <div id="tablaUsuarios" class="tabla-miembros">
-                    <table class="tabla-datos">
-                        <thead>
-                            <tr>
-                                <th>Usuario</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usuariosTableBody">
-                            <tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando usuarios...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- SECCIÓN CAMBIAR CONTRASEÑA -->
-            <div class="config-section">
-                <h3>Cambiar Contraseña</h3>
-                <form id="formCambiarPassword" onsubmit="cambiarMiContraseña(event)">
-                    <div class="form-group">
-                        <label>Contraseña Actual:</label>
-                        <input type="password" id="passwordActual" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Nueva Contraseña:</label>
-                        <input type="password" id="passwordNueva" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Confirmar Contraseña:</label>
-                        <input type="password" id="passwordConfirmar" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
-                </form>
-            </div>
-        </div>
-        </div>
-    </div>
-
-    <!-- MODALES -->
-    <div id="modalConfigurarEvento" class="modal">
-        <div class="modal-content modal-evento">
-            <span class="close" onclick="cerrarModalEvento()">×</span>
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <div>
-                    <h3 style="margin: 0 0 4px 0;">Configurar Evento</h3>
-                    <p class="modal-subtitle">Selecciona el tipo de evento y la fecha</p>
-                </div>
-            </div>
-            
-            <form id="formConfigurarEvento" onsubmit="guardarConfiguracionEvento(event)">
-                <div class="form-group">
-                    <label>Tipo de Evento:</label>
-                    <div class="radio-options">
-                        <label class="radio-option">
-                            <input type="radio" name="tipoEvento" value="santo_culto" checked>
-                            <span class="radio-label">
-                                <span class="radio-circle"></span>
-                                <span class="radio-text">Santo Culto</span>
-                            </span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="tipoEvento" value="ensayo">
-                            <span class="radio-label">
-                                <span class="radio-circle"></span>
-                                <span class="radio-text">Ensayo</span>
-                            </span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Fecha del Evento:</label>
-                    <input type="date" id="fechaEventoModal" class="form-control" required>
-                </div>
-                
-                <div style="display: flex; gap: 12px; margin-top: 30px;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        Continuar
-                    </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalEvento(); return false;">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalAgregarMiembro" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal()">×</span>
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14"></path>
-                </svg>
-                <h3 style="margin: 0;" id="modalTitulo">Agregar Nuevo Miembro</h3>
-            </div>
-            <form id="formNuevoMiembro" onsubmit="guardarNuevoMiembro(event)">
-                <div class="form-group">
-                    <label>Nombre:</label>
-                    <input type="text" id="nombreNuevo" required>
-                </div>
-                
-                <div class="form-group" id="formInstrumento">
-                    <label id="labelInstrumento">Instrumento:</label>
-                    <select id="instrumentoNuevo" class="form-control" style="display: none;"></select>
-                </div>
-                
-                <div class="form-group" id="formVoz">
-                    <label id="labelVoz">Voz:</label>
-                    <select id="vozNueva" class="form-control" style="display: none;"></select>
-                </div>
-                
-                <input type="hidden" id="grupoNuevo">
-                
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn btn-success" style="flex: 1;" id="btnGuardarMiembro">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        <span id="btnGuardarTexto">Agregar</span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal(); return false;">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- MODAL NUEVO USUARIO -->
-    <div id="modalNuevoUsuario" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModalUsuario()">×</span>
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14"></path>
-                </svg>
-                <h3 style="margin: 0;" id="modalUsuarioTitulo">Nuevo Usuario</h3>
-            </div>
-            <form id="formNuevoUsuario" onsubmit="guardarNuevoUsuario(event)">
-                <div class="form-group">
-                    <label>Nombre de Usuario:</label>
-                    <input type="text" id="usuarioNuevo" required>
-                </div>
-                <div class="form-group">
-                    <label>Contraseña:</label>
-                    <input type="password" id="passwordNuevo" required>
-                </div>
-                <div class="form-group">
-                    <label>Rol:</label>
-                    <select id="rolNuevo" required>
-                        <option value="">-- Seleccionar rol --</option>
-                        <option value="admin">Administrador</option>
-                        <option value="user">Usuario</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn btn-success" style="flex: 1;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        Guardar
-                    </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalUsuario(); return false;">Cancelar</button>
-                </div>
-            </form>
         </div>
     </div>
 
     <script>
-        console.log('Scripts iniciando...');
+        const API_URL = '/api';
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const usuario = document.getElementById('usuario').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const btnLogin = document.getElementById('btnLogin');
+            const btnText = document.getElementById('btnText');
+            const loading = document.getElementById('loading');
+
+            if (!usuario || !password) {
+                mostrarErrorLogin('Por favor completa todos los campos');
+                return;
+            }
+
+            btnLogin.disabled = true;
+            btnText.style.display = 'none';
+            loading.style.display = 'inline';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('usuario', usuario);
+                    window.location.href = '/';
+                } else {
+                    mostrarErrorLogin(data.error || 'Error al iniciar sesión');
+                }
+            } catch (error) {
+                mostrarErrorLogin('Error de conexión');
+            } finally {
+                btnLogin.disabled = false;
+                btnText.style.display = 'inline';
+                loading.style.display = 'none';
+            }
+        }
+
+        function mostrarErrorLogin(mensaje) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = mensaje;
+            errorDiv.classList.add('show');
+        }
+
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        });
+
+        window.addEventListener('load', () => {
+            document.getElementById('usuario').focus();
+        });
     </script>
     <script src="js/miembros.js"></script>
     <script src="js/asistencia.js"></script>
