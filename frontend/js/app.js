@@ -33,8 +33,12 @@ function initApp() {
         
         // Cargar datos iniciales
         setTimeout(() => {
-            cargarConteosMiembros();
-            cargarReporteGrupo('coro', true);
+            if (typeof cargarConteosMiembros === 'function') {
+                cargarConteosMiembros();
+            }
+            if (typeof cargarReporteGrupo === 'function') {
+                cargarReporteGrupo('coro', true);
+            }
         }, 500);
     } else {
         loginPage.style.display = 'flex';
@@ -188,10 +192,14 @@ function cambiarTab(tabName) {
         menuItems[0].classList.add('active');
     } else if (tabName === 'coro-miembros' && menuItems[1]) {
         menuItems[1].classList.add('active');
-        setTimeout(() => cargarMiembrosPorFiltro('coro'), 100);
+        if (typeof cargarMiembrosPorFiltro === 'function') {
+            setTimeout(() => cargarMiembrosPorFiltro('coro'), 100);
+        }
     } else if (tabName === 'orquesta-miembros' && menuItems[2]) {
         menuItems[2].classList.add('active');
-        setTimeout(() => cargarMiembrosPorFiltro('orquesta'), 100);
+        if (typeof cargarMiembrosPorFiltro === 'function') {
+            setTimeout(() => cargarMiembrosPorFiltro('orquesta'), 100);
+        }
     } else if (tabName === 'reportes' && menuItems[3]) {
         menuItems[3].classList.add('active');
     }

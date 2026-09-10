@@ -11,6 +11,8 @@ const VOCES = ['Soprano', 'Contralto', 'Tenor', 'Bajo'];
 // ===== CARGAR MIEMBROS CON FILTRO =====
 async function cargarMiembrosPorFiltro(grupo, filtro = '') {
     try {
+        console.log('Cargando miembros:', grupo, filtro);
+        
         const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -20,6 +22,7 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         }
         
         let miembros = await response.json();
+        console.log('Miembros recibidos:', miembros);
         
         // Aplicar filtro
         if (filtro) {
@@ -33,7 +36,10 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         const containerId = grupo === 'coro' ? 'listaMiembrosCoro' : 'listaMiembrosOrquesta';
         const container = document.getElementById(containerId);
         
-        if (!container) return;
+        if (!container) {
+            console.error('Contenedor no encontrado:', containerId);
+            return;
+        }
         
         container.innerHTML = '';
         
@@ -240,18 +246,3 @@ function cerrarModal() {
     }
     document.getElementById('formNuevoMiembro').reset();
 }
-
-// ===== ACTUALIZAR AL CAMBIAR TAB =====
-document.addEventListener('click', function(e) {
-    if (e.target.textContent.includes('Coro') && e.target.closest('.sidebar-menu-item')) {
-        setTimeout(() => cargarMiembrosPorFiltro('coro'), 100);
-    }
-    if (e.target.textContent.includes('Orquesta') && e.target.closest('.sidebar-menu-item')) {
-        setTimeout(() => cargarMiembrosPorFiltro('orquesta'), 100);
-    }
-});
-
-// Cargar conteos al iniciar
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(cargarConteosMiembros, 1000);
-});
