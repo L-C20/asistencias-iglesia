@@ -340,7 +340,7 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento = 'todos', fec
                                 <span class="fecha-label">${new Date(evento.fecha).toLocaleDateString('es-ES')}</span>
                             </div>
                             <div class="evento-info">
-                                <span class="tipo-evento">${evento.tipo_evento === 'santo_culto' ? '⛪ Santo Culto' : '🎼 Ensayo'}</span>
+                                <span class="tipo-evento">${evento.tipo_evento === 'santo_culto' ? 'Santo Culto' : 'Ensayo'}</span>
                             </div>
                             <div class="evento-estado">
                                 ${evento.presente === true ? 
