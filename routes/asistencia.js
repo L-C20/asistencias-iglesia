@@ -13,7 +13,7 @@ router.get('/miembros/:grupo', verifyToken, async (req, res) => {
     }
 
     const result = await db.query(
-      'SELECT id, nombre, grupo FROM miembros WHERE grupo = $1 AND activo = true ORDER BY nombre',
+      'SELECT id, nombre, grupo, voz, instrumento FROM miembros WHERE grupo = $1 AND activo = true ORDER BY nombre',
       [grupo]
     );
 
@@ -73,7 +73,9 @@ router.get('/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
         ra.presente,
         ra.nota,
         m.nombre,
-        m.grupo
+        m.grupo,
+        m.voz,
+        m.instrumento
       FROM registro_asistencia ra
       JOIN miembros m ON ra.miembro_id = m.id
       WHERE m.grupo = $1 
@@ -92,7 +94,7 @@ router.get('/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
 // Agregar nuevo miembro - POST /api/asistencia/miembro/nuevo
 router.post('/miembro/nuevo', verifyToken, async (req, res) => {
   try {
-    const { nombre, grupo } = req.body;
+    const { nombre, grupo, voz, instrumento } = req.body;
 
     if (!nombre || !grupo) {
       return res.status(400).json({ error: 'Nombre y grupo requeridos' });
@@ -103,8 +105,8 @@ router.post('/miembro/nuevo', verifyToken, async (req, res) => {
     }
 
     const result = await db.query(
-      'INSERT INTO miembros (nombre, grupo) VALUES ($1, $2) RETURNING id, nombre, grupo',
-      [nombre, grupo]
+      'INSERT INTO miembros (nombre, grupo, voz, instrumento) VALUES ($1, $2, $3, $4) RETURNING id, nombre, grupo, voz, instrumento',
+      [nombre, grupo, voz || null, instrumento || null]
     );
 
     res.json({
@@ -113,6 +115,27 @@ router.post('/miembro/nuevo', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error agregando miembro:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// Eliminar miembro - DELETE /api/asistencia/miembro/:id
+router.delete('/miembro/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      'DELETE FROM miembros WHERE id = $1 RETURNING id',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    res.json({ success: true, message: 'Miembro eliminado' });
+  } catch (error) {
+    console.error('Error eliminando miembro:', error);
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
