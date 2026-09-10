@@ -244,11 +244,13 @@ function cambiarAsistencia(checkbox) {
 // ===== GUARDAR TODAS LAS ASISTENCIAS =====
 async function guardarTodasAsistencias() {
     try {
+        console.log('═══════════════════════════════════════');
         console.log('💾 [guardarTodasAsistencias] Iniciando');
         console.log('   Grupo:', grupoActual);
         console.log('   Tipo evento:', tipoEventoActual);
         console.log('   Fecha:', fechaEventoActual);
         console.log('   Total registros:', Object.keys(asistenciasParaGuardar).length);
+        console.log('═══════════════════════════════════════');
         
         let guardados = 0;
         let errores = 0;
@@ -281,7 +283,8 @@ async function guardarTodasAsistencias() {
                     console.log(`  ✅ Miembro ${miembroId} guardado`);
                 } else {
                     errores++;
-                    console.error(`  ❌ Error guardando miembro ${miembroId}`);
+                    const errorData = await response.json();
+                    console.error(`  ❌ Error guardando miembro ${miembroId}:`, errorData);
                 }
             } catch (error) {
                 errores++;
@@ -289,22 +292,32 @@ async function guardarTodasAsistencias() {
             }
         }
         
+        console.log(`═══════════════════════════════════════`);
         console.log(`✅ Proceso completado: ${guardados} guardados, ${errores} errores`);
+        console.log(`═══════════════════════════════════════`);
         
         if (guardados > 0) {
-            mostrarToast(`${guardados} asistencias guardadas correctamente`, 'success');
+            mostrarToast(`✅ ${guardados} asistencias guardadas correctamente`, 'success');
             
-            // Limpiar y volver al inicio
+            // Limpiar datos
+            console.log('🧹 Limpiando datos de asistencia');
             limpiarAsistencia();
-            cambiarTab('inicio');
+            
+            // Pequeño delay y volver a inicio
+            setTimeout(() => {
+                console.log('🏠 Volviendo a Inicio');
+                cambiarTab('inicio');
+            }, 500);
         } else if (errores > 0) {
+            console.error('❌ Hubo errores al guardar');
             mostrarError('Error al guardar asistencias');
         } else {
+            console.warn('⚠️ No se marcó ninguna asistencia');
             mostrarError('Marca al menos una asistencia');
         }
         
     } catch (error) {
-        console.error('❌ Error guardando:', error);
+        console.error('❌ Error crítico guardando:', error);
         mostrarError('Error al guardar asistencias');
     }
 }
