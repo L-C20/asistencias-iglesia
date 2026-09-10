@@ -111,8 +111,10 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                     <div class="stat-header">
                         <h4>Porcentaje General</h4>
                         <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2v20"></path>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            <polyline points="12 7 12 17"></polyline>
+                            <polyline points="19 4 5 4"></polyline>
+                            <polyline points="19 20 5 20"></polyline>
+                            <line x1="15" y1="10" x2="9" y2="14"></line>
                         </svg>
                     </div>
                     <p class="stat-number">${porcentajeGeneral}%</p>
