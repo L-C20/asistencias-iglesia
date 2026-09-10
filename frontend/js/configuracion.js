@@ -1,28 +1,58 @@
 console.log('🔧 configuracion.js iniciando');
 
+// Verificar que variables globales existan
+if (typeof API_URL === 'undefined') {
+    console.warn('⚠️ API_URL no está definida aún');
+}
+if (typeof token === 'undefined') {
+    console.warn('⚠️ token no está definida aún');
+}
+
 // ===== CARGAR USUARIOS =====
 async function cargarUsuarios() {
     try {
-        console.log('👥 [cargarUsuarios] Cargando lista de usuarios');
+        console.log('👥 [cargarUsuarios] Iniciando...');
+        console.log('   API_URL:', API_URL);
+        console.log('   Token:', token ? '✅' : '❌');
         
-        const response = await fetch(`${API_URL}/usuarios`, {
+        if (!API_URL || !token) {
+            console.error('❌ Faltan API_URL o token');
+            const tbody = document.getElementById('usuariosTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Error: No autenticado</td></tr>';
+            }
+            return;
+        }
+        
+        const url = `${API_URL}/usuarios`;
+        console.log('📡 Fetch a:', url);
+        
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
+        console.log('📊 Response status:', response.status);
+        
         if (!response.ok) {
-            console.error('❌ Error:', response.status);
-            mostrarError('Error al cargar usuarios');
+            console.error('❌ Error:', response.status, response.statusText);
+            const tbody = document.getElementById('usuariosTableBody');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Error al cargar usuarios (${response.status})</td></tr>`;
+            }
             return;
         }
         
         const usuarios = await response.json();
-        console.log('✅ Usuarios cargados:', usuarios.length);
+        console.log('✅ Usuarios obtenidos:', usuarios.length);
         
         renderizarTablaUsuarios(usuarios);
         
     } catch (error) {
-        console.error('❌ Error:', error);
-        mostrarError('Error al cargar usuarios');
+        console.error('❌ Error en cargarUsuarios:', error);
+        const tbody = document.getElementById('usuariosTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Error: ${error.message}</td></tr>`;
+        }
     }
 }
 
