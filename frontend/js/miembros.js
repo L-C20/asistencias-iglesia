@@ -62,14 +62,14 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         
         // Crear filas para cada miembro
         miembros.forEach((miembro, index) => {
-            const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
+            const detalleExtra = grupo === 'coro' ? (miembro.voz || 'Sin asignar') : (miembro.instrumento || 'Sin asignar');
             
             const tr = document.createElement('tr');
             tr.className = 'tabla-row';
             tr.id = `miembro-row-${grupo}-${miembro.id}`;
             tr.innerHTML = `
-                <td class="celda-nombre">${miembro.nombre}</td>
-                <td class="celda-detalle">${detalleExtra}</td>
+                <td class="celda-nombre">${miembro.nombre || 'Sin nombre'}</td>
+                <td class="celda-detalle"><strong>${detalleExtra}</strong></td>
                 <td class="celda-acciones">
                     <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}, '${grupo}'); return false;" title="Editar">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -85,7 +85,7 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
                 </td>
             `;
             tbody.appendChild(tr);
-            console.log(`✅ Fila ${index + 1}/${miembros.length} creada para ${miembro.nombre}`);
+            console.log(`✅ Fila ${index + 1}/${miembros.length} creada para ${miembro.nombre} (${detalleExtra})`);
         });
         
         console.log('✨ Carga completada');

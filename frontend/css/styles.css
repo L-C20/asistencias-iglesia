@@ -1656,35 +1656,42 @@ body {
     overflow: hidden !important;
     width: 100% !important;
     margin-bottom: 24px !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
 .tabla-datos {
     width: 100% !important;
     border-collapse: collapse !important;
+    background: white !important;
 }
 
 .tabla-datos thead {
-    background: var(--light) !important;
-    border-bottom: 2px solid var(--border) !important;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%) !important;
+    border-bottom: 2px solid var(--primary) !important;
 }
 
 .tabla-datos thead th {
-    padding: 16px !important;
+    padding: 18px 20px !important;
     text-align: left !important;
     font-weight: 700 !important;
-    color: var(--primary) !important;
+    color: white !important;
     font-size: 13px !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: 0.8px !important;
+}
+
+.tabla-datos thead th:last-child {
+    text-align: center !important;
 }
 
 .tabla-datos tbody tr {
     border-bottom: 1px solid var(--border) !important;
-    transition: background-color 0.2s ease !important;
+    transition: all 0.2s ease !important;
 }
 
 .tabla-datos tbody tr:hover {
     background-color: var(--light) !important;
+    box-shadow: inset 0 0 10px rgba(74, 144, 226, 0.05) !important;
 }
 
 .tabla-datos tbody tr:last-child {
@@ -1692,25 +1699,29 @@ body {
 }
 
 .tabla-datos td {
-    padding: 14px 16px !important;
-    font-size: 13px !important;
+    padding: 16px 20px !important;
+    font-size: 14px !important;
     color: var(--text) !important;
+    vertical-align: middle !important;
 }
 
 .celda-nombre {
     font-weight: 600 !important;
     color: var(--primary) !important;
-    min-width: 200px !important;
+    min-width: 250px !important;
 }
 
 .celda-detalle {
     color: var(--text-light) !important;
+    min-width: 150px !important;
+    font-weight: 500 !important;
 }
 
 .celda-acciones {
     display: flex !important;
-    gap: 8px !important;
-    justify-content: flex-end !important;
+    gap: 10px !important;
+    justify-content: center !important;
+    min-width: 120px !important;
 }
 
 .card-miembro {
