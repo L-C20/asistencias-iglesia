@@ -1350,10 +1350,11 @@ body {
 
 /* ============ LISTA DE MIEMBROS ============ */
 .lista-miembros-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: 16px !important;
+    margin-bottom: 24px !important;
+    width: 100% !important;
 }
 
 .card-miembro {
@@ -1362,6 +1363,9 @@ body {
     border-radius: 12px;
     padding: 20px;
     transition: var(--transition);
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
 }
 
 .card-miembro:hover {
@@ -1370,43 +1374,50 @@ body {
 }
 
 .miembro-card-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
 }
 
 .miembro-card-info {
-    flex: 1;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
 }
 
 .miembro-nombre {
     font-size: 16px;
     font-weight: 700;
     color: var(--primary);
-    margin: 0 0 8px 0;
+    margin: 0 !important;
 }
 
 .miembro-tipo {
     font-size: 13px;
     color: var(--text-light);
-    margin: 0;
+    margin: 0 !important;
 }
 
 .miembro-card-actions {
-    display: flex;
-    gap: 8px;
+    display: flex !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
 }
 
 .btn-sm {
-    padding: 6px 10px;
-    font-size: 12px;
-    height: 36px;
-    width: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 36px !important;
+    width: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: var(--transition) !important;
 }
 
 /* ============ FILTROS MIEMBROS ============ */

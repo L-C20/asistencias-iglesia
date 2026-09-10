@@ -8,9 +8,18 @@ const INSTRUMENTOS = [
 
 const VOCES = ['Soprano', 'Contralto', 'Tenor', 'Bajo'];
 
-let miembrosActuales = [];
-let grupoActual = null;
-let asistenciasParaGuardar = {}; // Almacenar cambios
+// ===== IR A ASISTENCIA =====
+function irAAsistencia(grupo) {
+    grupoActual = grupo;
+    asistenciasParaGuardar = {}; // Limpiar cambios anteriores
+    
+    const modal = document.getElementById('modalConfigurarEvento');
+    const fechaInput = document.getElementById('fechaEventoModal');
+    if (modal && fechaInput) {
+        fechaInput.valueAsDate = new Date();
+        modal.classList.add('show');
+    }
+}
 
 // ===== CARGAR CONTEOS =====
 async function cargarConteosMiembros() {
