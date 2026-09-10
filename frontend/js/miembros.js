@@ -230,7 +230,9 @@ async function guardarNuevoMiembro(e) {
 
 // ===== EDITAR MIEMBRO =====
 function editarMiembroFunc(miembroId, grupo) {
-    mostrarToast('Funcionalidad en desarrollo', 'info');
+    console.log('✏️ Editando miembro:', miembroId, 'Grupo:', grupo);
+    mostrarToast('Funcionalidad en desarrollo - próximamente', 'info');
+    // TODO: Implementar modal de edición
 }
 
 // ===== ELIMINAR MIEMBRO CON CONFIRMACIÓN =====

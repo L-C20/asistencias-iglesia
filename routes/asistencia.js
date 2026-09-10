@@ -119,13 +119,13 @@ router.post('/miembro/nuevo', verifyToken, async (req, res) => {
   }
 });
 
-// Eliminar miembro - DELETE /api/asistencia/miembro/:id
-router.delete('/miembro/:id', verifyToken, async (req, res) => {
+// Obtener un miembro específico - GET /api/asistencia/miembro/:id
+router.get('/miembro/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await db.query(
-      'DELETE FROM miembros WHERE id = $1 RETURNING id',
+      'SELECT id, nombre, grupo, voz, instrumento FROM miembros WHERE id = $1',
       [id]
     );
 
@@ -133,9 +133,74 @@ router.delete('/miembro/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'Miembro no encontrado' });
     }
 
-    res.json({ success: true, message: 'Miembro eliminado' });
+    res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error eliminando miembro:', error);
+    console.error('Error obteniendo miembro:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// Actualizar miembro - PUT /api/asistencia/miembro/:id
+router.put('/miembro/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, voz, instrumento } = req.body;
+
+    if (!nombre) {
+      return res.status(400).json({ error: 'Nombre es requerido' });
+    }
+
+    const result = await db.query(
+      'UPDATE miembros SET nombre = $1, voz = $2, instrumento = $3 WHERE id = $4 RETURNING id, nombre, grupo, voz, instrumento',
+      [nombre, voz || null, instrumento || null, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    res.json({
+      success: true,
+      miembro: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error actualizando miembro:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// Eliminar miembro - DELETE /api/asistencia/miembro/:id
+router.delete('/miembro/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log('🗑️ Eliminando miembro:', id);
+
+    // Primero eliminar registros de asistencia asociados
+    await db.query(
+      'DELETE FROM registro_asistencia WHERE miembro_id = $1',
+      [id]
+    );
+
+    // Luego eliminar el miembro
+    const result = await db.query(
+      'DELETE FROM miembros WHERE id = $1 RETURNING id, nombre',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    console.log('✅ Miembro eliminado:', result.rows[0].nombre);
+
+    res.json({ 
+      success: true, 
+      message: 'Miembro eliminado correctamente',
+      miembro: result.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Error eliminando miembro:', error);
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
