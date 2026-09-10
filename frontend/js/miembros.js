@@ -1,0 +1,257 @@
+// CONSTANTES
+const INSTRUMENTOS = [
+  'Violín', 'Viola', 'Violoncello', 'Contrabajo',
+  'Flauta traversa', 'Oboe', 'Clarinete', 'Saxofón',
+  'Trompeta', 'Corno', 'Trombón', 'Eufonio', 'Tuba',
+  'Órgano', 'Acordeón', 'Bajo'
+];
+
+const VOCES = ['Soprano', 'Contralto', 'Tenor', 'Bajo'];
+
+// ===== CARGAR MIEMBROS CON FILTRO =====
+async function cargarMiembrosPorFiltro(grupo, filtro = '') {
+    try {
+        const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+        
+        let miembros = await response.json();
+        
+        // Aplicar filtro
+        if (filtro) {
+            if (grupo === 'coro') {
+                miembros = miembros.filter(m => m.voz === filtro);
+            } else if (grupo === 'orquesta') {
+                miembros = miembros.filter(m => m.instrumento === filtro);
+            }
+        }
+        
+        const containerId = grupo === 'coro' ? 'listaMiembrosCoro' : 'listaMiembrosOrquesta';
+        const container = document.getElementById(containerId);
+        
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!miembros || miembros.length === 0) {
+            const div = document.createElement('div');
+            div.style.padding = '40px';
+            div.style.textAlign = 'center';
+            div.style.color = 'var(--text-light)';
+            div.textContent = 'No hay integrantes registrados' + (filtro ? ' con este filtro' : '');
+            container.appendChild(div);
+            return;
+        }
+        
+        // Crear cards para cada miembro
+        miembros.forEach(miembro => {
+            const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
+            
+            const card = document.createElement('div');
+            card.className = 'card-miembro';
+            card.innerHTML = `
+                <div class="miembro-card-content">
+                    <div class="miembro-card-info">
+                        <h3 class="miembro-nombre">${miembro.nombre}</h3>
+                        <p class="miembro-tipo">${detalleExtra}</p>
+                    </div>
+                    <div class="miembro-card-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="editarMiembro(${miembro.id}, '${grupo}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarMiembro(${miembro.id}, '${grupo}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al cargar integrantes');
+    }
+}
+
+// ===== ABRIR MODAL AGREGAR MIEMBRO =====
+function abrirModalAgregarMiembro(grupo) {
+    const modal = document.getElementById('modalAgregarMiembro');
+    if (!modal) return;
+    
+    document.getElementById('grupoNuevo').value = grupo;
+    document.getElementById('nombreNuevo').value = '';
+    
+    const selectInstrumento = document.getElementById('instrumentoNuevo');
+    const selectVoz = document.getElementById('vozNueva');
+    
+    selectInstrumento.innerHTML = '<option value="">-- Seleccionar instrumento --</option>';
+    selectVoz.innerHTML = '<option value="">-- Seleccionar voz --</option>';
+    
+    if (grupo === 'orquesta') {
+        selectInstrumento.style.display = 'block';
+        selectVoz.style.display = 'none';
+        document.getElementById('labelInstrumento').style.display = 'block';
+        document.getElementById('labelVoz').style.display = 'none';
+        
+        INSTRUMENTOS.forEach(inst => {
+            const option = document.createElement('option');
+            option.value = inst;
+            option.textContent = inst;
+            selectInstrumento.appendChild(option);
+        });
+    } else {
+        selectInstrumento.style.display = 'none';
+        selectVoz.style.display = 'block';
+        document.getElementById('labelInstrumento').style.display = 'none';
+        document.getElementById('labelVoz').style.display = 'block';
+        
+        VOCES.forEach(voz => {
+            const option = document.createElement('option');
+            option.value = voz;
+            option.textContent = voz;
+            selectVoz.appendChild(option);
+        });
+    }
+    
+    modal.classList.add('show');
+}
+
+// ===== GUARDAR NUEVO MIEMBRO =====
+async function guardarNuevoMiembro(e) {
+    e.preventDefault();
+    
+    const nombre = document.getElementById('nombreNuevo').value;
+    const grupo = document.getElementById('grupoNuevo').value;
+    const instrumento = document.getElementById('instrumentoNuevo').value;
+    const voz = document.getElementById('vozNueva').value;
+    
+    if (!nombre) {
+        mostrarError('El nombre es requerido');
+        return;
+    }
+    
+    if (grupo === 'orquesta' && !instrumento) {
+        mostrarError('Debe seleccionar un instrumento');
+        return;
+    }
+    
+    if (grupo === 'coro' && !voz) {
+        mostrarError('Debe seleccionar una voz');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/asistencia/miembro/nuevo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                nombre: nombre,
+                grupo: grupo,
+                instrumento: grupo === 'orquesta' ? instrumento : null,
+                voz: grupo === 'coro' ? voz : null
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            cerrarModal();
+            mostrarToast('Miembro agregado correctamente', 'success');
+            cargarMiembrosPorFiltro(grupo);
+            cargarConteosMiembros();
+        } else {
+            mostrarError(data.error || 'Error al agregar miembro');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al agregar miembro');
+    }
+}
+
+// ===== EDITAR MIEMBRO =====
+function editarMiembro(miembroId, grupo) {
+    mostrarToast('Funcionalidad en desarrollo', 'info');
+}
+
+// ===== ELIMINAR MIEMBRO =====
+async function eliminarMiembro(miembroId, grupo) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este integrante?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/asistencia/miembro/${miembroId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            mostrarToast('Integrante eliminado correctamente', 'success');
+            cargarMiembrosPorFiltro(grupo);
+            cargarConteosMiembros();
+        } else {
+            mostrarError('Error al eliminar integrante');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al eliminar integrante');
+    }
+}
+
+// ===== CARGAR CONTEOS =====
+async function cargarConteosMiembros() {
+    try {
+        const respCoro = await fetch(`${API_URL}/asistencia/miembros/coro`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const miembrosCoro = await respCoro.json();
+        const coroCount = document.getElementById('coroCount');
+        if (coroCount) coroCount.textContent = `${miembrosCoro.length} integrantes`;
+
+        const respOrquesta = await fetch(`${API_URL}/asistencia/miembros/orquesta`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const miembrosOrquesta = await respOrquesta.json();
+        const orquestaCount = document.getElementById('orquestaCount');
+        if (orquestaCount) orquestaCount.textContent = `${miembrosOrquesta.length} integrantes`;
+    } catch (error) {
+        console.error('Error cargando conteos:', error);
+    }
+}
+
+// ===== CERRAR MODAL =====
+function cerrarModal() {
+    const modal = document.getElementById('modalAgregarMiembro');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    document.getElementById('formNuevoMiembro').reset();
+}
+
+// ===== ACTUALIZAR AL CAMBIAR TAB =====
+document.addEventListener('click', function(e) {
+    if (e.target.textContent.includes('Coro') && e.target.closest('.sidebar-menu-item')) {
+        setTimeout(() => cargarMiembrosPorFiltro('coro'), 100);
+    }
+    if (e.target.textContent.includes('Orquesta') && e.target.closest('.sidebar-menu-item')) {
+        setTimeout(() => cargarMiembrosPorFiltro('orquesta'), 100);
+    }
+});
+
+// Cargar conteos al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(cargarConteosMiembros, 1000);
+});

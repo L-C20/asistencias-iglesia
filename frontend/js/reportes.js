@@ -158,27 +158,15 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                 </div>
             </div>
             
-            <table class="tabla-reportes" id="tablaIntegrantes">
-                <thead>
-                    <tr>
-                        <th>Miembro</th>
-                        <th>Detalle</th>
-                        <th>Eventos</th>
-                        <th>Presentes</th>
-                        <th>Ausentes</th>
-                        <th>% Asistencia</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaIntegrantesBody">
-                    <tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando datos...</td></tr>
-                </tbody>
-            </table>
+            <div class="tabla-expandible-container" id="tablaIntegrantes">
+                <!-- Se llena con JavaScript -->
+            </div>
         `;
         
         setTimeout(() => {
             dibujarGraficoLinea(meses, porcentajes);
             dibujarGraficoPie(totalPresentes, totalAusentes);
-            cargarTablaIntegrantes(grupo, 'todos', null, null);
+            cargarTablaIntegrantesExpandible(grupo, 'todos', null, null);
         }, 100);
         
     } catch (error) {
@@ -286,8 +274,8 @@ function dibujarGraficoPie(presentes, ausentes) {
     });
 }
 
-// ===== CARGAR TABLA INTEGRANTES =====
-async function cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin) {
+// ===== CARGAR TABLA EXPANDIBLE =====
+async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, fechaFin) {
     try {
         const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -298,14 +286,14 @@ async function cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin) 
         }
         
         const miembros = await response.json();
-        const tbody = document.getElementById('tablaIntegrantesBody');
+        const container = document.getElementById('tablaIntegrantes');
         
-        if (!tbody) return;
+        if (!container) return;
         
-        tbody.innerHTML = '';
+        container.innerHTML = '';
         
         if (!miembros || miembros.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay miembros registrados</td></tr>';
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-light);">No hay miembros registrados</div>';
             return;
         }
         
@@ -319,7 +307,14 @@ async function cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin) 
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                let datosAsistencia = {};
+                let datosAsistencia = {
+                    total: 0,
+                    presentes: 0,
+                    ausentes: 0,
+                    justificados: 0,
+                    eventos: []
+                };
+                
                 if (respAsistencia.ok) {
                     datosAsistencia = await respAsistencia.json();
                 }
@@ -327,25 +322,69 @@ async function cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin) 
                 const totalEventos = datosAsistencia.total || 0;
                 const presentes = datosAsistencia.presentes || 0;
                 const ausentes = datosAsistencia.ausentes || 0;
+                const justificados = datosAsistencia.justificados || 0;
                 const porcentaje = totalEventos > 0 ? (presentes / totalEventos * 100).toFixed(1) : 0;
                 
                 const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
                 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="nombre-celda">${miembro.nombre}</td>
-                    <td>${detalleExtra}</td>
-                    <td><span class="badge badge-info">${totalEventos}</span></td>
-                    <td><span class="badge badge-success">${presentes}</span></td>
-                    <td><span class="badge badge-danger">${ausentes}</span></td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${porcentaje}%"></div>
-                            <span class="progress-text">${porcentaje}%</span>
+                // Crear fila expandible
+                const miembroId = `miembro-${miembro.id}`;
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'fila-expandible';
+                
+                rowDiv.innerHTML = `
+                    <div class="fila-header" onclick="toggleExpandible('${miembroId}')">
+                        <div class="fila-toggle">
+                            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
                         </div>
-                    </td>
+                        <div class="fila-info">
+                            <span class="nombre-celda">${miembro.nombre}</span>
+                            <span class="detalle-celda">${detalleExtra}</span>
+                        </div>
+                        <div class="fila-stats">
+                            <span class="badge badge-info">${totalEventos} eventos</span>
+                            <span class="badge badge-success">${presentes} ✓</span>
+                            <span class="badge badge-danger">${ausentes} ✗</span>
+                            ${justificados > 0 ? `<span class="badge badge-warning">${justificados} J</span>` : ''}
+                        </div>
+                        <div class="fila-porcentaje">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${porcentaje}%"></div>
+                                <span class="progress-text">${porcentaje}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="fila-content" id="${miembroId}">
+                        <div class="eventos-lista">
+                            ${datosAsistencia.eventos && datosAsistencia.eventos.length > 0 ? 
+                                datosAsistencia.eventos.map(evento => `
+                                    <div class="evento-item">
+                                        <div class="evento-fecha">
+                                            <span class="fecha-label">${new Date(evento.fecha).toLocaleDateString('es-ES')}</span>
+                                        </div>
+                                        <div class="evento-info">
+                                            <span class="tipo-evento">${evento.tipo_evento === 'santo_culto' ? '⛪ Santo Culto' : '🎼 Ensayo'}</span>
+                                        </div>
+                                        <div class="evento-estado">
+                                            ${evento.presente === true ? 
+                                                '<span class="estado-presente">Presente</span>' :
+                                                evento.presente === false ? 
+                                                '<span class="estado-ausente">Ausente</span>' :
+                                                '<span class="estado-justificado">Justificado</span>'
+                                            }
+                                        </div>
+                                    </div>
+                                `).join('')
+                                : '<div style="padding: 16px; text-align: center; color: var(--text-light);">Sin eventos registrados</div>'
+                            }
+                        </div>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+                
+                container.appendChild(rowDiv);
             } catch (err) {
                 console.error('Error cargando datos del miembro:', err);
             }
@@ -353,11 +392,18 @@ async function cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin) 
         
     } catch (error) {
         console.error('Error al cargar tabla integrantes:', error);
-        const tbody = document.getElementById('tablaIntegrantesBody');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">Error al cargar datos</td></tr>';
+        const container = document.getElementById('tablaIntegrantes');
+        if (container) {
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">Error al cargar datos</div>';
         }
     }
+}
+
+// ===== TOGGLE EXPANDIBLE =====
+function toggleExpandible(id) {
+    const content = document.getElementById(id);
+    const fila = content.closest('.fila-expandible');
+    fila.classList.toggle('expanded');
 }
 
 // ===== APLICAR FILTROS =====
@@ -366,7 +412,7 @@ async function aplicarFiltrosTabla(grupo) {
     const fechaFin = document.getElementById('filtroFechaFin')?.value;
     const tipoEvento = document.getElementById('filtroTipoEvento')?.value || 'todos';
     
-    await cargarTablaIntegrantes(grupo, tipoEvento, fechaInicio, fechaFin);
+    await cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, fechaFin);
 }
 
 // ===== LIMPIAR FILTROS =====
@@ -375,5 +421,5 @@ async function limpiarFiltrosTabla(grupo) {
     document.getElementById('filtroFechaFin').value = '';
     document.getElementById('filtroTipoEvento').value = 'todos';
     
-    await cargarTablaIntegrantes(grupo, 'todos', null, null);
+    await cargarTablaIntegrantesExpandible(grupo, 'todos', null, null);
 }

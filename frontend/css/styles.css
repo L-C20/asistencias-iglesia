@@ -1054,33 +1054,427 @@ body {
     color: var(--text);
 }
 
-/* ============ ANIMACIONES ============ */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
+/* ============ TABLA EXPANDIBLE ============ */
+.tabla-expandible-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fila-expandible {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.fila-expandible:hover {
+    border-color: var(--primary);
+}
+
+.fila-header {
+    display: grid;
+    grid-template-columns: 40px 200px 1fr 200px;
+    gap: 16px;
+    align-items: center;
+    padding: 16px;
+    cursor: pointer;
+    background: white;
+    transition: var(--transition);
+}
+
+.fila-header:hover {
+    background: var(--light);
+}
+
+.fila-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    color: var(--primary);
+}
+
+.fila-expandible.expanded .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.fila-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detalle-celda {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.fila-stats {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.fila-porcentaje {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fila-porcentaje .progress-bar {
+    width: 180px;
+    height: 22px;
+}
+
+.fila-content {
+    display: none;
+    background: var(--light);
+    border-top: 1px solid var(--border);
+}
+
+.fila-expandible.expanded .fila-content {
+    display: block;
+}
+
+/* ============ EVENTOS LISTA ============ */
+.eventos-lista {
+    padding: 16px;
+}
+
+.evento-item {
+    display: grid;
+    grid-template-columns: 120px 180px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary);
+    margin-bottom: 8px;
+    transition: var(--transition);
+}
+
+.evento-item:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.evento-item:last-child {
+    margin-bottom: 0;
+}
+
+.evento-fecha {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.fecha-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--primary);
+}
+
+.evento-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tipo-evento {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.evento-estado {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.estado-presente {
+    display: inline-block;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #e8f5f1 0%, #f0fdf9 100%);
+    color: var(--success);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.estado-ausente {
+    display: inline-block;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #fde8e8 0%, #fff0f0 100%);
+    color: var(--danger);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.estado-justificado {
+    display: inline-block;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #fff4e8 0%, #fffaf0 100%);
+    color: var(--warning);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #fff4e8 0%, #fffaf0 100%);
+    color: var(--warning);
+}
+
+/* ============ RESPONSIVE TABLA EXPANDIBLE ============ */
+@media (max-width: 1200px) {
+    .fila-header {
+        grid-template-columns: 40px 180px 1fr 150px;
+        gap: 12px;
     }
-    to {
-        opacity: 1;
+
+    .fila-porcentaje .progress-bar {
+        width: 140px;
+    }
+
+    .evento-item {
+        grid-template-columns: 100px 150px 1fr;
     }
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
+@media (max-width: 768px) {
+    .fila-header {
+        grid-template-columns: 40px 1fr;
+        gap: 12px;
+        padding: 12px;
     }
-    to {
-        transform: translateX(0);
-        opacity: 1;
+
+    .fila-stats {
+        grid-column: 1 / -1;
+        margin-top: 8px;
+    }
+
+    .fila-porcentaje {
+        grid-column: 1 / -1;
+        margin-top: 8px;
+    }
+
+    .fila-porcentaje .progress-bar {
+        width: 100%;
+    }
+
+    .evento-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .evento-estado {
+        justify-content: flex-start;
+    }
+
+    .eventos-lista {
+        padding: 12px;
+    }
+
+    .evento-item {
+        padding: 10px;
+        margin-bottom: 6px;
     }
 }
 
-/* ============ RESPONSIVE ============ */
-@media (max-width: 1400px) {
-    .reporte-stats {
-        grid-template-columns: repeat(4, 1fr);
+@media (max-width: 480px) {
+    .fila-header {
+        grid-template-columns: 30px 1fr;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .nombre-celda {
+        font-size: 13px;
+    }
+
+    .detalle-celda {
+        font-size: 11px;
+    }
+
+    .fila-stats {
+        font-size: 11px;
+    }
+
+    .badge {
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+
+    .evento-item {
+        padding: 8px;
+    }
+
+    .fecha-label {
+        font-size: 12px;
+    }
+
+    .tipo-evento {
+        font-size: 12px;
+    }
+
+    .estado-presente,
+    .estado-ausente,
+    .estado-justificado {
+        padding: 2px 8px;
+        font-size: 10px;
+    }
+
+    .toggle-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .progress-bar {
+        height: 18px;
+    }
+
+    .progress-text {
+        font-size: 9px;
     }
 }
+
+
+/* ============ LISTA DE MIEMBROS ============ */
+.lista-miembros-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.card-miembro {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.card-miembro:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.miembro-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.miembro-card-info {
+    flex: 1;
+}
+
+.miembro-nombre {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 8px 0;
+}
+
+.miembro-tipo {
+    font-size: 13px;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.miembro-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 12px;
+    height: 36px;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* ============ FILTROS MIEMBROS ============ */
+.filtros-miembros {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.filtros-miembros .filtro-group {
+    max-width: 300px;
+}
+
+/* ============ RESPONSIVE MIEMBROS ============ */
+@media (max-width: 1024px) {
+    .lista-miembros-container {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .lista-miembros-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 12px;
+    }
+
+    .card-miembro {
+        padding: 16px;
+    }
+
+    .miembro-nombre {
+        font-size: 15px;
+    }
+
+    .miembro-card-actions {
+        gap: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .lista-miembros-container {
+        grid-template-columns: 1fr;
+    }
+
+    .card-miembro {
+        padding: 14px;
+    }
+
+    .miembro-card-content {
+        gap: 12px;
+    }
+
+    .miembro-nombre {
+        font-size: 14px;
+    }
+
+    .miembro-tipo {
+        font-size: 12px;
+    }
+
+    .btn-sm {
+        height: 32px;
+        width: 32px;
+    }
+}
+
 
 @media (max-width: 1200px) {
     .sidebar {
