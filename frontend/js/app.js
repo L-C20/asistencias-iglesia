@@ -112,11 +112,26 @@ async function handleLogin(e) {
 
 // ===== LOGOUT =====
 function logout() {
-    console.log('🚪 Logout');
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
-    token = null;
-    location.reload();
+    console.log('🚪 [logout] Iniciando logout');
+    
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        console.log('✅ Usuario confirmó logout');
+        
+        // Limpiar localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+        token = null;
+        
+        console.log('🧹 LocalStorage limpiado');
+        console.log('🔄 Recargando página...');
+        
+        // Recargar página
+        setTimeout(() => {
+            location.reload();
+        }, 300);
+    } else {
+        console.log('❌ Usuario canceló logout');
+    }
 }
 
 // ===== CAMBIAR TAB =====
@@ -214,6 +229,33 @@ function mostrarError(mensaje) {
 // ===== INICIALIZAR CUANDO CARGA EL DOM =====
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM Loaded - Inicializando aplicación');
+    
+    // Event listener para botón logout (como respaldo)
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('🔘 Click en botón logout detectado');
+            logout();
+        });
+        console.log('✅ Event listener agregado a logoutBtn');
+    } else {
+        console.warn('⚠️ logoutBtn no encontrado');
+    }
+    
+    // Verificar que funciones existan
+    setTimeout(() => {
+        console.log('🔍 Verificando funciones globales:');
+        console.log('  - irAAsistencia:', typeof irAAsistencia === 'function' ? '✅' : '❌');
+        console.log('  - cambiarTab:', typeof cambiarTab === 'function' ? '✅' : '❌');
+        console.log('  - cargarMiembrosPorFiltro:', typeof cargarMiembrosPorFiltro === 'function' ? '✅' : '❌');
+        console.log('  - abrirModalAgregarMiembro:', typeof abrirModalAgregarMiembro === 'function' ? '✅' : '❌');
+        console.log('  - guardarNuevoMiembro:', typeof guardarNuevoMiembro === 'function' ? '✅' : '❌');
+        console.log('  - cargarReporteGrupo:', typeof cargarReporteGrupo === 'function' ? '✅' : '❌');
+        console.log('  - toggleSidebar:', typeof toggleSidebar === 'function' ? '✅' : '❌');
+        console.log('  - logout:', typeof logout === 'function' ? '✅' : '❌');
+    }, 500);
+    
     initApp();
     
     // Inicializar sidebar
