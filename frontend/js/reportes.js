@@ -133,13 +133,13 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             <div class="tabla-integrantes">
                 <h3>Detalles por Integrante</h3>
                 ${estadisticas.map((miembro, idx) => `
-                    <div class="fila-expandible" id="fila-expandible-${grupo}-${miembro.miembro_id}-${idx}">
+                    <div class="fila-expandible" id="fila-expandible-${grupo}-${miembro.miembro_id || idx}-${idx}">
                         <div class="fila-header">
-                            <button class="fila-toggle" type="button" onclick="toggleExpandibleFila('fila-expandible-${grupo}-${miembro.miembro_id}-${idx}'); return false;">
-                                <span class="toggle-icon">▶</span>
+                            <button class="fila-toggle" type="button" onclick="toggleExpandibleFila('fila-expandible-${grupo}-${miembro.miembro_id || idx}-${idx}'); return false;" style="border: none; background: none; padding: 0; cursor: pointer;">
+                                <span class="toggle-icon" style="display: inline-block; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 12px;">▶</span>
                             </button>
                             <div class="fila-info">
-                                <div class="nombre-celda"><strong>${miembro.nombre}</strong></div>
+                                <div class="nombre-celda"><strong>${miembro.nombre || 'Integrante'}</strong></div>
                                 <div class="detalle-celda">${grupo === 'coro' ? (miembro.voz || 'Sin asignar') : (miembro.instrumento || 'Sin asignar')}</div>
                             </div>
                             <div class="fila-porcentaje">
@@ -154,15 +154,15 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                                 <div>
                                     <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Total Registros</div>
-                                    <div style="font-size: 18px; font-weight: 600; color: var(--primary);">${miembro.total_registros}</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: var(--primary);">${miembro.total_registros || 0}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Presentes</div>
-                                    <div style="font-size: 18px; font-weight: 600; color: #10b981;">${miembro.presentes}</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: #10b981;">${miembro.presentes || 0}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Ausentes</div>
-                                    <div style="font-size: 18px; font-weight: 600; color: #ef4444;">${miembro.ausentes}</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: #ef4444;">${miembro.ausentes || 0}</div>
                                 </div>
                             </div>
                         </div>

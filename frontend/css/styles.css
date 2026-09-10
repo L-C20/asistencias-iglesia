@@ -800,7 +800,7 @@ body {
 
 .reporte-graficos {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
     gap: 24px !important;
     margin-bottom: 32px !important;
     width: 100% !important;
@@ -814,6 +814,7 @@ body {
     display: flex !important;
     flex-direction: column !important;
     gap: 16px !important;
+    max-width: 500px !important;
 }
 
 .grafico-contenedor h3 {
@@ -825,8 +826,10 @@ body {
 
 .grafico-contenedor canvas {
     width: 100% !important;
-    height: 300px !important;
+    height: auto !important;
+    max-height: 400px !important;
     display: block !important;
+    aspect-ratio: 1 / 1 !important;
 }
 
 /* ========== TABLA INTEGRANTES ========== */
@@ -1886,7 +1889,7 @@ body {
         height: 100vh;
         z-index: 999;
         width: 260px;
-        transition: var(--transition);
+        transition: left 0.3s ease;
     }
 
     .sidebar.active,
@@ -1894,12 +1897,14 @@ body {
         left: 0;
     }
 
-    .sidebar.collapsed {
-        left: -260px;
-    }
-
     .sidebar-toggle {
         display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-content {
+        margin-left: 0;
     }
 
     .navbar {
@@ -2111,10 +2116,13 @@ body {
 @media (max-width: 768px) {
     /* Sidebar */
     .sidebar {
-        width: 80% !important;
+        width: 260px !important;
         position: fixed !important;
-        left: -80% !important;
-        z-index: 1000 !important;
+        left: -260px !important;
+        top: 0 !important;
+        height: 100vh !important;
+        z-index: 999 !important;
+        transition: left 0.3s ease !important;
     }
 
     .sidebar.active {
@@ -2122,7 +2130,9 @@ body {
     }
 
     .sidebar-toggle {
-        display: block !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
     }
 
     .main-content {
@@ -2349,8 +2359,17 @@ body {
 
     /* Sidebar */
     .sidebar {
-        width: 100% !important;
-        left: -100% !important;
+        width: 260px !important;
+        position: fixed !important;
+        left: -260px !important;
+        top: 0 !important;
+        height: 100vh !important;
+        z-index: 999 !important;
+        transition: left 0.3s ease !important;
+    }
+
+    .sidebar.active {
+        left: 0 !important;
     }
 
     /* Navbar */
