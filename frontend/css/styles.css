@@ -1889,6 +1889,7 @@ body {
         transition: var(--transition);
     }
 
+    .sidebar.active,
     .sidebar.show {
         left: 0;
     }

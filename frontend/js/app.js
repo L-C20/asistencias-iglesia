@@ -155,6 +155,32 @@ function cambiarTab(nombreTab) {
     }
 }
 
+// ===== TOGGLE SIDEBAR (MENÚ HAMBURGUESA) =====
+function toggleSidebar() {
+    console.log('🍔 Toggle Sidebar');
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+        console.log('✅ Sidebar toggled');
+    } else {
+        console.error('❌ Sidebar no encontrado');
+    }
+}
+
+// ===== CERRAR SIDEBAR AL HACER CLICK EN UN ITEM =====
+function cerrarSidebarAlHacerClick() {
+    const sidebarItems = document.querySelectorAll('.sidebar-menu-item');
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar && window.innerWidth < 768) {
+                sidebar.classList.remove('active');
+                console.log('✅ Sidebar cerrado después de click');
+            }
+        });
+    });
+}
+
 // ===== MOSTRAR TOAST =====
 function mostrarToast(mensaje, tipo = 'info') {
     const container = document.getElementById('toastContainer');
@@ -189,6 +215,12 @@ function mostrarError(mensaje) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM Loaded - Inicializando aplicación');
     initApp();
+    
+    // Inicializar sidebar
+    setTimeout(() => {
+        cerrarSidebarAlHacerClick();
+        console.log('✅ Sidebar inicializado');
+    }, 300);
 });
 
 console.log('✅ app-v10.js CARGADO');
