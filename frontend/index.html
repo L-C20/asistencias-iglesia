@@ -48,7 +48,7 @@
             </div>
 
             <ul class="sidebar-menu">
-                <li><div class="sidebar-menu-item active" onclick="cambiarTab('inicio')">
+                <li><div class="sidebar-menu-item" onclick="cambiarTab('inicio')">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -244,9 +244,10 @@
                 </div>
 
                 <!-- ASISTENCIA (oculta pero en el DOM) -->
-                <div id="asistencia" class="tab-content">
+                <!-- ASISTENCIA CORO -->
+                <div id="asistencia-coro" class="tab-content">
                     <div class="asistencia-header">
-                        <h2 id="asistenciaTitle">Registrar Asistencia</h2>
+                        <h2>Registrar Asistencia - Coro</h2>
                         <button class="btn btn-secondary" onclick="cambiarTab('inicio')">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -257,7 +258,7 @@
                     </div>
 
                     <div class="asistencia-lista">
-                        <div id="asistenciaListBody" class="lista-miembros"></div>
+                        <div id="listaMiembrosAsistenciaCoro" class="lista-miembros"></div>
                     </div>
 
                     <div class="tab-footer">
@@ -269,11 +270,34 @@
                             </svg>
                             Guardar Asistencias
                         </button>
-                        <button class="btn btn-primary" type="button" onclick="agregarMiembroActual(); return false;">
+                    </div>
+                </div>
+
+                <!-- ASISTENCIA ORQUESTA -->
+                <div id="asistencia-orquesta" class="tab-content">
+                    <div class="asistencia-header">
+                        <h2>Registrar Asistencia - Orquesta</h2>
+                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14M5 12h14"></path>
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
                             </svg>
-                            Agregar Miembro
+                            Atrás
+                        </button>
+                    </div>
+
+                    <div class="asistencia-lista">
+                        <div id="listaMiembrosAsistenciaOrquesta" class="lista-miembros"></div>
+                    </div>
+
+                    <div class="tab-footer">
+                        <button class="btn btn-success" type="button" onclick="guardarTodasAsistencias(); return false;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Guardar Asistencias
                         </button>
                     </div>
                 </div>

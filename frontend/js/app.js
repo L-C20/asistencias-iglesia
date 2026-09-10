@@ -35,6 +35,9 @@ function initApp() {
         
         console.log('✅ Sesión iniciada - Cargando datos iniciales');
         
+        // Activar tab Inicio
+        cambiarTab('inicio');
+        
         // Cargar datos iniciales con delay
         setTimeout(() => {
             if (typeof cargarConteosMiembros === 'function') {
@@ -144,6 +147,29 @@ function cambiarTab(nombreTab) {
         tab.style.display = 'none';
     });
     
+    // Remover clase active de todos los items del menú
+    const menuItems = document.querySelectorAll('.sidebar-menu-item');
+    menuItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Agregar clase active al item correspondiente
+    let menuItemToActivate = null;
+    if (nombreTab === 'inicio') {
+        menuItemToActivate = document.querySelector('.sidebar-menu-item');
+    } else if (nombreTab === 'coro-miembros') {
+        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[1];
+    } else if (nombreTab === 'orquesta-miembros') {
+        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[2];
+    } else if (nombreTab === 'reportes') {
+        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[3];
+    }
+    
+    if (menuItemToActivate) {
+        menuItemToActivate.classList.add('active');
+        console.log('✅ Menú actualizado:', nombreTab);
+    }
+    
     // Mostrar tab seleccionado
     const tab = document.getElementById(nombreTab);
     if (tab) {
@@ -163,7 +189,16 @@ function cambiarTab(nombreTab) {
         if (nombreTab.startsWith('asistencia-')) {
             const grupo = nombreTab.includes('coro') ? 'coro' : 'orquesta';
             console.log('📋 Preparando asistencia para:', grupo);
-            grupoActual = grupo;
+            if (typeof grupoActual !== 'undefined') {
+                grupoActual = grupo;
+            }
+        }
+        
+        // Cerrar sidebar en móvil
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar && window.innerWidth < 768) {
+            sidebar.classList.remove('active');
+            console.log('📱 Sidebar cerrado en móvil');
         }
     } else {
         console.error('❌ Tab no encontrado:', nombreTab);
