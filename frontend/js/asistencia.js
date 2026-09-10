@@ -5,39 +5,81 @@ let asistenciasParaGuardar = {};
 let tipoEventoActual = null;
 let fechaEventoActual = null;
 
+console.log('🚀 asistencia-v12.js iniciando');
+
 // ===== IR A ASISTENCIA =====
 function irAAsistencia(grupo) {
-    console.log('🔄 irAAsistencia:', grupo);
-    grupoActual = grupo;
+    console.log('═══════════════════════════════════════');
+    console.log('🔄 [irAAsistencia] Iniciando - Grupo:', grupo);
+    console.log('═══════════════════════════════════════');
     
-    const modal = document.getElementById('modalEvento');
+    // Verificar que grupo sea válido
+    if (!grupo || (grupo !== 'coro' && grupo !== 'orquesta')) {
+        console.error('❌ Grupo inválido:', grupo);
+        mostrarError('Grupo inválido');
+        return;
+    }
+    
+    grupoActual = grupo;
+    console.log('✅ grupoActual establecido:', grupoActual);
+    
+    // Buscar modal - ID correcto: modalConfigurarEvento
+    const modal = document.getElementById('modalConfigurarEvento');
+    console.log('🔍 Buscando modal con ID "modalConfigurarEvento":', modal ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO');
+    
     if (modal) {
+        // Verificar si tiene la clase 'show'
+        const tieneShow = modal.classList.contains('show');
+        console.log('   - Modal tiene clase "show":', tieneShow);
+        
         modal.classList.add('show');
-        console.log('📂 Modal de evento abierto');
+        console.log('✅ Modal abierto - clase "show" agregada');
+        console.log('✅ Display:', window.getComputedStyle(modal).display);
+        
+        // Reset del formulario
+        const form = document.getElementById('formConfigurarEvento');
+        if (form) {
+            form.reset();
+            console.log('✅ Formulario limpiado');
+        }
+        
+        console.log('═══════════════════════════════════════');
+        console.log('✅ [irAAsistencia] COMPLETADO');
+        console.log('═══════════════════════════════════════');
     } else {
-        console.error('❌ Modal no encontrado: modalEvento');
+        console.error('═══════════════════════════════════════');
+        console.error('❌ [irAAsistencia] ERROR CRÍTICO');
+        console.error('   Modal "modalConfigurarEvento" no encontrado en el DOM');
+        console.error('═══════════════════════════════════════');
+        mostrarError('Error: Modal no encontrado');
     }
 }
 
 // ===== GUARDAR CONFIGURACIÓN DEL EVENTO =====
 function guardarConfiguracionEvento(e) {
     e.preventDefault();
-    console.log('💾 guardarConfiguracionEvento');
+    console.log('💾 [guardarConfiguracionEvento] Iniciando');
     
-    const tipoEvento = document.getElementById('tipoEvento')?.value;
-    const fecha = document.getElementById('fechaEvento')?.value;
+    // IDs correctos del HTML
+    const tipoEventoRadios = document.querySelectorAll('input[name="tipoEvento"]:checked');
+    const tipoEvento = tipoEventoRadios.length > 0 ? tipoEventoRadios[0].value : null;
     
-    console.log('  Tipo Evento:', tipoEvento);
-    console.log('  Fecha:', fecha);
-    console.log('  Grupo:', grupoActual);
+    const fecha = document.getElementById('fechaEventoModal')?.value;
+    
+    console.log('  - Tipo Evento:', tipoEvento);
+    console.log('  - Fecha:', fecha);
+    console.log('  - Grupo:', grupoActual);
     
     if (!tipoEvento || !fecha) {
+        console.error('❌ Datos incompletos');
         mostrarError('Selecciona tipo de evento y fecha');
         return;
     }
     
     tipoEventoActual = tipoEvento;
     fechaEventoActual = fecha;
+    
+    console.log('✅ Datos guardados');
     
     // Cerrar modal de evento y cargar miembros
     cerrarModalEvento();
@@ -51,11 +93,22 @@ function guardarConfiguracionEvento(e) {
 // ===== CARGAR MIEMBROS PARA ASISTENCIA =====
 async function cargarMiembrosParaAsistencia(grupo) {
     try {
-        console.log('📋 Cargando miembros para asistencia:', grupo);
+        console.log('📋 [cargarMiembrosParaAsistencia] Cargando para:', grupo);
         
-        const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
+        if (!API_URL || !token) {
+            console.error('❌ Sin API_URL o token');
+            mostrarError('Error: No autenticado');
+            return;
+        }
+        
+        const url = `${API_URL}/asistencia/miembros/${grupo}`;
+        console.log('📡 Fetch a:', url);
+        
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        
+        console.log('📊 Response status:', response.status);
         
         if (!response.ok) {
             throw new Error('Error al cargar miembros');
@@ -71,6 +124,7 @@ async function cargarMiembrosParaAsistencia(grupo) {
         renderizarListaAsistencia(grupo);
         
         // Cambiar a pestaña de asistencia
+        console.log('🎯 Cambiando a tab: asistencia-' + grupo);
         cambiarTab('asistencia-' + grupo);
         
     } catch (error) {
@@ -83,7 +137,7 @@ async function cargarMiembrosParaAsistencia(grupo) {
 async function cargarRegistrosExistentes(grupo) {
     try {
         const url = `${API_URL}/asistencia/${grupo}/${fechaEventoActual}/${tipoEventoActual}`;
-        console.log('📡 Fetch registros:', url);
+        console.log('📡 [cargarRegistrosExistentes] Fetch:', url);
         
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -109,10 +163,13 @@ async function cargarRegistrosExistentes(grupo) {
 
 // ===== RENDERIZAR LISTA DE ASISTENCIA =====
 function renderizarListaAsistencia(grupo) {
-    console.log('🎨 Renderizando lista de asistencia para:', grupo);
+    console.log('🎨 [renderizarListaAsistencia] Grupo:', grupo);
     
     const containerId = grupo === 'coro' ? 'listaMiembrosAsistenciaCoro' : 'listaMiembrosAsistenciaOrquesta';
     const container = document.getElementById(containerId);
+    
+    console.log('🔍 Contenedor ID:', containerId);
+    console.log('   Encontrado:', container ? '✅' : '❌');
     
     if (!container) {
         console.error('❌ Contenedor no encontrado:', containerId);
@@ -163,7 +220,7 @@ function renderizarListaAsistencia(grupo) {
         container.appendChild(miembroDiv);
     });
     
-    console.log('✅ Lista renderizada');
+    console.log('✅ Lista renderizada con', miembrosActuales.length, 'miembros');
 }
 
 // ===== CAMBIAR ASISTENCIA =====
@@ -187,7 +244,7 @@ function cambiarAsistencia(checkbox) {
 // ===== GUARDAR TODAS LAS ASISTENCIAS =====
 async function guardarTodasAsistencias() {
     try {
-        console.log('💾 Guardando asistencias...');
+        console.log('💾 [guardarTodasAsistencias] Iniciando');
         console.log('   Grupo:', grupoActual);
         console.log('   Tipo evento:', tipoEventoActual);
         console.log('   Fecha:', fechaEventoActual);
@@ -200,7 +257,7 @@ async function guardarTodasAsistencias() {
             try {
                 // Solo guardar si tiene un valor definido
                 if (asistencia.presente === null || asistencia.presente === undefined) {
-                    console.log(`⏭️  Saltando miembro ${miembroId} - sin asistencia definida`);
+                    console.log(`⏭️  Saltando miembro ${miembroId} - sin asistencia`);
                     continue;
                 }
                 
@@ -264,12 +321,19 @@ function limpiarAsistencia() {
 
 // ===== CERRAR MODAL DE EVENTO =====
 function cerrarModalEvento() {
-    const modal = document.getElementById('modalEvento');
+    const modal = document.getElementById('modalConfigurarEvento');
     if (modal) {
         modal.classList.remove('show');
     }
-    document.getElementById('formConfigurarEvento').reset();
+    const form = document.getElementById('formConfigurarEvento');
+    if (form) {
+        form.reset();
+    }
     console.log('❌ Modal de evento cerrado');
 }
 
-console.log('✅ asistencia-v11.js CARGADO');
+console.log('✅ asistencia-v12.js CARGADO - Todas las funciones disponibles');
+console.log('   - irAAsistencia ✅');
+console.log('   - guardarConfiguracionEvento ✅');
+console.log('   - cargarMiembrosParaAsistencia ✅');
+console.log('   - guardarTodasAsistencias ✅');
