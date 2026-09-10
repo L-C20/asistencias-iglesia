@@ -320,9 +320,10 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento = 'todos', fec
                 
                 const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
                 
-                // ID ÚNICO para cada miembro
-                const filaId = `fila-expandible-${grupo}-${miembro.id}`;
-                const contenidoId = `contenido-expandible-${grupo}-${miembro.id}`;
+                // ID ÚNICO para cada miembro con timestamp
+                const timestamp = Date.now();
+                const filaId = `fila-expandible-${grupo}-${miembro.id}-${timestamp}`;
+                const contenidoId = `contenido-expandible-${grupo}-${miembro.id}-${timestamp}`;
                 
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'fila-expandible';
