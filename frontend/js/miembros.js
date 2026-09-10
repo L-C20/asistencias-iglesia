@@ -25,7 +25,7 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         console.log('Miembros recibidos:', miembros);
         
         // Aplicar filtro
-        if (filtro) {
+        if (filtro && filtro !== '') {
             if (grupo === 'coro') {
                 miembros = miembros.filter(m => m.voz === filtro);
             } else if (grupo === 'orquesta') {
@@ -53,12 +53,13 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
             return;
         }
         
-        // Crear cards para cada miembro
-        miembros.forEach(miembro => {
+        // Crear cards para cada miembro con ID único
+        miembros.forEach((miembro, index) => {
             const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
             
             const card = document.createElement('div');
             card.className = 'card-miembro';
+            card.id = `miembro-card-${grupo}-${miembro.id}`;
             card.innerHTML = `
                 <div class="miembro-card-content">
                     <div class="miembro-card-info">
@@ -66,12 +67,12 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
                         <p class="miembro-tipo">${detalleExtra}</p>
                     </div>
                     <div class="miembro-card-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="editarMiembro(${miembro.id}, '${grupo}')">
+                        <button class="btn btn-sm btn-secondary" onclick="editarMiembro(${miembro.id}, '${grupo}')" title="Editar">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                             </svg>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="eliminarMiembro(${miembro.id}, '${grupo}')">
+                        <button class="btn btn-sm btn-danger" onclick="eliminarMiembroConfirm(${miembro.id}, '${grupo}')" title="Eliminar">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -192,12 +193,15 @@ function editarMiembro(miembroId, grupo) {
     mostrarToast('Funcionalidad en desarrollo', 'info');
 }
 
+// ===== ELIMINAR MIEMBRO CON CONFIRMACIÓN =====
+function eliminarMiembroConfirm(miembroId, grupo) {
+    if (confirm('¿Estás seguro de que deseas eliminar este integrante?')) {
+        eliminarMiembro(miembroId, grupo);
+    }
+}
+
 // ===== ELIMINAR MIEMBRO =====
 async function eliminarMiembro(miembroId, grupo) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este integrante?')) {
-        return;
-    }
-    
     try {
         const response = await fetch(`${API_URL}/asistencia/miembro/${miembroId}`, {
             method: 'DELETE',

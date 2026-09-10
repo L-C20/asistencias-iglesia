@@ -327,13 +327,14 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, 
                 
                 const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
                 
-                // Crear fila expandible
-                const miembroId = `miembro-${miembro.id}`;
+                // Crear fila expandible con ID ÚNICO
+                const miembroId = `miembro-expandible-${grupo}-${miembro.id}`;
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'fila-expandible';
+                rowDiv.id = `fila-${miembroId}`;
                 
                 rowDiv.innerHTML = `
-                    <div class="fila-header" onclick="toggleExpandible('${miembroId}')">
+                    <div class="fila-header" onclick="toggleExpandible('${miembroId}', '${grupo}', ${miembro.id})">
                         <div class="fila-toggle">
                             <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -400,10 +401,12 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, 
 }
 
 // ===== TOGGLE EXPANDIBLE =====
-function toggleExpandible(id) {
+function toggleExpandible(id, grupo, miembroId) {
     const content = document.getElementById(id);
-    const fila = content.closest('.fila-expandible');
-    fila.classList.toggle('expanded');
+    const fila = document.getElementById(`fila-${id}`);
+    if (content && fila) {
+        fila.classList.toggle('expanded');
+    }
 }
 
 // ===== APLICAR FILTROS =====
