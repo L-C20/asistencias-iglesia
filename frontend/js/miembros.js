@@ -11,32 +11,48 @@ const VOCES = ['Soprano', 'Contralto', 'Tenor', 'Bajo'];
 // ===== CARGAR MIEMBROS CON FILTRO =====
 async function cargarMiembrosPorFiltro(grupo, filtro = '') {
     try {
-        console.log('🔍 Iniciando cargarMiembrosPorFiltro:', { grupo, filtro });
+        console.log('🔍 Iniciando cargarMiembrosPorFiltro:', { grupo, filtro, API_URL, token: !!token });
         
-        const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
+        if (!API_URL || !token) {
+            console.error('❌ Faltan variables:', { API_URL, token: !!token });
+            mostrarError('Error: Sesión no inicializada');
+            return;
+        }
+        
+        const url = `${API_URL}/asistencia/miembros/${grupo}`;
+        console.log('📡 Fetch a:', url);
+        
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
+        console.log('📊 Response status:', response.status);
+        
         if (!response.ok) {
+            console.error('❌ Error en response:', response.status, response.statusText);
             throw new Error(`Error: ${response.status}`);
         }
         
         let miembros = await response.json();
-        console.log('✅ Miembros recibidos:', miembros);
+        console.log('✅ Miembros recibidos (cantidad):', miembros.length);
+        console.log('📋 Datos de miembros:', JSON.stringify(miembros.slice(0, 2)));
         
         // Aplicar filtro
         if (filtro && filtro !== '') {
             console.log('🔎 Aplicando filtro:', filtro);
             if (grupo === 'coro') {
                 miembros = miembros.filter(m => m.voz === filtro);
+                console.log('✓ Después de filtrar por voz:', miembros.length, 'miembros');
             } else if (grupo === 'orquesta') {
                 miembros = miembros.filter(m => m.instrumento === filtro);
+                console.log('✓ Después de filtrar por instrumento:', miembros.length, 'miembros');
             }
-            console.log('📋 Miembros después del filtro:', miembros);
         }
         
         const containerId = grupo === 'coro' ? 'listaMiembrosCoro' : 'listaMiembrosOrquesta';
         const container = document.getElementById(containerId);
+        
+        console.log('🎯 Buscando contenedor:', containerId, '- Encontrado:', !!container);
         
         if (!container) {
             console.error('❌ Contenedor no encontrado:', containerId);
@@ -44,6 +60,8 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         }
         
         const tbody = container.querySelector('tbody');
+        console.log('📍 Tbody encontrado:', !!tbody);
+        
         if (!tbody) {
             console.error('❌ tbody no encontrado en tabla');
             return;
@@ -51,6 +69,7 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         
         // Limpiar tbody
         tbody.innerHTML = '';
+        console.log('🧹 Tbody limpiado');
         
         if (!miembros || miembros.length === 0) {
             console.log('ℹ️ Sin miembros para mostrar');
@@ -62,7 +81,11 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         
         // Crear filas para cada miembro
         miembros.forEach((miembro, index) => {
-            const detalleExtra = grupo === 'coro' ? (miembro.voz || 'Sin asignar') : (miembro.instrumento || 'Sin asignar');
+            const detalleExtra = grupo === 'coro' 
+                ? (miembro.voz || 'Sin asignar') 
+                : (miembro.instrumento || 'Sin asignar');
+            
+            console.log(`  Fila ${index + 1}: ${miembro.nombre} - ${detalleExtra}`);
             
             const tr = document.createElement('tr');
             tr.className = 'tabla-row';
@@ -85,10 +108,9 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
                 </td>
             `;
             tbody.appendChild(tr);
-            console.log(`✅ Fila ${index + 1}/${miembros.length} creada para ${miembro.nombre} (${detalleExtra})`);
         });
         
-        console.log('✨ Carga completada');
+        console.log('✨ Tabla cargada exitosamente');
         
     } catch (error) {
         console.error('❌ Error en cargarMiembrosPorFiltro:', error);
@@ -183,7 +205,7 @@ async function guardarNuevoMiembro(e) {
         if (response.ok) {
             cerrarModal();
             mostrarToast('Miembro agregado correctamente', 'success');
-            cargarMiembrosPorFiltro(grupo);
+            cargarMiembrosPorFiltro(grupo, '');
             cargarConteosMiembros();
         } else {
             mostrarError(data.error || 'Error al agregar miembro');
@@ -216,7 +238,7 @@ async function eliminarMiembro(miembroId, grupo) {
         
         if (response.ok) {
             mostrarToast('Integrante eliminado correctamente', 'success');
-            cargarMiembrosPorFiltro(grupo);
+            cargarMiembrosPorFiltro(grupo, '');
             cargarConteosMiembros();
         } else {
             mostrarError('Error al eliminar integrante');
@@ -257,4 +279,19 @@ function cerrarModal() {
     document.getElementById('formNuevoMiembro').reset();
 }
 
-console.log('✅ miembros-v4.js cargado');
+// ===== INICIALIZAR AL CARGAR PÁGINA =====
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM cargado, inicializando carga de miembros');
+    setTimeout(() => {
+        if (typeof token !== 'undefined' && token) {
+            cargarMiembrosPorFiltro('coro', '');
+            cargarMiembrosPorFiltro('orquesta', '');
+            cargarConteosMiembros();
+            console.log('✅ Datos iniciales cargados');
+        } else {
+            console.error('⚠️ Token no disponible aún');
+        }
+    }, 1000);
+});
+
+console.log('✅ miembros-v5.js cargado');
