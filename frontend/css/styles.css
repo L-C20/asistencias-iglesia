@@ -2568,3 +2568,75 @@ body {
         margin: 4px 0 0 0 !important;
     }
 }
+
+/* ============ CONFIGURACIÓN ============ */
+.config-header {
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.config-header h2 {
+    font-size: 24px;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.config-header p {
+    color: var(--text-light);
+    margin: 0;
+}
+
+.config-container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.config-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.config-section h3 {
+    font-size: 18px;
+    color: var(--primary);
+    margin: 0 0 20px 0;
+    font-weight: 600;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h3 {
+    margin: 0;
+}
+
+.badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background: #e3f2fd;
+    color: #1565c0;
+}

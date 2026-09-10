@@ -194,6 +194,14 @@ function cambiarTab(nombreTab) {
             }
         }
         
+        // Si es configuración, cargar usuarios
+        if (nombreTab === 'configuracion') {
+            console.log('⚙️ Cargando configuración');
+            if (typeof inicializarConfiguracion === 'function') {
+                inicializarConfiguracion();
+            }
+        }
+        
         // Cerrar sidebar en móvil
         const sidebar = document.querySelector('.sidebar');
         if (sidebar && window.innerWidth < 768) {
