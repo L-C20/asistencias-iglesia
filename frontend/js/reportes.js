@@ -61,7 +61,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         const porcentajes = estadisticas.map(e => parseFloat(e.porcentaje || 0));
         
         contenido.innerHTML = `
-            <div class="reporte-stats">
+            <div class="reporte-stats" id="statsContainer">
                 <div class="stat-card">
                     <div class="stat-header">
                         <h4>Eventos Registrados</h4>
@@ -111,6 +111,41 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                     <p class="stat-detail">Asistencia promedio</p>
                 </div>
             </div>
+            <div class="reporte-graficos">
+                <div class="grafico-contenedor">
+                    <h3>Asistencia por Mes</h3>
+                    <canvas id="graficoLinea" height="300"></canvas>
+                </div>
+                <div class="grafico-contenedor">
+                    <h3>Distribución</h3>
+                    <canvas id="graficoPie" height="300"></canvas>
+                </div>
+            </div>
+            <div class="reporte-filtros">
+                <h3>Detalles por Integrante</h3>
+                <div class="filtros-row">
+                    <div class="filtro-group">
+                        <label>Tipo de Evento:</label>
+                        <select id="filtroTipoEvento" onchange="aplicarFiltrosTabla('${grupo}')">
+                            <option value="todos">Todos</option>
+                            <option value="santo_culto">Santo Culto</option>
+                            <option value="ensayo">Ensayo</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label>Desde:</label>
+                        <input type="date" id="filtroFechaInicio" onchange="aplicarFiltrosTabla('${grupo}')">
+                    </div>
+                    <div class="filtro-group">
+                        <label>Hasta:</label>
+                        <input type="date" id="filtroFechaFin" onchange="aplicarFiltrosTabla('${grupo}')">
+                    </div>
+                    <div class="filtro-group">
+                        <button class="btn btn-secondary" onclick="limpiarFiltrosTabla('${grupo}')">Limpiar</button>
+                    </div>
+                </div>
+            </div>
+            <div id="tablaIntegrantes" class="tabla-integrantes"></div>
         `;
         
         // Dibujar gráficos
