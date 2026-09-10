@@ -294,6 +294,15 @@ body {
     cursor: pointer;
     transition: var(--transition);
     border: 2px solid transparent;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+    min-height: 280px !important;
+    justify-content: space-between !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    color: inherit !important;
 }
 
 .card-grupo:hover {
