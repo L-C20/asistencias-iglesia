@@ -26,30 +26,48 @@ router.get('/estadisticas/:grupo', verifyToken, async (req, res) => {
     // Para cada miembro, obtener sus estadísticas
     const estadisticas = await Promise.all(
       miembros.map(async (miembro) => {
-        const statsResult = await db.query(
-          `SELECT 
-            COUNT(*) as total_registros,
-            SUM(CASE WHEN presente = true THEN 1 ELSE 0 END) as presentes,
-            SUM(CASE WHEN presente = false THEN 1 ELSE 0 END) as ausentes,
-            SUM(CASE WHEN presente::text = 'justified' THEN 1 ELSE 0 END) as justificados
-          FROM registro_asistencia 
-          WHERE miembro_id = $1`,
-          [miembro.id]
-        );
+        try {
+          const statsResult = await db.query(
+            `SELECT 
+              COUNT(*) as total_registros,
+              SUM(CASE WHEN presente = 'true' OR presente = true THEN 1 ELSE 0 END) as presentes,
+              SUM(CASE WHEN presente = 'false' OR presente = false THEN 1 ELSE 0 END) as ausentes,
+              SUM(CASE WHEN presente = 'justified' THEN 1 ELSE 0 END) as justificados
+            FROM registro_asistencia 
+            WHERE miembro_id = $1`,
+            [miembro.id]
+          );
 
-        const stats = statsResult.rows[0];
-        
-        return {
-          miembro_id: miembro.id,
-          nombre: miembro.nombre || 'Sin nombre',
-          grupo: miembro.grupo,
-          voz: miembro.voz || null,
-          instrumento: miembro.instrumento || null,
-          total_registros: parseInt(stats.total_registros) || 0,
-          presentes: parseInt(stats.presentes) || 0,
-          ausentes: parseInt(stats.ausentes) || 0,
-          justificados: parseInt(stats.justificados) || 0
-        };
+          const stats = statsResult.rows[0];
+          
+          console.log(`  📊 ${miembro.nombre}: ${stats.total_registros} registros`);
+          
+          return {
+            miembro_id: miembro.id,
+            nombre: miembro.nombre || 'Sin nombre',
+            grupo: miembro.grupo,
+            voz: miembro.voz || null,
+            instrumento: miembro.instrumento || null,
+            total_registros: parseInt(stats.total_registros) || 0,
+            presentes: parseInt(stats.presentes) || 0,
+            ausentes: parseInt(stats.ausentes) || 0,
+            justificados: parseInt(stats.justificados) || 0
+          };
+        } catch (memberError) {
+          console.error(`  ❌ Error procesando miembro ${miembro.id}:`, memberError.message);
+          // Retornar miembro con estadísticas vacías
+          return {
+            miembro_id: miembro.id,
+            nombre: miembro.nombre || 'Sin nombre',
+            grupo: miembro.grupo,
+            voz: miembro.voz || null,
+            instrumento: miembro.instrumento || null,
+            total_registros: 0,
+            presentes: 0,
+            ausentes: 0,
+            justificados: 0
+          };
+        }
       })
     );
 
@@ -57,6 +75,7 @@ router.get('/estadisticas/:grupo', verifyToken, async (req, res) => {
     res.json(estadisticas);
   } catch (error) {
     console.error('❌ Error obteniendo estadísticas:', error.message);
+    console.error('   Stack:', error.stack);
     res.status(500).json({ error: 'Error en el servidor: ' + error.message });
   }
 });
@@ -109,9 +128,9 @@ router.get('/resumen/:grupo', verifyToken, async (req, res) => {
     const statsResult = await db.query(
       `SELECT 
         COUNT(*) as total_registros,
-        SUM(CASE WHEN presente = true THEN 1 ELSE 0 END) as total_presentes,
-        SUM(CASE WHEN presente = false THEN 1 ELSE 0 END) as total_ausentes,
-        SUM(CASE WHEN presente::text = 'justified' THEN 1 ELSE 0 END) as total_justificados
+        SUM(CASE WHEN presente = 'true' OR presente = true THEN 1 ELSE 0 END) as total_presentes,
+        SUM(CASE WHEN presente = 'false' OR presente = false THEN 1 ELSE 0 END) as total_ausentes,
+        SUM(CASE WHEN presente = 'justified' THEN 1 ELSE 0 END) as total_justificados
       FROM registro_asistencia ra
       JOIN miembros m ON ra.miembro_id = m.id
       WHERE m.grupo = $1`,
