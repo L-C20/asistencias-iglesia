@@ -7,6 +7,7 @@ require('dotenv').config();
 const { router: authRouter, verifyToken } = require('./routes/auth');
 const asistenciaRouter = require('./routes/asistencia');
 const reportesRouter = require('./routes/reportes');
+const usuariosRouter = require('./routes/usuarios');
 const { initializeDatabase, seedDatabase } = require('./database');
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 app.use('/api/auth', authRouter);
 app.use('/api/asistencia', asistenciaRouter);
 app.use('/api/reportes', reportesRouter);
+app.use('/api/usuarios', usuariosRouter);
 
 // Ruta raíz - servir login
 app.get('/', (req, res) => {
