@@ -130,6 +130,10 @@ function abrirModalAgregarMiembro(grupo) {
     miembroEnEdicion = null;
     grupoEnEdicion = null;
     
+    // Actualizar título y botón
+    document.getElementById('modalTitulo').textContent = 'Agregar Nuevo Miembro';
+    document.getElementById('btnGuardarTexto').textContent = 'Agregar';
+    
     document.getElementById('grupoNuevo').value = grupo;
     document.getElementById('nombreNuevo').value = '';
     
@@ -187,6 +191,10 @@ async function editarMiembroFunc(miembroId, grupo) {
         
         miembroEnEdicion = miembro;
         grupoEnEdicion = grupo;
+        
+        // Actualizar título y botón
+        document.getElementById('modalTitulo').textContent = 'Editar Integrante';
+        document.getElementById('btnGuardarTexto').textContent = 'Guardar Cambios';
         
         // Abrir modal en modo edición
         const modal = document.getElementById('modalAgregarMiembro');
