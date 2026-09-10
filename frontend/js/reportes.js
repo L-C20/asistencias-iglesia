@@ -1,7 +1,7 @@
+console.log('📊 reportes-v14.js iniciando');
+
 // ===== VARIABLES GLOBALES =====
 let currentGrupo = 'coro';
-
-console.log('🚀 reportes-v13.js iniciando');
 
 // ===== CARGAR REPORTE GRUPO =====
 async function cargarReporteGrupo(grupo, esInicial = false) {
@@ -9,7 +9,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
     
     try {
         console.log('═══════════════════════════════════════');
-        console.log('🔄 [cargarReporteGrupo] Cargando para:', grupo);
+        console.log('🔄 [cargarReporteGrupo] Cargando:', grupo);
         console.log('═══════════════════════════════════════');
         
         // Actualizar tabs activos
@@ -22,7 +22,6 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         });
         if (btnActivo) {
             btnActivo.classList.add('active');
-            console.log('✅ Tab activado:', grupo);
         }
         
         const url = `${API_URL}/reportes/estadisticas/${grupo}`;
@@ -36,14 +35,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         
         if (!response.ok) {
             console.warn('⚠️ Error en response:', response.status);
-            // Mostrar mensaje de error pero no bloquear
-            const contenido = document.getElementById('reporteContent');
-            if (contenido) {
-                contenido.innerHTML = `<div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center; color: var(--text-light);">
-                    <p>No hay datos de asistencia registrados para <strong>${grupo}</strong></p>
-                    <p style="font-size: 12px;">Registra asistencia para ver reportes aquí</p>
-                </div>`;
-            }
+            mostrarMensajeReportes(`No hay datos de asistencia para <strong>${grupo}</strong>`);
             return;
         }
         
@@ -52,13 +44,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         
         if (!estadisticas || estadisticas.length === 0) {
             console.log('ℹ️ Sin datos de asistencia');
-            const contenido = document.getElementById('reporteContent');
-            if (contenido) {
-                contenido.innerHTML = `<div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center; color: var(--text-light);">
-                    <p>No hay datos de asistencia registrados para <strong>${grupo}</strong></p>
-                    <p style="font-size: 12px;">Registra asistencia para ver reportes aquí</p>
-                </div>`;
-            }
+            mostrarMensajeReportes(`No hay datos de asistencia para <strong>${grupo}</strong>`);
             return;
         }
         
@@ -77,15 +63,11 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         
         console.log('📊 Totales:', { totalRegistros, totalPresentes, totalAusentes, totalJustificados });
         
-        const porcentajeGeneral = totalRegistros > 0 ? (totalPresentes / totalRegistros * 100).toFixed(1) : 0;
-        
         // Generar HTML de reportes
         let html = `
-            <div class="reporte-stats" id="statsContainer">
+            <div class="reporte-stats">
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <h4>Total Registros</h4>
-                    </div>
+                    <div class="stat-header"><h4>Total Registros</h4></div>
                     <div class="stat-content">
                         <div class="stat-number">${totalRegistros}</div>
                         <div class="stat-detail">eventos registrados</div>
@@ -93,9 +75,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <h4>Presentes</h4>
-                    </div>
+                    <div class="stat-header"><h4>Presentes</h4></div>
                     <div class="stat-content">
                         <div class="stat-number" style="color: #10b981;">${totalPresentes}</div>
                         <div class="stat-detail">${totalRegistros > 0 ? ((totalPresentes / totalRegistros * 100).toFixed(1)) : 0}%</div>
@@ -103,9 +83,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <h4>Ausentes</h4>
-                    </div>
+                    <div class="stat-header"><h4>Ausentes</h4></div>
                     <div class="stat-content">
                         <div class="stat-number" style="color: #ef4444;">${totalAusentes}</div>
                         <div class="stat-detail">${totalRegistros > 0 ? ((totalAusentes / totalRegistros * 100).toFixed(1)) : 0}%</div>
@@ -113,9 +91,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <h4>Justificados</h4>
-                    </div>
+                    <div class="stat-header"><h4>Justificados</h4></div>
                     <div class="stat-content">
                         <div class="stat-number" style="color: #f59e0b;">${totalJustificados}</div>
                         <div class="stat-detail">${totalRegistros > 0 ? ((totalJustificados / totalRegistros * 100).toFixed(1)) : 0}%</div>
@@ -133,9 +109,9 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
             <div class="tabla-integrantes">
                 <h3>Detalles por Integrante</h3>
                 ${estadisticas.map((miembro, idx) => `
-                    <div class="fila-expandible" id="fila-expandible-${grupo}-${miembro.miembro_id || idx}-${idx}">
+                    <div class="fila-expandible" id="fila-exp-${grupo}-${idx}">
                         <div class="fila-header">
-                            <button class="fila-toggle" type="button" onclick="toggleExpandibleFila('fila-expandible-${grupo}-${miembro.miembro_id || idx}-${idx}'); return false;" style="border: none; background: none; padding: 0; cursor: pointer;">
+                            <button class="fila-toggle" type="button" onclick="toggleExpandibleFila('fila-exp-${grupo}-${idx}'); return false;" style="border: none; background: none; padding: 0; cursor: pointer;">
                                 <span class="toggle-icon" style="display: inline-block; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 12px;">▶</span>
                             </button>
                             <div class="fila-info">
@@ -175,27 +151,34 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         if (contenido) {
             contenido.innerHTML = html;
             console.log('✅ Reportes renderizados');
+        } else {
+            console.error('❌ reporteContent no encontrado');
         }
         
         // Dibujar gráfico pie
         setTimeout(() => {
-            dibujarGraficoPie(grupo, totalPresentes, totalAusentes, totalJustificados);
+            dibujarGraficoPie(totalPresentes, totalAusentes, totalJustificados);
         }, 100);
         
     } catch (error) {
         console.error('❌ Error en cargarReporteGrupo:', error);
-        const contenido = document.getElementById('reporteContent');
-        if (contenido) {
-            contenido.innerHTML = `<div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center; color: #ef4444;">
-                <p>❌ Error al cargar reportes</p>
-                <p style="font-size: 12px;">${error.message}</p>
-            </div>`;
-        }
+        mostrarMensajeReportes(`❌ Error: ${error.message}`);
+    }
+}
+
+// ===== MOSTRAR MENSAJE EN REPORTES =====
+function mostrarMensajeReportes(mensaje) {
+    const contenido = document.getElementById('reporteContent');
+    if (contenido) {
+        contenido.innerHTML = `<div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center; color: var(--text-light);">
+            <p>${mensaje}</p>
+            <p style="font-size: 12px;">Registra asistencia para ver reportes aquí</p>
+        </div>`;
     }
 }
 
 // ===== DIBUJAR GRÁFICO PIE =====
-function dibujarGraficoPie(grupo, presentes, ausentes, justificados) {
+function dibujarGraficoPie(presentes, ausentes, justificados) {
     try {
         const ctx = document.getElementById('graficoPie');
         if (!ctx) {
@@ -203,10 +186,15 @@ function dibujarGraficoPie(grupo, presentes, ausentes, justificados) {
             return;
         }
         
-        const total = presentes + ausentes + justificados;
-        
+        // Destruir gráfico anterior si existe
         if (window.pieChart) {
             window.pieChart.destroy();
+        }
+        
+        // Verificar que Chart esté disponible
+        if (typeof Chart === 'undefined') {
+            console.warn('⚠️ Chart.js no está disponible');
+            return;
         }
         
         window.pieChart = new Chart(ctx, {
@@ -226,6 +214,7 @@ function dibujarGraficoPie(grupo, presentes, ausentes, justificados) {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 plugins: {
                     legend: {
                         position: 'bottom'
@@ -259,4 +248,4 @@ function toggleExpandibleFila(filaId) {
     }
 }
 
-console.log('✅ reportes-v13.js CARGADO');
+console.log('✅ reportes-v14.js CARGADO');
