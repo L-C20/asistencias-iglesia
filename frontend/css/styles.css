@@ -2607,39 +2607,160 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ============ CONFIGURACIÓN ============ */
 .config-header {
-    padding: 24px;
+    padding: 40px 32px;
     margin-bottom: 32px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(30, 64, 175, 0.02) 100%);
+    border-bottom: 2px solid var(--border);
 }
 
 .config-header h2 {
-    font-size: 24px;
-    color: var(--primary);
+    font-size: 32px;
+    color: var(--text);
     margin-bottom: 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: -0.02em;
+}
+
+.config-header h2 svg {
+    color: var(--primary);
 }
 
 .config-header p {
     color: var(--text-light);
     margin: 0;
+    font-size: 16px;
+    font-weight: 500;
 }
 
 .config-container {
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 28px;
+    padding: 0 32px 32px 32px;
 }
 
 .config-section {
     background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.config-section:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow-md);
 }
 
 .config-section h3 {
-    font-size: 18px;
-    color: var(--primary);
-    margin: 0 0 20px 0;
+    font-size: 22px;
+    color: var(--text);
+    margin: 0 0 28px 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.section-header h3 {
+    margin: 0;
+}
+
+/* Mejorar tabla de usuarios */
+.tabla-miembros {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.tabla-datos {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.tabla-datos thead {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+}
+
+.tabla-datos thead th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 700;
+    border: none;
+}
+
+.tabla-datos tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.tabla-datos tbody tr:hover {
+    background: var(--light);
+}
+
+.tabla-datos tbody tr:last-child {
+    border-bottom: none;
+}
+
+.tabla-datos td {
+    padding: 16px;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.celda-nombre {
     font-weight: 600;
+    color: var(--text);
+}
+
+.celda-detalle {
+    color: var(--text-light);
+}
+
+.celda-acciones {
+    display: flex;
+    gap: 8px;
+}
+
+.badge {
+    display: inline-block;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 .section-header {
