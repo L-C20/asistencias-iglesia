@@ -101,137 +101,75 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
-                        <h4>% Asistencia</h4>
+                        <h4>Porcentaje General</h4>
                         <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                            <path d="M21 3v5h-5"></path>
-                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                            <path d="M3 21v-5h5"></path>
+                            <path d="M12 2v20"></path>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                         </svg>
                     </div>
                     <p class="stat-number">${porcentajeGeneral}%</p>
-                    <p class="stat-detail">Porcentaje general</p>
+                    <p class="stat-detail">Asistencia promedio</p>
                 </div>
-            </div>
-            
-            <div class="graficos-container">
-                <div class="grafico-card">
-                    <h3>Tendencia de Asistencia</h3>
-                    <div class="chart-container">
-                        <canvas id="graficoLinea"></canvas>
-                    </div>
-                </div>
-                
-                <div class="grafico-card">
-                    <h3>Desglose Presente vs Ausente</h3>
-                    <div class="chart-container-small">
-                        <canvas id="graficoPie"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="filtros-tabla">
-                <h3>Detalle de Integrantes</h3>
-                
-                <div class="filtros-row">
-                    <div class="filtro-group">
-                        <label>Fecha Inicio:</label>
-                        <input type="date" id="filtroFechaInicio" onchange="aplicarFiltrosTabla('${grupo}')">
-                    </div>
-                    <div class="filtro-group">
-                        <label>Fecha Fin:</label>
-                        <input type="date" id="filtroFechaFin" onchange="aplicarFiltrosTabla('${grupo}')">
-                    </div>
-                    <div class="filtro-group">
-                        <label>Tipo de Evento:</label>
-                        <select id="filtroTipoEvento" onchange="aplicarFiltrosTabla('${grupo}')">
-                            <option value="todos">Todos</option>
-                            <option value="santo_culto">Santo Culto</option>
-                            <option value="ensayo">Ensayo</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="filtros-buttons">
-                    <button class="filter-btn active" onclick="aplicarFiltrosTabla('${grupo}')">Aplicar Filtros</button>
-                    <button class="filter-btn" onclick="limpiarFiltrosTabla('${grupo}')">Limpiar</button>
-                </div>
-            </div>
-            
-            <div class="tabla-expandible-container" id="tablaIntegrantes">
-                <!-- Se llena con JavaScript -->
             </div>
         `;
         
+        // Dibujar gráficos
         setTimeout(() => {
             dibujarGraficoLinea(meses, porcentajes);
             dibujarGraficoPie(totalPresentes, totalAusentes);
-            cargarTablaIntegrantesExpandible(grupo, 'todos', null, null);
         }, 100);
         
+        // Cargar tabla
+        setTimeout(() => {
+            cargarTablaIntegrantesExpandible(grupo, 'todos', null, null);
+        }, 200);
+        
     } catch (error) {
-        console.error('Error en reportes:', error);
+        console.error('Error al cargar reporte:', error);
         const contenido = document.getElementById('reporteContent');
         if (contenido) {
-            contenido.innerHTML = `
-                <div style="background: #fee2e2; padding: 20px; border-radius: 12px; border-left: 4px solid #e74c3c;">
-                    <p style="color: #e74c3c; margin: 0; font-weight: 600;">Error al cargar reportes</p>
-                </div>
-            `;
+            contenido.innerHTML = '<div style="text-align: center; padding: 40px; color: #e74c3c;">Error al cargar datos</div>';
         }
-        mostrarError('Error al cargar reportes');
     }
 }
 
 // ===== DIBUJAR GRÁFICO LÍNEA =====
-function dibujarGraficoLinea(meses, porcentajes) {
-    const ctx = document.getElementById('graficoLinea');
-    if (!ctx) return;
+function dibujarGraficoLinea(labels, data) {
+    const canvas = document.getElementById('graficoLinea');
+    if (!canvas) return;
     
-    if (window.graficoLineaInstance) {
-        window.graficoLineaInstance.destroy();
+    const ctx = canvas.getContext('2d');
+    
+    if (window.chartLineInstance) {
+        window.chartLineInstance.destroy();
     }
     
-    window.graficoLineaInstance = new Chart(ctx, {
+    window.chartLineInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: meses,
+            labels: labels,
             datasets: [{
-                label: '% Asistencia',
-                data: porcentajes,
+                label: 'Porcentaje Asistencia',
+                data: data,
                 borderColor: '#4a90e2',
                 backgroundColor: 'rgba(74, 144, 226, 0.1)',
-                borderWidth: 3,
+                borderWidth: 2,
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#4a90e2',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 7
+                pointRadius: 4,
+                pointBackgroundColor: '#4a90e2'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { 
-                    display: true,
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                }
+                legend: { display: false }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    }
+                    max: 100
                 }
             }
         }
@@ -240,21 +178,23 @@ function dibujarGraficoLinea(meses, porcentajes) {
 
 // ===== DIBUJAR GRÁFICO PIE =====
 function dibujarGraficoPie(presentes, ausentes) {
-    const ctx = document.getElementById('graficoPie');
-    if (!ctx) return;
+    const canvas = document.getElementById('graficoPie');
+    if (!canvas) return;
     
-    if (window.graficoPieInstance) {
-        window.graficoPieInstance.destroy();
+    const ctx = canvas.getContext('2d');
+    
+    if (window.chartPieInstance) {
+        window.chartPieInstance.destroy();
     }
     
-    window.graficoPieInstance = new Chart(ctx, {
+    window.chartPieInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Presentes', 'Ausentes'],
             datasets: [{
                 data: [presentes, ausentes],
                 backgroundColor: ['#26a69a', '#e74c3c'],
-                borderColor: '#fff',
+                borderColor: ['#00b8a9', '#c0392b'],
                 borderWidth: 2
             }]
         },
@@ -263,19 +203,15 @@ function dibujarGraficoPie(presentes, ausentes) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
+                    position: 'bottom'
                 }
             }
         }
     });
 }
 
-// ===== CARGAR TABLA EXPANDIBLE =====
-async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, fechaFin) {
+// ===== CARGAR TABLA INTEGRANTES EXPANDIBLE =====
+async function cargarTablaIntegrantesExpandible(grupo, tipoEvento = 'todos', fechaInicio = null, fechaFin = null) {
     try {
         const response = await fetch(`${API_URL}/asistencia/miembros/${grupo}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -288,15 +224,17 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, 
         const miembros = await response.json();
         const container = document.getElementById('tablaIntegrantes');
         
-        if (!container) return;
-        
-        container.innerHTML = '';
-        
-        if (!miembros || miembros.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-light);">No hay miembros registrados</div>';
+        if (!container || !miembros || miembros.length === 0) {
+            if (container) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-light);">No hay integrantes registrados</div>';
+            }
             return;
         }
         
+        // Limpiar contenedor COMPLETAMENTE
+        container.innerHTML = '';
+        
+        // Crear filas para cada miembro
         for (const miembro of miembros) {
             try {
                 let url = `${API_URL}/reportes/por-miembro/${miembro.id}?tipo_evento=${tipoEvento}`;
@@ -327,14 +265,18 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, 
                 
                 const detalleExtra = grupo === 'coro' ? (miembro.voz || '—') : (miembro.instrumento || '—');
                 
-                // Crear fila expandible con ID ÚNICO
-                const miembroId = `miembro-expandible-${grupo}-${miembro.id}`;
+                // ID ÚNICO para cada miembro
+                const filaId = `fila-expandible-${grupo}-${miembro.id}`;
+                const contenidoId = `contenido-expandible-${grupo}-${miembro.id}`;
+                
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'fila-expandible';
-                rowDiv.id = `fila-${miembroId}`;
+                rowDiv.id = filaId;
+                rowDiv.setAttribute('data-miembro-id', miembro.id);
                 
-                rowDiv.innerHTML = `
-                    <div class="fila-header" onclick="toggleExpandible('${miembroId}', '${grupo}', ${miembro.id})">
+                // Crear contenido HTML
+                const headerHTML = `
+                    <div class="fila-header" onclick="toggleExpandibleFila('${filaId}', '${contenidoId}'); return false;">
                         <div class="fila-toggle">
                             <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -358,7 +300,7 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, 
                         </div>
                     </div>
                     
-                    <div class="fila-content" id="${miembroId}">
+                    <div class="fila-content" id="${contenidoId}">
                         <div class="eventos-lista">
                             ${datosAsistencia.eventos && datosAsistencia.eventos.length > 0 ? 
                                 datosAsistencia.eventos.map(evento => `
@@ -385,7 +327,9 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, 
                     </div>
                 `;
                 
+                rowDiv.innerHTML = headerHTML;
                 container.appendChild(rowDiv);
+                
             } catch (err) {
                 console.error('Error cargando datos del miembro:', err);
             }
@@ -400,13 +344,20 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, 
     }
 }
 
-// ===== TOGGLE EXPANDIBLE =====
-function toggleExpandible(id, grupo, miembroId) {
-    const content = document.getElementById(id);
-    const fila = document.getElementById(`fila-${id}`);
-    if (content && fila) {
-        fila.classList.toggle('expanded');
+// ===== TOGGLE EXPANDIBLE - VERSIÓN MEJORADA =====
+function toggleExpandibleFila(filaId, contenidoId) {
+    console.log('Toggle:', { filaId, contenidoId });
+    
+    const fila = document.getElementById(filaId);
+    const contenido = document.getElementById(contenidoId);
+    
+    if (!fila || !contenido) {
+        console.error('No encontrados:', { fila: !!fila, contenido: !!contenido });
+        return;
     }
+    
+    fila.classList.toggle('expanded');
+    console.log('Estado expandido:', fila.classList.contains('expanded'));
 }
 
 // ===== APLICAR FILTROS =====
@@ -426,3 +377,5 @@ async function limpiarFiltrosTabla(grupo) {
     
     await cargarTablaIntegrantesExpandible(grupo, 'todos', null, null);
 }
+
+console.log('✅ reportes-v11.js cargado');
