@@ -4,6 +4,14 @@ console.log('📊 reportes-v15.js iniciando');
 let currentGrupo = 'coro';
 let chartInstances = {};
 
+// ===== INICIALIZAR REPORTES AL CARGAR =====
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📊 DOM cargado, inicializando reportes...');
+    setTimeout(() => {
+        cargarReporteGrupo('coro', true);
+    }, 500);
+});
+
 // ===== CARGAR REPORTE GRUPO =====
 async function cargarReporteGrupo(grupo, esInicial = false) {
     currentGrupo = grupo;
