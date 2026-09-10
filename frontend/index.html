@@ -239,7 +239,7 @@
                     </div>
 
                     <div class="tab-footer">
-                        <button class="btn btn-success" onclick="guardarTodasAsistencias()">
+                        <button class="btn btn-success" type="button" onclick="guardarTodasAsistencias(); return false;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
@@ -247,7 +247,7 @@
                             </svg>
                             Guardar Asistencias
                         </button>
-                        <button class="btn btn-primary" onclick="agregarMiembroActual()">
+                        <button class="btn btn-primary" type="button" onclick="agregarMiembroActual(); return false;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 5v14M5 12h14"></path>
                             </svg>
@@ -353,7 +353,7 @@
                 </div>
             </div>
             
-            <form id="formConfigurarEvento">
+            <form id="formConfigurarEvento" onsubmit="guardarConfiguracionEvento(event)">
                 <div class="form-group">
                     <label>Tipo de Evento:</label>
                     <div class="radio-options">
@@ -386,7 +386,7 @@
                         </svg>
                         Continuar
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalEvento()">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalEvento(); return false;">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -426,7 +426,7 @@
                         </svg>
                         Agregar
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal()">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal(); return false;">Cancelar</button>
                 </div>
             </form>
         </div>

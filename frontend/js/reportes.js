@@ -1,3 +1,6 @@
+// ===== VARIABLES GLOBALES =====
+let currentGrupo = 'coro';
+
 // ===== INICIALIZAR REPORTES =====
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
@@ -7,12 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== CARGAR REPORTE GRUPO =====
 async function cargarReporteGrupo(grupo, esInicial = false) {
+    currentGrupo = grupo;
+    
     try {
-        const contenido = document.getElementById('reporteContent');
-        
-        if (!esInicial) {
-            contenido.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-light);">Cargando reportes...</div>';
-        }
+        console.log('🔄 Cargando reporte para:', grupo);
         
         // Actualizar tabs activos
         document.querySelectorAll('.reporte-tab-btn').forEach(btn => {
@@ -35,13 +36,13 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         }
         
         const estadisticas = await response.json();
+        console.log('📊 Estadísticas:', estadisticas);
         
         if (!estadisticas || estadisticas.length === 0) {
-            contenido.innerHTML = `
-                <div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center;">
-                    <p style="color: var(--text-light); margin: 0;">No hay datos de asistencia registrados para ${grupo}</p>
-                </div>
-            `;
+            const contenido = document.getElementById('reporteContent');
+            if (contenido) {
+                contenido.innerHTML = `<div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center; color: var(--text-light);">No hay datos de asistencia registrados para ${grupo}</div>`;
+            }
             return;
         }
         
@@ -49,6 +50,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         let totalRegistros = 0;
         let totalPresentes = 0;
         let totalAusentes = 0;
+        
         estadisticas.forEach(e => {
             totalRegistros += parseInt(e.total_registros || 0);
             totalPresentes += parseInt(e.presentes || 0);
@@ -56,12 +58,18 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         });
         
         const porcentajeGeneral = totalRegistros > 0 ? (totalPresentes / totalRegistros * 100).toFixed(1) : 0;
-        
         const meses = estadisticas.map(e => e.mes.split('T')[0]);
         const porcentajes = estadisticas.map(e => parseFloat(e.porcentaje || 0));
         
+        // Llenar stats
+        const contenido = document.getElementById('reporteContent');
+        if (!contenido) {
+            console.error('❌ No encontrado reporteContent');
+            return;
+        }
+        
         contenido.innerHTML = `
-            <div class="reporte-stats" id="statsContainer">
+            <div class="reporte-stats">
                 <div class="stat-card">
                     <div class="stat-header">
                         <h4>Eventos Registrados</h4>
@@ -111,6 +119,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                     <p class="stat-detail">Asistencia promedio</p>
                 </div>
             </div>
+            
             <div class="reporte-graficos">
                 <div class="grafico-contenedor">
                     <h3>Asistencia por Mes</h3>
@@ -121,6 +130,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                     <canvas id="graficoPie" height="300"></canvas>
                 </div>
             </div>
+            
             <div class="reporte-filtros">
                 <h3>Detalles por Integrante</h3>
                 <div class="filtros-row">
@@ -141,14 +151,15 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                         <input type="date" id="filtroFechaFin" onchange="aplicarFiltrosTabla('${grupo}')">
                     </div>
                     <div class="filtro-group">
-                        <button class="btn btn-secondary" onclick="limpiarFiltrosTabla('${grupo}')">Limpiar</button>
+                        <button class="btn btn-secondary" type="button" onclick="limpiarFiltrosTabla('${grupo}'); return false;">Limpiar</button>
                     </div>
                 </div>
             </div>
+            
             <div id="tablaIntegrantes" class="tabla-integrantes"></div>
         `;
         
-        // Dibujar gráficos
+        // Dibujar gráficos después de que DOM esté listo
         setTimeout(() => {
             dibujarGraficoLinea(meses, porcentajes);
             dibujarGraficoPie(totalPresentes, totalAusentes);
@@ -160,7 +171,7 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
         }, 200);
         
     } catch (error) {
-        console.error('Error al cargar reporte:', error);
+        console.error('❌ Error al cargar reporte:', error);
         const contenido = document.getElementById('reporteContent');
         if (contenido) {
             contenido.innerHTML = '<div style="text-align: center; padding: 40px; color: #e74c3c;">Error al cargar datos</div>';
@@ -171,7 +182,10 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
 // ===== DIBUJAR GRÁFICO LÍNEA =====
 function dibujarGraficoLinea(labels, data) {
     const canvas = document.getElementById('graficoLinea');
-    if (!canvas) return;
+    if (!canvas) {
+        console.log('⚠️ Canvas graficoLinea no encontrado');
+        return;
+    }
     
     const ctx = canvas.getContext('2d');
     
@@ -214,7 +228,10 @@ function dibujarGraficoLinea(labels, data) {
 // ===== DIBUJAR GRÁFICO PIE =====
 function dibujarGraficoPie(presentes, ausentes) {
     const canvas = document.getElementById('graficoPie');
-    if (!canvas) return;
+    if (!canvas) {
+        console.log('⚠️ Canvas graficoPie no encontrado');
+        return;
+    }
     
     const ctx = canvas.getContext('2d');
     
@@ -259,14 +276,17 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento = 'todos', fec
         const miembros = await response.json();
         const container = document.getElementById('tablaIntegrantes');
         
-        if (!container || !miembros || miembros.length === 0) {
-            if (container) {
-                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-light);">No hay integrantes registrados</div>';
-            }
+        if (!container) {
+            console.error('❌ Contenedor tablaIntegrantes no encontrado');
             return;
         }
         
-        // Limpiar contenedor COMPLETAMENTE
+        if (!miembros || miembros.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-light);">No hay integrantes registrados</div>';
+            return;
+        }
+        
+        // Limpiar contenedor
         container.innerHTML = '';
         
         // Crear filas para cada miembro
@@ -307,11 +327,34 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento = 'todos', fec
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'fila-expandible';
                 rowDiv.id = filaId;
-                rowDiv.setAttribute('data-miembro-id', miembro.id);
                 
-                // Crear contenido HTML
-                const headerHTML = `
-                    <div class="fila-header" onclick="toggleExpandibleFila('${filaId}', '${contenidoId}'); return false;">
+                // HTML de la fila
+                let eventosHTML = '';
+                if (datosAsistencia.eventos && datosAsistencia.eventos.length > 0) {
+                    eventosHTML = datosAsistencia.eventos.map(evento => `
+                        <div class="evento-item">
+                            <div class="evento-fecha">
+                                <span class="fecha-label">${new Date(evento.fecha).toLocaleDateString('es-ES')}</span>
+                            </div>
+                            <div class="evento-info">
+                                <span class="tipo-evento">${evento.tipo_evento === 'santo_culto' ? '⛪ Santo Culto' : '🎼 Ensayo'}</span>
+                            </div>
+                            <div class="evento-estado">
+                                ${evento.presente === true ? 
+                                    '<span class="estado-presente">Presente</span>' :
+                                    evento.presente === false ? 
+                                    '<span class="estado-ausente">Ausente</span>' :
+                                    '<span class="estado-justificado">Justificado</span>'
+                                }
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    eventosHTML = '<div style="padding: 16px; text-align: center; color: var(--text-light);">Sin eventos registrados</div>';
+                }
+                
+                rowDiv.innerHTML = `
+                    <div class="fila-header" onclick="toggleExpandibleFila('${filaId}'); return false;">
                         <div class="fila-toggle">
                             <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -337,41 +380,22 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento = 'todos', fec
                     
                     <div class="fila-content" id="${contenidoId}">
                         <div class="eventos-lista">
-                            ${datosAsistencia.eventos && datosAsistencia.eventos.length > 0 ? 
-                                datosAsistencia.eventos.map(evento => `
-                                    <div class="evento-item">
-                                        <div class="evento-fecha">
-                                            <span class="fecha-label">${new Date(evento.fecha).toLocaleDateString('es-ES')}</span>
-                                        </div>
-                                        <div class="evento-info">
-                                            <span class="tipo-evento">${evento.tipo_evento === 'santo_culto' ? '⛪ Santo Culto' : '🎼 Ensayo'}</span>
-                                        </div>
-                                        <div class="evento-estado">
-                                            ${evento.presente === true ? 
-                                                '<span class="estado-presente">Presente</span>' :
-                                                evento.presente === false ? 
-                                                '<span class="estado-ausente">Ausente</span>' :
-                                                '<span class="estado-justificado">Justificado</span>'
-                                            }
-                                        </div>
-                                    </div>
-                                `).join('')
-                                : '<div style="padding: 16px; text-align: center; color: var(--text-light);">Sin eventos registrados</div>'
-                            }
+                            ${eventosHTML}
                         </div>
                     </div>
                 `;
                 
-                rowDiv.innerHTML = headerHTML;
                 container.appendChild(rowDiv);
                 
             } catch (err) {
-                console.error('Error cargando datos del miembro:', err);
+                console.error('⚠️ Error cargando datos del miembro:', err);
             }
         }
         
+        console.log('✅ Tabla cargada con', miembros.length, 'integrantes');
+        
     } catch (error) {
-        console.error('Error al cargar tabla integrantes:', error);
+        console.error('❌ Error al cargar tabla integrantes:', error);
         const container = document.getElementById('tablaIntegrantes');
         if (container) {
             container.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">Error al cargar datos</div>';
@@ -379,38 +403,37 @@ async function cargarTablaIntegrantesExpandible(grupo, tipoEvento = 'todos', fec
     }
 }
 
-// ===== TOGGLE EXPANDIBLE - VERSIÓN MEJORADA =====
-function toggleExpandibleFila(filaId, contenidoId) {
-    console.log('Toggle:', { filaId, contenidoId });
-    
+// ===== TOGGLE EXPANDIBLE =====
+function toggleExpandibleFila(filaId) {
     const fila = document.getElementById(filaId);
-    const contenido = document.getElementById(contenidoId);
-    
-    if (!fila || !contenido) {
-        console.error('No encontrados:', { fila: !!fila, contenido: !!contenido });
-        return;
+    if (fila) {
+        fila.classList.toggle('expanded');
+        console.log('✓ Toggled:', filaId, fila.classList.contains('expanded'));
     }
-    
-    fila.classList.toggle('expanded');
-    console.log('Estado expandido:', fila.classList.contains('expanded'));
 }
 
 // ===== APLICAR FILTROS =====
 async function aplicarFiltrosTabla(grupo) {
-    const fechaInicio = document.getElementById('filtroFechaInicio')?.value;
-    const fechaFin = document.getElementById('filtroFechaFin')?.value;
+    const fechaInicio = document.getElementById('filtroFechaInicio')?.value || null;
+    const fechaFin = document.getElementById('filtroFechaFin')?.value || null;
     const tipoEvento = document.getElementById('filtroTipoEvento')?.value || 'todos';
     
+    console.log('🔍 Aplicando filtros:', { grupo, tipoEvento, fechaInicio, fechaFin });
     await cargarTablaIntegrantesExpandible(grupo, tipoEvento, fechaInicio, fechaFin);
 }
 
 // ===== LIMPIAR FILTROS =====
 async function limpiarFiltrosTabla(grupo) {
-    document.getElementById('filtroFechaInicio').value = '';
-    document.getElementById('filtroFechaFin').value = '';
-    document.getElementById('filtroTipoEvento').value = 'todos';
+    const fcInicio = document.getElementById('filtroFechaInicio');
+    const fcFin = document.getElementById('filtroFechaFin');
+    const tipoEvento = document.getElementById('filtroTipoEvento');
     
+    if (fcInicio) fcInicio.value = '';
+    if (fcFin) fcFin.value = '';
+    if (tipoEvento) tipoEvento.value = 'todos';
+    
+    console.log('🧹 Filtros limpiados para:', grupo);
     await cargarTablaIntegrantesExpandible(grupo, 'todos', null, null);
 }
 
-console.log('✅ reportes-v11.js cargado');
+console.log('✅ reportes-v12.js cargado');

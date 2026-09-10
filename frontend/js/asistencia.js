@@ -3,17 +3,39 @@ let miembrosActuales = [];
 let grupoActual = null;
 let asistenciasParaGuardar = {}; // Almacenar cambios
 
-// ===== IR A ASISTENCIA =====
-function irAAsistencia(grupo) {
-    grupoActual = grupo;
-    asistenciasParaGuardar = {}; // Limpiar cambios anteriores
+// ===== GUARDAR CONFIGURACIÓN DEL EVENTO =====
+function guardarConfiguracionEvento(e) {
+    e.preventDefault();
     
-    const modal = document.getElementById('modalConfigurarEvento');
-    const fechaInput = document.getElementById('fechaEventoModal');
-    if (modal && fechaInput) {
-        fechaInput.valueAsDate = new Date();
-        modal.classList.add('show');
+    const form = document.getElementById('formConfigurarEvento');
+    const tipoEvento = form.querySelector('input[name="tipoEvento"]:checked')?.value;
+    const fecha = document.getElementById('fechaEventoModal')?.value;
+    
+    if (!tipoEvento || !fecha) {
+        mostrarError('Faltan datos del evento');
+        return;
     }
+    
+    // Guardar en variables globales
+    window.tipoEventoSeleccionado = tipoEvento;
+    window.fechaEventoSeleccionada = fecha;
+    
+    console.log('✓ Evento configurado:', { tipoEvento, fecha });
+    
+    // Cerrar modal y cargar miembros
+    cerrarModalEvento();
+    setTimeout(() => {
+        cargarMiembrosParaAsistencia(grupoActual);
+    }, 100);
+}
+
+// ===== CERRAR MODAL EVENTO =====
+function cerrarModalEvento() {
+    const modal = document.getElementById('modalConfigurarEvento');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    document.getElementById('formConfigurarEvento').reset();
 }
 
 // ===== CARGAR MIEMBROS PARA ASISTENCIA =====
