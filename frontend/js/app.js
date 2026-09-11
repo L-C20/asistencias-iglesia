@@ -163,6 +163,8 @@ function cambiarTab(nombreTab) {
         menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[2];
     } else if (nombreTab === 'reportes') {
         menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[3];
+    } else if (nombreTab === 'configuracion') {
+        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[4];
     }
     
     if (menuItemToActivate) {
