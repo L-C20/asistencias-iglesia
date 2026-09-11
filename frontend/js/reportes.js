@@ -6,6 +6,8 @@ let datosEventoActual = [];
 // API URL
 const API_URL = window.location.protocol + '//' + window.location.host + '/api';
 
+console.log('📊 Reportes.js cargado - API_URL:', API_URL);
+
 // ===== CARGAR REPORTES POR GRUPO =====
 async function cargarReporteGrupo(grupo) {
     grupoActual = grupo;
@@ -17,7 +19,7 @@ async function cargarReporteGrupo(grupo) {
     document.querySelectorAll('.grupo-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.closest('.grupo-btn').classList.add('active');
+    event.target.classList.add('active');
     
     // Mostrar tarjetas y ocultar detalle
     document.getElementById('vistaTarjetas').style.display = 'block';
@@ -31,12 +33,20 @@ async function cargarReporteGrupo(grupo) {
 async function cargarConteosEventos(grupo) {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/reportes/conteos/${grupo}`, {
+        if (!token) {
+            console.error('❌ No hay token');
+            return;
+        }
+        
+        const url = `${API_URL}/reportes/conteos/${grupo}`;
+        console.log('📡 Fetching:', url);
+        
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            console.error('❌ Error cargando conteos');
+            console.error('❌ Error:', response.status);
             return;
         }
         
@@ -49,7 +59,7 @@ async function cargarConteosEventos(grupo) {
         document.getElementById('countBautismo').textContent = data.bautismo || '0';
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error en conteos:', error);
     }
 }
 
@@ -72,6 +82,9 @@ async function abrirReporteEvento(tipoEvento) {
     document.getElementById('vistaTarjetas').style.display = 'none';
     document.getElementById('vistaDetalle').style.display = 'block';
     
+    // Scroll al top
+    window.scrollTo(0, 0);
+    
     // Cargar datos del evento
     await cargarDatosEvento(tipoEvento);
     
@@ -83,17 +96,21 @@ async function abrirReporteEvento(tipoEvento) {
 async function cargarDatosEvento(tipoEvento) {
     try {
         const token = localStorage.getItem('token');
+        if (!token) {
+            console.error('❌ No hay token');
+            return;
+        }
         
         // Construir URL con parámetros
-        const url = new URL(`${API_URL}/reportes/evento/${grupoActual}`, window.location.origin);
-        url.searchParams.append('tipo_evento', tipoEvento);
+        const url = `${API_URL}/reportes/evento/${grupoActual}?tipo_evento=${tipoEvento}`;
+        console.log('📡 Fetching:', url);
         
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            console.error('❌ Error cargando datos');
+            console.error('❌ Error:', response.status);
             return;
         }
         
@@ -103,7 +120,7 @@ async function cargarDatosEvento(tipoEvento) {
         datosEventoActual = data;
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error en evento:', error);
     }
 }
 
@@ -112,7 +129,7 @@ function renderizarTablaDetalle(datos) {
     const tbody = document.getElementById('tablaDetalleBody');
     
     if (!datos || datos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No hay datos disponibles</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">No hay datos disponibles</td></tr>';
         return;
     }
     
@@ -181,10 +198,11 @@ function volverATarjetas() {
     document.getElementById('vistaDetalle').style.display = 'none';
     document.getElementById('vistaTarjetas').style.display = 'block';
     limpiarFiltrosDetalle();
+    window.scrollTo(0, 0);
 }
 
 // ===== INICIALIZAR =====
-window.addEventListener('load', () => {
+document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Reportes inicializado');
     cargarReporteGrupo('coro');
 });
