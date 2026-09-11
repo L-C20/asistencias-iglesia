@@ -14,14 +14,14 @@ async function cargarReporteGrupo(grupo) {
     console.log(`📊 Cargando reportes para ${grupo}`);
     
     // Actualizar botones activos
-    document.querySelectorAll('.reporte-tab-btn').forEach(btn => {
+    document.querySelectorAll('.grupo-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.closest('.reporte-tab-btn').classList.add('active');
+    event.target.closest('.grupo-btn').classList.add('active');
     
-    // Ocultar detalle y mostrar cards
-    document.getElementById('reporteDetalleContainer').style.display = 'none';
-    document.querySelector('.reporte-cards-container').style.display = 'grid';
+    // Mostrar tarjetas y ocultar detalle
+    document.getElementById('vistaTarjetas').style.display = 'block';
+    document.getElementById('vistaDetalle').style.display = 'none';
     
     // Cargar conteos de eventos
     await cargarConteosEventos(grupo);
@@ -43,7 +43,7 @@ async function cargarConteosEventos(grupo) {
         const data = await response.json();
         console.log('📈 Conteos:', data);
         
-        // Actualizar cards con conteos
+        // Actualizar tarjetas con conteos
         document.getElementById('countSantoCulto').textContent = data.santo_culto || '0';
         document.getElementById('countEnsayo').textContent = data.ensayo || '0';
         document.getElementById('countBautismo').textContent = data.bautismo || '0';
@@ -66,11 +66,11 @@ async function abrirReporteEvento(tipoEvento) {
     }[tipoEvento];
     
     // Actualizar título
-    document.getElementById('reporteTituloDetalle').textContent = `Reporte - ${nombreEvento}`;
+    document.getElementById('detalleEventoTitulo').textContent = nombreEvento;
     
-    // Mostrar detalle y ocultar cards
-    document.querySelector('.reporte-cards-container').style.display = 'none';
-    document.getElementById('reporteDetalleContainer').style.display = 'block';
+    // Mostrar detalle y ocultar tarjetas
+    document.getElementById('vistaTarjetas').style.display = 'none';
+    document.getElementById('vistaDetalle').style.display = 'block';
     
     // Cargar datos del evento
     await cargarDatosEvento(tipoEvento);
@@ -112,7 +112,7 @@ function renderizarTablaDetalle(datos) {
     const tbody = document.getElementById('tablaDetalleBody');
     
     if (!datos || datos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay datos disponibles</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5">No hay datos disponibles</td></tr>';
         return;
     }
     
@@ -148,9 +148,9 @@ function aplicarFiltrosDetalle() {
         const fecha = new Date(filtroFecha + 'T00:00:00');
         const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaNombre = dias[fecha.getDay()];
-        document.getElementById('filtroFechaDia').textContent = `(${diaNombre})`;
+        document.getElementById('diaSemana').textContent = `(${diaNombre})`;
     } else {
-        document.getElementById('filtroFechaDia').textContent = '';
+        document.getElementById('diaSemana').textContent = '';
     }
     
     // Filtrar por estado
@@ -171,15 +171,15 @@ function aplicarFiltrosDetalle() {
 function limpiarFiltrosDetalle() {
     document.getElementById('filtroFecha').value = '';
     document.getElementById('filtroEstado').value = '';
-    document.getElementById('filtroFechaDia').textContent = '';
+    document.getElementById('diaSemana').textContent = '';
     renderizarTablaDetalle(datosEventoActual);
 }
 
-// ===== VOLVER A CARDS =====
-function volverACards() {
+// ===== VOLVER A TARJETAS =====
+function volverATarjetas() {
     eventoActual = null;
-    document.getElementById('reporteDetalleContainer').style.display = 'none';
-    document.querySelector('.reporte-cards-container').style.display = 'grid';
+    document.getElementById('vistaDetalle').style.display = 'none';
+    document.getElementById('vistaTarjetas').style.display = 'block';
     limpiarFiltrosDetalle();
 }
 
