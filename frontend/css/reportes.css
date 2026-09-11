@@ -1,0 +1,467 @@
+/* ============ REPORTES - DISEÑO COHERENTE ============ */
+.reportes-header {
+    margin-bottom: 24px;
+}
+
+.reportes-header h2 {
+    font-size: 28px;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.reportes-header p {
+    color: var(--text-light);
+    font-size: 14px;
+    margin: 0;
+}
+
+/* ============ SELECTOR DE GRUPO ============ */
+.grupo-selector {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.grupo-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 8px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 14px;
+}
+
+.grupo-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+.grupo-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+/* ============ GRID DE TARJETAS ============ */
+.tarjetas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.tarjeta-evento {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.tarjeta-evento:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+}
+
+.tarjeta-evento h3 {
+    font-size: 18px;
+    color: var(--text);
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.evento-count {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.ver-mas {
+    font-size: 14px;
+    color: var(--text-light);
+    transition: var(--transition);
+    margin-top: 8px;
+}
+
+.tarjeta-evento:hover .ver-mas {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* ============ VISTA DE DETALLE ============ */
+#vistaTarjetas {
+    display: block;
+}
+
+#vistaDetalle {
+    display: none;
+}
+
+/* ============ BOTÓN VOLVER ============ */
+.btn-volver {
+    padding: 8px 16px;
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: var(--transition);
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-volver:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ============ TÍTULO DETALLE ============ */
+#detalleEventoTitulo {
+    font-size: 24px;
+    color: var(--text);
+    margin: 0 0 24px 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* ============ FILTROS ============ */
+.filtros-bloque {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--light);
+    border-radius: 8px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filtro-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filtro-item label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filtro-item input,
+.filtro-item select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+    color: var(--text);
+    transition: var(--transition);
+}
+
+.filtro-item input:focus,
+.filtro-item select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filtro-item input::placeholder {
+    color: var(--text-light);
+}
+
+.dia-semana {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* ============ TABLA SCROLLABLE ============ */
+.tabla-scrollable {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.tabla-scrollable table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tabla-scrollable thead {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    border-bottom: 2px solid var(--primary);
+}
+
+.tabla-scrollable th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: white;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.tabla-scrollable th:last-child {
+    text-align: center;
+}
+
+.tabla-scrollable tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.tabla-scrollable tbody tr:hover {
+    background: var(--light);
+}
+
+.tabla-scrollable tbody tr:last-child {
+    border-bottom: none;
+}
+
+.tabla-scrollable td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.tabla-scrollable td:nth-child(1) {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.tabla-scrollable td:nth-child(2) {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.tabla-scrollable td:nth-child(3),
+.tabla-scrollable td:nth-child(4),
+.tabla-scrollable td:nth-child(5) {
+    text-align: center;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 16px;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .reportes-header h2 {
+        font-size: 24px;
+    }
+
+    .reportes-header p {
+        font-size: 13px;
+    }
+
+    .grupo-selector {
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .grupo-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        flex: 1;
+    }
+
+    .tarjetas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .tarjeta-evento {
+        padding: 16px 12px;
+    }
+
+    .tarjeta-evento h3 {
+        font-size: 16px;
+    }
+
+    .evento-count {
+        font-size: 28px;
+    }
+
+    .ver-mas {
+        font-size: 12px;
+    }
+
+    .filtros-bloque {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+
+    .filtro-item {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .tabla-scrollable {
+        font-size: 12px;
+    }
+
+    .tabla-scrollable th {
+        padding: 10px 12px;
+        font-size: 11px;
+    }
+
+    .tabla-scrollable td {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    #detalleEventoTitulo {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .btn-volver {
+        padding: 6px 12px;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .reportes-header h2 {
+        font-size: 20px;
+        gap: 8px;
+    }
+
+    .reportes-header h2 svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .reportes-header p {
+        font-size: 12px;
+    }
+
+    .grupo-selector {
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .grupo-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .tarjetas-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tarjeta-evento {
+        padding: 14px 12px;
+        gap: 10px;
+    }
+
+    .tarjeta-evento h3 {
+        font-size: 15px;
+    }
+
+    .evento-count {
+        font-size: 24px;
+    }
+
+    .ver-mas {
+        font-size: 11px;
+    }
+
+    .filtros-bloque {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+
+    .filtro-item {
+        width: 100%;
+    }
+
+    .filtro-item label {
+        font-size: 11px;
+    }
+
+    .filtro-item input,
+    .filtro-item select {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .tabla-scrollable {
+        font-size: 11px;
+        border-radius: 6px;
+    }
+
+    .tabla-scrollable th {
+        padding: 8px 10px;
+        font-size: 10px;
+    }
+
+    .tabla-scrollable td {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .tabla-scrollable td:nth-child(3),
+    .tabla-scrollable td:nth-child(4),
+    .tabla-scrollable td:nth-child(5) {
+        font-size: 13px;
+    }
+
+    #detalleEventoTitulo {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .btn-volver {
+        padding: 6px 10px;
+        font-size: 12px;
+        margin-bottom: 14px;
+    }
+
+    .dia-semana {
+        font-size: 10px;
+    }
+}
