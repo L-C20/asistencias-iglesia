@@ -6,28 +6,120 @@
     <title>Configuración - Sistema de Asistencia</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/configuracion.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            margin-bottom: 32px;
+        }
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .sidebar-header p {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .sidebar-nav a:hover {
+            background: var(--light);
+            color: var(--primary);
+        }
+        .sidebar-nav a.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .sidebar-nav svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+        .navbar-text {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            background: var(--light);
+        }
+    </style>
 </head>
 <body>
     <div class="layout">
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h3 style="margin: 0; font-size: 16px; color: var(--primary); font-weight: 700;">
-                    ⏱️ Sistema
-                </h3>
-                <p style="margin: 0; font-size: 12px; color: var(--text-light);">Asistencia</p>
+                <h3>⏱️ Sistema</h3>
+                <p>Asistencia</p>
             </div>
 
             <nav class="sidebar-nav">
-                <a href="/" class="nav-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <a href="/">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
                     <span>Inicio</span>
                 </a>
-                <a href="/?tab=coro" class="nav-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <a href="/?tab=coro">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -35,16 +127,16 @@
                     </svg>
                     <span>Coro</span>
                 </a>
-                <a href="/?tab=orquesta" class="nav-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <a href="/?tab=orquesta">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 3a6 6 0 0 0-6 6v12"></path>
                         <path d="M6 9a4 4 0 0 0 4 4"></path>
                         <circle cx="9" cy="3" r="1.5"></circle>
                     </svg>
                     <span>Orquesta</span>
                 </a>
-                <a href="/?tab=reportes" class="nav-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <a href="/?tab=reportes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="7"></rect>
                         <rect x="14" y="3" width="7" height="7"></rect>
                         <rect x="14" y="14" width="7" height="7"></rect>
@@ -52,8 +144,8 @@
                     </svg>
                     <span>Reportes</span>
                 </a>
-                <a href="/configuracion.html" class="nav-link active">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <a href="/configuracion.html" class="active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M12 1v6m0 6v6"></path>
                         <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
@@ -69,12 +161,8 @@
         <div class="main-container">
             <!-- NAVBAR -->
             <nav class="navbar">
-                <div class="navbar-left">
-                    <h2 class="navbar-title">Panel de Asistencia</h2>
-                </div>
-                <div class="navbar-right">
-                    <span class="navbar-text">Bienvenido: <span id="usuarioActualNombre">usuario</span></span>
-                </div>
+                <h2 class="navbar-title">Panel de Asistencia</h2>
+                <span class="navbar-text">Bienvenido: <span id="usuarioActualNombre">usuario</span></span>
             </nav>
 
             <!-- CONTENT -->
