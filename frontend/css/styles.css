@@ -918,118 +918,236 @@ h1, h2, h3, h4, h5, h6 {
     aspect-ratio: 1 / 1;
 }
 
-/* ========== TABLA INTEGRANTES ========== */
-.tabla-integrantes {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-    margin-top: 40px;
+/* ========== TABLA REPORTES PROFESIONAL ========== */
+.tabla-reportes-contenedor {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 32px;
 }
 
-.tabla-integrantes h3 {
+.tabla-header {
+    padding: 28px;
+    border-bottom: 2px solid var(--border);
+}
+
+.tabla-header h3 {
     font-size: 20px;
     color: var(--text);
-    margin: 0;
+    margin: 0 0 20px 0;
     font-weight: 700;
-    letter-spacing: -0.01em;
 }
 
-.fila-expandible {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: var(--transition);
-}
-
-.fila-expandible:hover {
-    border-color: var(--primary-light);
-    box-shadow: var(--shadow-md);
-}
-
-.fila-header {
+.tabla-filtros {
     display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    cursor: pointer;
-    transition: var(--transition);
-    background: white;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-.fila-header:hover {
-    background: var(--light);
-}
-
-.fila-toggle {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: 0;
-}
-
-.fila-expandible.expanded .fila-toggle {
-    transform: rotate(90deg);
-}
-
-.fila-info {
-    flex: 1;
+.filtro-grupo {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 0;
+    gap: 8px;
+    min-width: 200px;
 }
 
-.nombre-celda {
+.filtro-grupo label {
+    font-size: 12px;
     font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filtro-grupo select {
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
     color: var(--text);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filtro-grupo select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.tabla-miembros {
+    overflow-x: auto;
+}
+
+.tabla-datos {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 14px;
 }
 
-.detalle-celda {
+.tabla-datos thead {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+}
+
+.tabla-datos thead th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 700;
     font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+}
+
+.tabla-datos tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.tabla-datos tbody tr:hover {
+    background: var(--light);
+}
+
+.tabla-datos tbody tr:last-child {
+    border-bottom: none;
+}
+
+.tabla-datos td {
+    padding: 16px;
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.celda-nombre {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.celda-detalle {
     color: var(--text-light);
+    font-size: 13px;
 }
 
-.fila-porcentaje {
-    min-width: 150px;
+.celda-numero {
+    text-align: center;
+    font-weight: 600;
 }
 
-.progress-bar {
+.celda-porcentaje {
+    text-align: center;
+}
+
+.progress-bar-simple {
+    width: 100px;
+    height: 6px;
+    background: var(--light-gray);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.progress-fill-simple {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    transition: width 0.3s ease;
+}
+
+.porcentaje-texto {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.badge {
+    display: inline-block;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* ========== GRÁFICO ABAJO ========== */
+.reporte-graficos {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-top: 40px;
+}
+
+.grafico-contenedor h3 {
+    font-size: 20px;
+    color: var(--text);
+    margin: 0 0 28px 0;
+    font-weight: 700;
+}
+
+.grafico-barras {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+
+.barra-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
     width: 100%;
+}
+
+.barra-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.barra-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 100px;
+}
+
+.barra-container {
+    flex: 1;
+    min-width: 200px;
     height: 24px;
-    background: #e5e7eb;
+    background: var(--light-gray);
     border-radius: 4px;
     overflow: hidden;
 }
 
-.progress-fill {
-    width: 100%;
+.barra {
     height: 100%;
-    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 4px;
+    transition: width 0.3s ease;
 }
 
-.progress-text {
-    font-size: 11px;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.fila-content {
-    padding: 16px;
-    border-top: 1px solid var(--border);
-    background: var(--light);
+.barra-valor {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 80px;
+    text-align: right;
 }
 
 .fila-toggle {
