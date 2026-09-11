@@ -140,20 +140,20 @@ async function cargarReporteGrupo(grupo, esInicial = false) {
                     <table class="tabla-datos">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>${grupo === 'coro' ? 'Voz' : 'Instrumento'}</th>
-                                <th>Total Registros</th>
-                                <th>Presentes</th>
-                                <th>Ausentes</th>
-                                <th>Justificados</th>
-                                <th>% Asistencia</th>
+                                <th style="width: 20%;">Nombre</th>
+                                <th style="width: 15%;">${grupo === 'coro' ? 'Voz' : 'Instrumento'}</th>
+                                <th style="width: 12%;">Total</th>
+                                <th style="width: 12%;">Presentes</th>
+                                <th style="width: 12%;">Ausentes</th>
+                                <th style="width: 12%;">Justificados</th>
+                                <th style="width: 17%;">% Asistencia</th>
                             </tr>
                         </thead>
                         <tbody id="tablaIntegrantesBody">
                             ${estadisticas.map(miembro => `
                                 <tr class="fila-tabla" data-nombre="${miembro.nombre}" data-presentes="${miembro.presentes}" data-ausentes="${miembro.ausentes}" data-justificados="${miembro.justificados}">
-                                    <td class="celda-nombre"><strong>${miembro.nombre || 'Integrante'}</strong></td>
-                                    <td class="celda-detalle">${grupo === 'coro' ? (miembro.voz || 'Sin asignar') : (miembro.instrumento || 'Sin asignar')}</td>
+                                    <td class="celda-nombre" title="${miembro.nombre}"><strong>${miembro.nombre || 'Integrante'}</strong></td>
+                                    <td class="celda-detalle">${grupo === 'coro' ? (miembro.voz || '-') : (miembro.instrumento || '-')}</td>
                                     <td class="celda-numero">${miembro.total_registros || 0}</td>
                                     <td class="celda-numero"><span class="badge badge-success">${miembro.presentes || 0}</span></td>
                                     <td class="celda-numero"><span class="badge badge-danger">${miembro.ausentes || 0}</span></td>

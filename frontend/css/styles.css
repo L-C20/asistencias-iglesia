@@ -979,12 +979,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .tabla-miembros {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tabla-datos {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 13px;
+    table-layout: fixed;
 }
 
 .tabla-datos thead {
@@ -993,13 +995,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tabla-datos thead th {
-    padding: 16px;
+    padding: 14px 12px;
     text-align: left;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .tabla-datos tbody tr {
@@ -1016,28 +1021,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tabla-datos td {
-    padding: 16px;
+    padding: 14px 12px;
     color: var(--text);
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .celda-nombre {
     font-weight: 600;
     color: var(--text);
+    font-size: 13px;
 }
 
 .celda-detalle {
     color: var(--text-light);
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .celda-numero {
     text-align: center;
     font-weight: 600;
+    font-size: 13px;
 }
 
 .celda-porcentaje {
     text-align: center;
+    white-space: normal;
 }
 
 .progress-bar-simple {
