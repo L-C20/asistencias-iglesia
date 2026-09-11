@@ -1978,7 +1978,7 @@ h1, h2, h3, h4, h5, h6 {
     text-align: left !important;
     font-weight: 700 !important;
     color: white !important;
-    font-size: 13px !important;
+    font-size: 11px !important;
     text-transform: uppercase !important;
     letter-spacing: 0.8px !important;
 }
@@ -2003,7 +2003,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .tabla-datos td {
     padding: 16px 20px !important;
-    font-size: 14px !important;
+    font-size: 11px !important;
     color: var(--text) !important;
     vertical-align: middle !important;
 }
