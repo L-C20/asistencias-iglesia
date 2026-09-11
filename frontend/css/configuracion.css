@@ -23,16 +23,16 @@
 
 /* ============ HEADER CONFIGURACIÓN ============ */
 .config-header {
-    padding: 32px 24px;
-    margin-bottom: 24px;
+    padding: 24px;
+    margin-bottom: 20px;
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     color: white;
     border-radius: 12px;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .config-header h2 {
-    font-size: 28px;
+    font-size: 24px;
     color: white;
     margin: 0 0 8px 0;
     font-weight: 700;
@@ -44,15 +44,15 @@
 
 .config-header h2 svg {
     color: white;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
 }
 
 .config-header p {
     color: rgba(255, 255, 255, 0.95);
     margin: 0;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
 }
 
@@ -60,7 +60,7 @@
 .config-container {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
     padding: 0;
 }
 
@@ -69,7 +69,7 @@
     background: white;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 28px;
+    padding: 20px;
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
 }
@@ -80,9 +80,9 @@
 }
 
 .config-section h3 {
-    font-size: 20px;
+    font-size: 18px;
     color: var(--text);
-    margin: 0 0 24px 0;
+    margin: 0 0 18px 0;
     font-weight: 700;
     letter-spacing: -0.01em;
     display: flex;
@@ -154,14 +154,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
     gap: 12px;
 }
 
 .section-header h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 16px;
     color: var(--text);
     font-weight: 700;
 }
