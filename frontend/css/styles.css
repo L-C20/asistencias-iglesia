@@ -1969,7 +1969,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tabla-datos thead {
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%) !important;
+    background: linear-gradient(135deg,#75b0ff 0%, var(--primary) 100%) !important;
     border-bottom: 2px solid var(--primary) !important;
 }
 
