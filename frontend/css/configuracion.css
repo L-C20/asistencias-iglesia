@@ -1,0 +1,508 @@
+/* ============================================================
+   CONFIGURACIÓN - ESTILOS PROFESIONALES
+   ============================================================ */
+
+/* ============ VARIABLES CSS ============ */
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --primary-light: #dbeafe;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --text: #1f2937;
+    --text-light: #6b7280;
+    --border: #e5e7eb;
+    --light: #f9fafb;
+    --light-gray: #f3f4f6;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============ HEADER CONFIGURACIÓN ============ */
+.config-header {
+    padding: 48px 40px;
+    margin-bottom: 40px;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    border-radius: 20px;
+}
+
+.config-header h2 {
+    font-size: 36px;
+    color: white;
+    margin: 0 0 12px 0;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    letter-spacing: -0.02em;
+}
+
+.config-header h2 svg {
+    color: white;
+    width: 40px;
+    height: 40px;
+}
+
+.config-header p {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* ============ CONTENEDOR PRINCIPAL ============ */
+.config-container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 0 40px 40px 40px;
+}
+
+/* ============ SECCIONES ============ */
+.config-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.config-section:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-lg);
+}
+
+.config-section h3 {
+    font-size: 24px;
+    color: var(--text);
+    margin: 0 0 32px 0;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.config-section h3 svg {
+    color: var(--primary);
+    width: 28px;
+    height: 28px;
+}
+
+/* ============ AVISO PARA OPERARIOS ============ */
+.aviso-operario {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    border: 2px solid var(--primary);
+    border-left: 4px solid var(--primary);
+    color: var(--primary);
+    padding: 20px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 32px;
+}
+
+.aviso-operario svg {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+}
+
+/* ============ BADGES ROLES ============ */
+.badge {
+    display: inline-block;
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-admin {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.badge-operario {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* ============ HEADER SECCIÓN CON BOTÓN ============ */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text);
+    font-weight: 700;
+}
+
+/* ============ TABLA USUARIOS ============ */
+.tabla-reportes-contenedor {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.tabla-miembros {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tabla-datos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed;
+}
+
+.tabla-datos thead {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+}
+
+.tabla-datos thead th {
+    padding: 16px 14px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tabla-datos tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s ease;
+}
+
+.tabla-datos tbody tr:hover {
+    background: var(--light);
+}
+
+.tabla-datos tbody tr:last-child {
+    border-bottom: none;
+}
+
+.tabla-datos td {
+    padding: 16px 14px;
+    color: var(--text);
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.celda-nombre {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.celda-detalle {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+.celda-acciones {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.celda-acciones .btn-sm {
+    padding: 8px;
+    height: 36px;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.celda-acciones .btn-sm:hover {
+    transform: translateY(-2px);
+}
+
+/* ============ FORMULARIOS ============ */
+.config-section form {
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: 0.02em;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    transition: var(--transition);
+    background: white;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input::placeholder {
+    color: var(--text-light);
+}
+
+/* ============ MODALES ============ */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    animation: fadeIn 0.3s ease;
+    overflow-y: auto;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 36px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-header {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: var(--transition);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--text);
+    background: var(--light);
+    border-radius: 8px;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+}
+
+.modal-footer .btn {
+    padding: 11px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+}
+
+.modal-footer .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.modal-footer .btn-secondary {
+    background: var(--light-gray);
+    color: var(--text);
+}
+
+.modal-footer .btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .config-header {
+        padding: 32px 20px;
+    }
+
+    .config-header h2 {
+        font-size: 28px;
+    }
+
+    .config-container {
+        padding: 0 20px 20px 20px;
+        gap: 24px;
+    }
+
+    .config-section {
+        padding: 24px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 20% auto;
+        padding: 24px;
+    }
+
+    .tabla-datos td,
+    .tabla-datos th {
+        padding: 12px 10px;
+        font-size: 12px;
+    }
+
+    .celda-acciones {
+        gap: 4px;
+    }
+
+    .celda-acciones .btn-sm {
+        height: 32px;
+        width: 32px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .config-header {
+        padding: 24px 16px;
+        border-radius: 12px;
+    }
+
+    .config-header h2 {
+        font-size: 24px;
+        gap: 8px;
+    }
+
+    .config-header h2 svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .config-section {
+        padding: 20px;
+    }
+
+    .config-section h3 {
+        font-size: 20px;
+        gap: 8px;
+    }
+
+    .section-header {
+        gap: 12px;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+}
