@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - Sistema de Asistencia</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/configuracion.css">
+</head>
+<body>
+    <div class="layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3 style="margin: 0; font-size: 16px; color: var(--primary); font-weight: 700;">
+                    ⏱️ Sistema
+                </h3>
+                <p style="margin: 0; font-size: 12px; color: var(--text-light);">Asistencia</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Inicio</span>
+                </a>
+                <a href="/?tab=coro" class="nav-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Coro</span>
+                </a>
+                <a href="/?tab=orquesta" class="nav-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 3a6 6 0 0 0-6 6v12"></path>
+                        <path d="M6 9a4 4 0 0 0 4 4"></path>
+                        <circle cx="9" cy="3" r="1.5"></circle>
+                    </svg>
+                    <span>Orquesta</span>
+                </a>
+                <a href="/?tab=reportes" class="nav-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Reportes</span>
+                </a>
+                <a href="/configuracion.html" class="nav-link active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6"></path>
+                        <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
+                        <path d="M1 12h6m6 0h6"></path>
+                        <path d="M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+                    </svg>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-container">
+            <!-- NAVBAR -->
+            <nav class="navbar">
+                <div class="navbar-left">
+                    <h2 class="navbar-title">Panel de Asistencia</h2>
+                </div>
+                <div class="navbar-right">
+                    <span class="navbar-text">Bienvenido: <span id="usuarioActualNombre">usuario</span></span>
+                </div>
+            </nav>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <div class="config-header">
+                    <h2>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; margin-right: 12px; vertical-align: middle;">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6"></path>
+                            <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
+                            <path d="M1 12h6m6 0h6"></path>
+                            <path d="M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+                        </svg>
+                        Configuración
+                    </h2>
+                    <p>Gestión de usuarios y configuración del sistema</p>
+                </div>
+
+                <div class="config-container">
+                    <!-- SECCIÓN USUARIOS -->
+                    <div class="config-section">
+                        <div class="section-header">
+                            <h3>Gestión de Usuarios</h3>
+                            <button class="btn btn-primary" onclick="abrirModalNuevoUsuario()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 5v14M5 12h14"></path>
+                                </svg>
+                                Nuevo Usuario
+                            </button>
+                        </div>
+                        
+                        <div id="tablaUsuarios" class="tabla-miembros">
+                            <table class="tabla-datos">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Rol</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usuariosTableBody">
+                                    <tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando usuarios...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN CAMBIAR CONTRASEÑA -->
+                    <div class="config-section">
+                        <h3>Cambiar Contraseña</h3>
+                        <form id="formCambiarPassword" onsubmit="cambiarMiContraseña(event)">
+                            <div class="form-group">
+                                <label>Contraseña Actual:</label>
+                                <input type="password" id="passwordActual" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nueva Contraseña:</label>
+                                <input type="password" id="passwordNueva" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Confirmar Contraseña:</label>
+                                <input type="password" id="passwordConfirmar" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES CONFIGURACIÓN -->
+    <div id="modalNuevoUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Nuevo Usuario</span>
+                <button class="modal-close" onclick="cerrarModal('modalNuevoUsuario')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nombre de Usuario:</label>
+                    <input type="text" id="nuevoUsuarioNombre" placeholder="usuario1" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" id="nuevoUsuarioPassword" placeholder="Contraseña" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol:</label>
+                    <select id="nuevoUsuarioRol">
+                        <option value="operario">Operario</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalNuevoUsuario')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarNuevoUsuario()">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditarUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Editar Usuario</span>
+                <button class="modal-close" onclick="cerrarModal('modalEditarUsuario')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="usuarioEditarId">
+                <div class="form-group">
+                    <label>Nombre de Usuario:</label>
+                    <input type="text" id="usuarioEditarNombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol:</label>
+                    <select id="usuarioEditarRol">
+                        <option value="operario">Operario</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="usuarioEditarActivo">
+                        Activo
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalEditarUsuario')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarUsuarioEditado()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalResetearPassword" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Resetear Contraseña</span>
+                <button class="modal-close" onclick="cerrarModal('modalResetearPassword')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Resetear contraseña para <strong id="usuarioResetNombre"></strong>?</p>
+                <p style="font-size: 12px; color: #6b7280;">Se generará una nueva contraseña aleatoria que deberás compartir con el usuario.</p>
+                <input type="hidden" id="usuarioResetId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalResetearPassword')">Cancelar</button>
+                <button class="btn btn-primary" onclick="resetearPassword()">Resetear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        const API_URL = window.location.protocol + '//' + window.location.host + '/api';
+    </script>
+    <script src="/js/configuracion.js"></script>
+    <script>
+        // Mostrar usuario actual en navbar
+        const usuarioActual = localStorage.getItem('usuario');
+        if (usuarioActual) {
+            document.getElementById('usuarioActualNombre').textContent = usuarioActual;
+        }
+        
+        // Inicializar configuración
+        window.addEventListener('load', () => {
+            inicializarConfiguracion();
+        });
+    </script>
+</body>
+</html>
