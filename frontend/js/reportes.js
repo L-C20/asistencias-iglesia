@@ -5,10 +5,17 @@ let datosEventoActual = [];
 console.log('✅ reportes.js cargado');
 
 // ===== CARGAR REPORTE POR GRUPO =====
-function cargarReporteGrupo(grupo) {
-    console.log('👁️ cargarReporteGrupo llamado con:', grupo);
+function cargarReporteGrupo(grupo, autoLoad) {
+    console.log('👁️ cargarReporteGrupo llamado con:', grupo, 'autoLoad:', autoLoad);
     
     grupoActual = grupo;
+    
+    // Si es autoLoad, solo cargar datos sin cambiar UI
+    if (autoLoad) {
+        console.log('⚙️ AutoLoad mode - solo cargando conteos');
+        cargarConteos(grupo);
+        return;
+    }
     
     // Actualizar botones
     const botones = document.querySelectorAll('.grupo-btn');
@@ -19,7 +26,9 @@ function cargarReporteGrupo(grupo) {
     });
     
     // El botón que se clickeó
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
     
     // Mostrar/ocultar vistas
     const vistaTarjetas = document.getElementById('vistaTarjetas');
