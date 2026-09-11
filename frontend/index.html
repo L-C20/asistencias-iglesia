@@ -409,6 +409,7 @@
                         <p>Análisis de asistencia</p>
                     </div>
 
+                    <!-- Selector de Grupo -->
                     <div class="reportes-tabs">
                         <button class="reporte-tab-btn active" onclick="cargarReporteGrupo('coro')">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -429,45 +430,92 @@
                         </button>
                     </div>
 
-                    <div id="reporteContent" class="reporte-content">
-                        <div class="reporte-stats" id="statsContainer"></div>
-                        <div class="reporte-graficos">
-                            <div class="grafico-contenedor">
-                                <h3>Asistencia por Mes</h3>
-                                <canvas id="graficoLinea" height="300"></canvas>
+                    <!-- Cards de Tipos de Evento -->
+                    <div class="reporte-cards-container">
+                        <!-- Card Santo Culto -->
+                        <div class="reporte-card" onclick="abrirReporteEvento('santo_culto')">
+                            <div class="card-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v20M2 12h20"></path>
+                                    <path d="M6 6l12 12M18 6L6 18"></path>
+                                </svg>
                             </div>
-                            <div class="grafico-contenedor">
-                                <h3>Distribución</h3>
-                                <canvas id="graficoPie" height="300"></canvas>
-                            </div>
+                            <h3>Santo Culto</h3>
+                            <p class="card-count" id="countSantoCulto">-</p>
+                            <span class="card-arrow">→</span>
                         </div>
+
+                        <!-- Card Ensayos -->
+                        <div class="reporte-card" onclick="abrirReporteEvento('ensayo')">
+                            <div class="card-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 19V5M15 19V5M4 9h16M4 15h16"></path>
+                                </svg>
+                            </div>
+                            <h3>Ensayos</h3>
+                            <p class="card-count" id="countEnsayo">-</p>
+                            <span class="card-arrow">→</span>
+                        </div>
+
+                        <!-- Card Bautismo -->
+                        <div class="reporte-card" onclick="abrirReporteEvento('bautismo')">
+                            <div class="card-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path>
+                                </svg>
+                            </div>
+                            <h3>Bautismo</h3>
+                            <p class="card-count" id="countBautismo">-</p>
+                            <span class="card-arrow">→</span>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor de Reporte Detallado -->
+                    <div id="reporteDetalleContainer" class="reporte-detalle" style="display: none;">
+                        <button class="btn-volver" onclick="volverACards()">← Volver</button>
                         
+                        <h2 id="reporteTituloDetalle" class="reporte-detalle-titulo"></h2>
+
+                        <!-- Filtros -->
                         <div class="reporte-filtros">
-                            <h3>Detalles por Integrante</h3>
                             <div class="filtros-row">
                                 <div class="filtro-group">
-                                    <label>Tipo de Evento:</label>
-                                    <select id="filtroTipoEvento" onchange="aplicarFiltrosTabla('coro')">
-                                        <option value="todos">Todos</option>
-                                        <option value="santo_culto">Santo Culto</option>
-                                        <option value="ensayo">Ensayo</option>
+                                    <label>Filtrar por Fecha:</label>
+                                    <input type="date" id="filtroFecha" onchange="aplicarFiltrosDetalle()">
+                                    <span id="filtroFechaDia" class="fecha-dia"></span>
+                                </div>
+                                <div class="filtro-group">
+                                    <label>Estado:</label>
+                                    <select id="filtroEstado" onchange="aplicarFiltrosDetalle()">
+                                        <option value="">Todos</option>
+                                        <option value="true">Presente</option>
+                                        <option value="false">Ausente</option>
+                                        <option value="justified">Ausente Justificado</option>
                                     </select>
                                 </div>
                                 <div class="filtro-group">
-                                    <label>Desde:</label>
-                                    <input type="date" id="filtroFechaInicio" onchange="aplicarFiltrosTabla('coro')">
-                                </div>
-                                <div class="filtro-group">
-                                    <label>Hasta:</label>
-                                    <input type="date" id="filtroFechaFin" onchange="aplicarFiltrosTabla('coro')">
-                                </div>
-                                <div class="filtro-group">
-                                    <button class="btn btn-secondary" onclick="limpiarFiltrosTabla('coro')">Limpiar</button>
+                                    <button class="btn btn-secondary" onclick="limpiarFiltrosDetalle()">Limpiar</button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div id="tablaIntegrantes" class="tabla-integrantes"></div>
+
+                        <!-- Tabla de Detalles -->
+                        <div class="tabla-reporte-detalle">
+                            <table class="tabla-datos">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre y Apellido</th>
+                                        <th>Instrumento / Voz</th>
+                                        <th>Presente</th>
+                                        <th>Ausente</th>
+                                        <th>Ausente Justificado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaDetalleBody">
+                                    <tr><td colspan="5" style="text-align: center; padding: 20px;">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 

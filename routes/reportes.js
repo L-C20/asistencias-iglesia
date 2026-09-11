@@ -1,133 +1,174 @@
 const express = require('express');
-const db = require('../database');
-const { verifyToken } = require('./auth');
 const router = express.Router();
+const { verifyToken } = require('../middleware/verifyToken');
+const db = require('../database');
 
-// Obtener estadísticas de asistencia por grupo - GET /api/reportes/estadisticas/:grupo
+// ===== CONTEOS DE EVENTOS =====
+router.get('/conteos/:grupo', verifyToken, async (req, res) => {
+    try {
+        const { grupo } = req.params;
+        
+        const result = await db.query(`
+            SELECT 
+                tipo_evento,
+                COUNT(*) as total
+            FROM registro_asistencia
+            WHERE LOWER(tipo_evento) IN ('santo_culto', 'ensayo', 'bautismo')
+            AND miembro_id IN (
+                SELECT id FROM miembros WHERE LOWER(grupo) = $1
+            )
+            GROUP BY tipo_evento
+        `, [grupo.toLowerCase()]);
+        
+        console.log('📊 Resultado conteos:', result.rows);
+        
+        const conteos = {
+            santo_culto: 0,
+            ensayo: 0,
+            bautismo: 0
+        };
+        
+        result.rows.forEach(row => {
+            const tipo = row.tipo_evento.toLowerCase().replace(' ', '_');
+            conteos[tipo] = row.total;
+        });
+        
+        res.json(conteos);
+    } catch (error) {
+        console.error('❌ Error en conteos:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ===== DATOS DE UN EVENTO ESPECÍFICO =====
+router.get('/evento/:grupo', verifyToken, async (req, res) => {
+    try {
+        const { grupo } = req.params;
+        const { tipo_evento } = req.query;
+        
+        console.log(`🎯 Obteniendo datos: grupo=${grupo}, evento=${tipo_evento}`);
+        
+        const result = await db.query(`
+            SELECT 
+                m.id,
+                m.nombre,
+                m.apellido,
+                m.instrumento,
+                m.voz,
+                ra.fecha,
+                ra.presente,
+                ra.nota,
+                CASE 
+                    WHEN CAST(ra.presente AS TEXT) = 'justified' THEN true
+                    ELSE false
+                END as justified
+            FROM miembros m
+            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id 
+                AND LOWER(ra.tipo_evento) = $2
+            WHERE LOWER(m.grupo) = $1
+            ORDER BY m.nombre, m.apellido, ra.fecha DESC
+        `, [grupo.toLowerCase(), tipo_evento.toLowerCase()]);
+        
+        console.log('📋 Registros encontrados:', result.rows.length);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error('❌ Error en evento:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ===== ESTADÍSTICAS (MANTENER COMPATIBILIDAD) =====
 router.get('/estadisticas/:grupo', verifyToken, async (req, res) => {
-  try {
-    const { grupo } = req.params; // 'coro' o 'orquesta'
-
-    console.log('📊 Obteniendo estadísticas para:', grupo);
-
-    if (!['coro', 'orquesta'].includes(grupo)) {
-      return res.status(400).json({ error: 'Grupo inválido' });
+    try {
+        const { grupo } = req.params;
+        
+        const result = await db.query(`
+            SELECT 
+                m.id,
+                m.nombre,
+                m.apellido,
+                m.instrumento,
+                m.voz,
+                COUNT(*) as total_eventos,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as presentes,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as ausentes,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'justified' THEN 1 END) as justificados,
+                ROUND(
+                    COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) * 100.0 / 
+                    NULLIF(COUNT(*), 0), 2
+                ) as porcentaje_asistencia
+            FROM miembros m
+            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
+            WHERE LOWER(m.grupo) = $1
+            GROUP BY m.id, m.nombre, m.apellido, m.instrumento, m.voz
+            ORDER BY m.nombre, m.apellido
+        `, [grupo.toLowerCase()]);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error('❌ Error en estadísticas:', error);
+        res.status(500).json({ error: error.message });
     }
-
-    // Obtener todos los miembros del grupo
-    const miembrosResult = await db.query(
-      'SELECT id, nombre, grupo, voz, instrumento FROM miembros WHERE grupo = $1 AND activo = true ORDER BY nombre',
-      [grupo]
-    );
-
-    const miembros = miembrosResult.rows;
-    console.log('✅ Miembros obtenidos:', miembros.length);
-
-    // Para cada miembro, obtener sus estadísticas
-    const estadisticas = await Promise.all(
-      miembros.map(async (miembro) => {
-        try {
-          // Usar CAST para convertir presente a texto si es necesario
-          const statsResult = await db.query(
-            `SELECT 
-              COUNT(*) as total_registros,
-              SUM(CASE WHEN CAST(presente AS TEXT) = 'true' THEN 1 ELSE 0 END) as presentes,
-              SUM(CASE WHEN CAST(presente AS TEXT) = 'false' THEN 1 ELSE 0 END) as ausentes,
-              SUM(CASE WHEN CAST(presente AS TEXT) = 'justified' THEN 1 ELSE 0 END) as justificados
-            FROM registro_asistencia 
-            WHERE miembro_id = $1`,
-            [miembro.id]
-          );
-
-          const stats = statsResult.rows[0];
-          
-          console.log(`  📊 ${miembro.nombre}: ${stats.total_registros} registros (P:${stats.presentes}, A:${stats.ausentes}, J:${stats.justificados})`);
-          
-          return {
-            miembro_id: miembro.id,
-            nombre: miembro.nombre || 'Sin nombre',
-            grupo: miembro.grupo,
-            voz: miembro.voz || null,
-            instrumento: miembro.instrumento || null,
-            total_registros: parseInt(stats.total_registros) || 0,
-            presentes: parseInt(stats.presentes) || 0,
-            ausentes: parseInt(stats.ausentes) || 0,
-            justificados: parseInt(stats.justificados) || 0
-          };
-        } catch (memberError) {
-          console.error(`  ❌ Error procesando miembro ${miembro.id}:`, memberError.message);
-          // Retornar miembro con estadísticas vacías
-          return {
-            miembro_id: miembro.id,
-            nombre: miembro.nombre || 'Sin nombre',
-            grupo: miembro.grupo,
-            voz: miembro.voz || null,
-            instrumento: miembro.instrumento || null,
-            total_registros: 0,
-            presentes: 0,
-            ausentes: 0,
-            justificados: 0
-          };
-        }
-      })
-    );
-
-    console.log('✅ Estadísticas procesadas:', estadisticas.length);
-    res.json(estadisticas);
-
-  } catch (error) {
-    console.error('❌ Error en GET /estadisticas/:grupo:', error.message);
-    res.status(500).json({ error: error.message });
-  }
 });
 
-// Obtener detalles de asistencia por miembro
+// ===== DATOS DE UN MIEMBRO =====
 router.get('/miembro/:miembro_id', verifyToken, async (req, res) => {
-  try {
-    const { miembro_id } = req.params;
-
-    const result = await db.query(
-      `SELECT ra.*, m.nombre 
-       FROM registro_asistencia ra
-       JOIN miembros m ON ra.miembro_id = m.id
-       WHERE ra.miembro_id = $1
-       ORDER BY ra.fecha DESC`,
-      [miembro_id]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error('❌ Error en GET /miembro/:miembro_id:', error.message);
-    res.status(500).json({ error: error.message });
-  }
+    try {
+        const { miembro_id } = req.params;
+        
+        const result = await db.query(`
+            SELECT 
+                m.nombre,
+                m.apellido,
+                m.grupo,
+                COUNT(ra.id) as total_eventos,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as presentes,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as ausentes,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'justified' THEN 1 END) as justificados
+            FROM miembros m
+            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
+            WHERE m.id = $1
+            GROUP BY m.id
+        `, [miembro_id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Miembro no encontrado' });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('❌ Error en miembro:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// Obtener resumen por grupo
+// ===== RESUMEN POR GRUPO =====
 router.get('/resumen/:grupo', verifyToken, async (req, res) => {
-  try {
-    const { grupo } = req.params;
-
-    if (!['coro', 'orquesta'].includes(grupo)) {
-      return res.status(400).json({ error: 'Grupo inválido' });
+    try {
+        const { grupo } = req.params;
+        
+        const result = await db.query(`
+            SELECT 
+                COUNT(DISTINCT m.id) as total_miembros,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as total_presentes,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as total_ausentes,
+                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'justified' THEN 1 END) as total_justificados,
+                COUNT(DISTINCT ra.fecha) as total_eventos,
+                ROUND(
+                    COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) * 100.0 / 
+                    NULLIF(COUNT(ra.id), 0), 2
+                ) as porcentaje_general
+            FROM miembros m
+            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
+            WHERE LOWER(m.grupo) = $1
+        `, [grupo.toLowerCase()]);
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('❌ Error en resumen:', error);
+        res.status(500).json({ error: error.message });
     }
-
-    const result = await db.query(
-      `SELECT 
-        COUNT(*) as total_registros,
-        SUM(CASE WHEN CAST(presente AS TEXT) = 'true' THEN 1 ELSE 0 END) as presentes,
-        SUM(CASE WHEN CAST(presente AS TEXT) = 'false' THEN 1 ELSE 0 END) as ausentes,
-        SUM(CASE WHEN CAST(presente AS TEXT) = 'justified' THEN 1 ELSE 0 END) as justificados
-       FROM registro_asistencia ra
-       JOIN miembros m ON ra.miembro_id = m.id
-       WHERE m.grupo = $1`,
-      [grupo]
-    );
-
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('❌ Error en GET /resumen/:grupo:', error.message);
-    res.status(500).json({ error: error.message });
-  }
 });
 
 module.exports = router;

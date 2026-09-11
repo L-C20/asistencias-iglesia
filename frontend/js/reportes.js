@@ -1,259 +1,190 @@
-console.log('📊 reportes-v17.js iniciando');
+// Variables globales
+let grupoActual = 'coro';
+let eventoActual = null;
+let datosEventoActual = [];
 
-// ===== VARIABLES GLOBALES =====
-let currentGrupo = 'coro';
-let datosActuales = [];
+// API URL
+const API_URL = window.location.protocol + '//' + window.location.host + '/api';
 
-// ===== INICIALIZAR REPORTES AL CARGAR =====
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('📊 DOM cargado, inicializando reportes...');
-    setTimeout(() => {
-        cargarReporteGrupo('coro', true);
-    }, 500);
-});
-
-// ===== CARGAR REPORTE GRUPO =====
-async function cargarReporteGrupo(grupo, esInicial = false) {
-    currentGrupo = grupo;
+// ===== CARGAR REPORTES POR GRUPO =====
+async function cargarReporteGrupo(grupo) {
+    grupoActual = grupo;
+    eventoActual = null;
     
+    console.log(`📊 Cargando reportes para ${grupo}`);
+    
+    // Actualizar botones activos
+    document.querySelectorAll('.reporte-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.closest('.reporte-tab-btn').classList.add('active');
+    
+    // Ocultar detalle y mostrar cards
+    document.getElementById('reporteDetalleContainer').style.display = 'none';
+    document.querySelector('.reporte-cards-container').style.display = 'grid';
+    
+    // Cargar conteos de eventos
+    await cargarConteosEventos(grupo);
+}
+
+// ===== CARGAR CONTEOS DE EVENTOS =====
+async function cargarConteosEventos(grupo) {
     try {
-        console.log('═══════════════════════════════════════');
-        console.log('🔄 [cargarReporteGrupo] Cargando:', grupo);
-        console.log('═══════════════════════════════════════');
-        
-        // Actualizar tabs activos
-        document.querySelectorAll('.reporte-tab-btn').forEach(btn => {
-            btn.classList.remove('active');
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/reportes/conteos/${grupo}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        const btnActivo = Array.from(document.querySelectorAll('.reporte-tab-btn')).find(btn => {
-            return btn.textContent.toLowerCase().includes(grupo.toLowerCase());
-        });
-        if (btnActivo) {
-            btnActivo.classList.add('active');
-            console.log('✅ Tab activado:', grupo);
+        if (!response.ok) {
+            console.error('❌ Error cargando conteos');
+            return;
         }
         
-        const url = `${API_URL}/reportes/estadisticas/${grupo}`;
-        console.log('📡 Fetch a:', url);
+        const data = await response.json();
+        console.log('📈 Conteos:', data);
+        
+        // Actualizar cards con conteos
+        document.getElementById('countSantoCulto').textContent = data.santo_culto || '0';
+        document.getElementById('countEnsayo').textContent = data.ensayo || '0';
+        document.getElementById('countBautismo').textContent = data.bautismo || '0';
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
+
+// ===== ABRIR REPORTE DE EVENTO =====
+async function abrirReporteEvento(tipoEvento) {
+    eventoActual = tipoEvento;
+    console.log(`🎯 Abriendo reporte de ${tipoEvento}`);
+    
+    // Obtener nombre del evento
+    const nombreEvento = {
+        'santo_culto': 'Santo Culto',
+        'ensayo': 'Ensayos',
+        'bautismo': 'Bautismo'
+    }[tipoEvento];
+    
+    // Actualizar título
+    document.getElementById('reporteTituloDetalle').textContent = `Reporte - ${nombreEvento}`;
+    
+    // Mostrar detalle y ocultar cards
+    document.querySelector('.reporte-cards-container').style.display = 'none';
+    document.getElementById('reporteDetalleContainer').style.display = 'block';
+    
+    // Cargar datos del evento
+    await cargarDatosEvento(tipoEvento);
+    
+    // Renderizar tabla
+    renderizarTablaDetalle(datosEventoActual);
+}
+
+// ===== CARGAR DATOS DEL EVENTO =====
+async function cargarDatosEvento(tipoEvento) {
+    try {
+        const token = localStorage.getItem('token');
+        
+        // Construir URL con parámetros
+        const url = new URL(`${API_URL}/reportes/evento/${grupoActual}`, window.location.origin);
+        url.searchParams.append('tipo_evento', tipoEvento);
         
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        console.log('📊 Response status:', response.status);
-        
         if (!response.ok) {
-            console.warn('⚠️ Error en response:', response.status);
-            mostrarMensajeReportes(`No hay datos de asistencia para <strong>${grupo}</strong>`);
+            console.error('❌ Error cargando datos');
             return;
         }
         
-        const estadisticas = await response.json();
-        console.log('📋 Datos recibidos:', estadisticas.length, 'miembros');
+        const data = await response.json();
+        console.log('📋 Datos evento:', data);
         
-        if (!estadisticas || estadisticas.length === 0) {
-            console.log('ℹ️ Sin datos de asistencia');
-            mostrarMensajeReportes(`No hay datos de asistencia para <strong>${grupo}</strong>`);
-            return;
-        }
-        
-        datosActuales = estadisticas;
-        
-        // Calcular totales
-        let totalRegistros = 0;
-        let totalPresentes = 0;
-        let totalAusentes = 0;
-        let totalJustificados = 0;
-        
-        estadisticas.forEach(e => {
-            totalRegistros += parseInt(e.total_registros || 0);
-            totalPresentes += parseInt(e.presentes || 0);
-            totalAusentes += parseInt(e.ausentes || 0);
-            totalJustificados += parseInt(e.justificados || 0);
-        });
-        
-        console.log('📊 Totales:', { totalRegistros, totalPresentes, totalAusentes, totalJustificados });
-        
-        // Generar HTML de reportes
-        let html = `
-            <div class="reporte-stats">
-                <div class="stat-card">
-                    <div class="stat-header"><h4>Total Registros</h4></div>
-                    <div class="stat-content">
-                        <div class="stat-number">${totalRegistros}</div>
-                        <div class="stat-detail">eventos registrados</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header"><h4>Presentes</h4></div>
-                    <div class="stat-content">
-                        <div class="stat-number" style="color: #10b981;">${totalPresentes}</div>
-                        <div class="stat-detail">${totalRegistros > 0 ? ((totalPresentes / totalRegistros * 100).toFixed(1)) : 0}%</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header"><h4>Ausentes</h4></div>
-                    <div class="stat-content">
-                        <div class="stat-number" style="color: #ef4444;">${totalAusentes}</div>
-                        <div class="stat-detail">${totalRegistros > 0 ? ((totalAusentes / totalRegistros * 100).toFixed(1)) : 0}%</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header"><h4>Justificados</h4></div>
-                    <div class="stat-content">
-                        <div class="stat-number" style="color: #f59e0b;">${totalJustificados}</div>
-                        <div class="stat-detail">${totalRegistros > 0 ? ((totalJustificados / totalRegistros * 100).toFixed(1)) : 0}%</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TABLA CON FILTROS -->
-            <div class="tabla-reportes-contenedor">
-                <div class="tabla-header">
-                    <h3>Detalle por Integrante</h3>
-                    <div class="tabla-filtros">
-                        <div class="filtro-grupo">
-                            <label>Filtrar por evento:</label>
-                            <select id="filtroEvento" onchange="aplicarFiltros()">
-                                <option value="">Todos</option>
-                                <option value="santo_culto">Santo Culto</option>
-                                <option value="ensayo">Ensayo</option>
-                            </select>
-                        </div>
-                        <div class="filtro-grupo">
-                            <label>Filtrar por estado:</label>
-                            <select id="filtroEstado" onchange="aplicarFiltros()">
-                                <option value="">Todos</option>
-                                <option value="presente">Presentes</option>
-                                <option value="ausente">Ausentes</option>
-                                <option value="justificado">Justificados</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tabla-miembros">
-                    <table class="tabla-datos">
-                        <thead>
-                            <tr>
-                                <th style="width: 20%;">Nombre</th>
-                                <th style="width: 15%;">${grupo === 'coro' ? 'Voz' : 'Instrumento'}</th>
-                                <th style="width: 12%;">Total</th>
-                                <th style="width: 12%;">Presentes</th>
-                                <th style="width: 12%;">Ausentes</th>
-                                <th style="width: 12%;">Justificados</th>
-                                <th style="width: 17%;">% Asistencia</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaIntegrantesBody">
-                            ${estadisticas.map(miembro => `
-                                <tr class="fila-tabla" data-nombre="${miembro.nombre}" data-presentes="${miembro.presentes}" data-ausentes="${miembro.ausentes}" data-justificados="${miembro.justificados}">
-                                    <td class="celda-nombre" title="${miembro.nombre}"><strong>${miembro.nombre || 'Integrante'}</strong></td>
-                                    <td class="celda-detalle">${grupo === 'coro' ? (miembro.voz || '-') : (miembro.instrumento || '-')}</td>
-                                    <td class="celda-numero">${miembro.total_registros || 0}</td>
-                                    <td class="celda-numero"><span class="badge badge-success">${miembro.presentes || 0}</span></td>
-                                    <td class="celda-numero"><span class="badge badge-danger">${miembro.ausentes || 0}</span></td>
-                                    <td class="celda-numero"><span class="badge badge-warning">${miembro.justificados || 0}</span></td>
-                                    <td class="celda-porcentaje">
-                                        <div class="progress-bar-simple">
-                                            <div class="progress-fill-simple" style="width: ${miembro.total_registros > 0 ? ((miembro.presentes / miembro.total_registros * 100)) : 0}%"></div>
-                                        </div>
-                                        <span class="porcentaje-texto">${miembro.total_registros > 0 ? ((miembro.presentes / miembro.total_registros * 100).toFixed(1)) : 0}%</span>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- GRÁFICO ABAJO -->
-            <div class="reporte-graficos">
-                <div class="grafico-contenedor">
-                    <h3>Distribución de Asistencia</h3>
-                    <div class="grafico-barras">
-                        <div class="barra-grupo">
-                            <div class="barra-item">
-                                <div class="barra-label">Presentes</div>
-                                <div class="barra-container">
-                                    <div class="barra" style="width: ${Math.max(5, (totalPresentes / Math.max(1, totalRegistros) * 100))}%; background: #10b981;"></div>
-                                </div>
-                                <div class="barra-valor">${totalPresentes} (${totalRegistros > 0 ? ((totalPresentes / totalRegistros * 100).toFixed(1)) : 0}%)</div>
-                            </div>
-                            <div class="barra-item">
-                                <div class="barra-label">Ausentes</div>
-                                <div class="barra-container">
-                                    <div class="barra" style="width: ${Math.max(5, (totalAusentes / Math.max(1, totalRegistros) * 100))}%; background: #ef4444;"></div>
-                                </div>
-                                <div class="barra-valor">${totalAusentes} (${totalRegistros > 0 ? ((totalAusentes / totalRegistros * 100).toFixed(1)) : 0}%)</div>
-                            </div>
-                            <div class="barra-item">
-                                <div class="barra-label">Justificados</div>
-                                <div class="barra-container">
-                                    <div class="barra" style="width: ${Math.max(5, (totalJustificados / Math.max(1, totalRegistros) * 100))}%; background: #f59e0b;"></div>
-                                </div>
-                                <div class="barra-valor">${totalJustificados} (${totalRegistros > 0 ? ((totalJustificados / totalRegistros * 100).toFixed(1)) : 0}%)</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        const contenido = document.getElementById('reporteContent');
-        if (contenido) {
-            contenido.innerHTML = html;
-            console.log('✅ Reportes renderizados');
-        } else {
-            console.error('❌ reporteContent no encontrado');
-        }
+        datosEventoActual = data;
         
     } catch (error) {
-        console.error('❌ Error en cargarReporteGrupo:', error);
-        mostrarMensajeReportes(`❌ Error: ${error.message}`);
+        console.error('❌ Error:', error);
     }
 }
 
-// ===== APLICAR FILTROS =====
-function aplicarFiltros() {
-    const filtroEvento = document.getElementById('filtroEvento')?.value || '';
-    const filtroEstado = document.getElementById('filtroEstado')?.value || '';
+// ===== RENDERIZAR TABLA DETALLADA =====
+function renderizarTablaDetalle(datos) {
+    const tbody = document.getElementById('tablaDetalleBody');
     
-    const filas = document.querySelectorAll('.fila-tabla');
+    if (!datos || datos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay datos disponibles</td></tr>';
+        return;
+    }
     
-    filas.forEach(fila => {
-        let mostrar = true;
+    tbody.innerHTML = datos.map(item => `
+        <tr>
+            <td>${item.nombre} ${item.apellido || ''}</td>
+            <td>${item.instrumento || item.voz || '-'}</td>
+            <td>${item.presente ? '✓' : '-'}</td>
+            <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
+            <td>${item.justified ? '✓' : '-'}</td>
+        </tr>
+    `).join('');
+    
+    console.log('✅ Tabla renderizada');
+}
+
+// ===== APLICAR FILTROS AL DETALLE =====
+function aplicarFiltrosDetalle() {
+    const filtroFecha = document.getElementById('filtroFecha').value;
+    const filtroEstado = document.getElementById('filtroEstado').value;
+    
+    console.log(`🔍 Filtrando: fecha=${filtroFecha}, estado=${filtroEstado}`);
+    
+    let datosFiltrados = datosEventoActual;
+    
+    // Filtrar por fecha
+    if (filtroFecha) {
+        datosFiltrados = datosFiltrados.filter(item => {
+            return item.fecha === filtroFecha;
+        });
         
-        // Filtrar por estado
-        if (filtroEstado) {
-            const presentes = parseInt(fila.dataset.presentes) || 0;
-            const ausentes = parseInt(fila.dataset.ausentes) || 0;
-            const justificados = parseInt(fila.dataset.justificados) || 0;
-            
-            if (filtroEstado === 'presente' && presentes === 0) mostrar = false;
-            if (filtroEstado === 'ausente' && ausentes === 0) mostrar = false;
-            if (filtroEstado === 'justificado' && justificados === 0) mostrar = false;
+        // Mostrar día de la semana
+        const fecha = new Date(filtroFecha + 'T00:00:00');
+        const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const diaNombre = dias[fecha.getDay()];
+        document.getElementById('filtroFechaDia').textContent = `(${diaNombre})`;
+    } else {
+        document.getElementById('filtroFechaDia').textContent = '';
+    }
+    
+    // Filtrar por estado
+    if (filtroEstado !== '') {
+        if (filtroEstado === 'true') {
+            datosFiltrados = datosFiltrados.filter(item => item.presente);
+        } else if (filtroEstado === 'false') {
+            datosFiltrados = datosFiltrados.filter(item => !item.presente && !item.justified);
+        } else if (filtroEstado === 'justified') {
+            datosFiltrados = datosFiltrados.filter(item => item.justified);
         }
-        
-        fila.style.display = mostrar ? '' : 'none';
-    });
-    
-    console.log(`📊 Filtros aplicados - Evento: ${filtroEvento}, Estado: ${filtroEstado}`);
-}
-
-// ===== MOSTRAR MENSAJE EN REPORTES =====
-function mostrarMensajeReportes(mensaje) {
-    const contenido = document.getElementById('reporteContent');
-    if (contenido) {
-        contenido.innerHTML = `<div style="background: var(--light); padding: 40px; border-radius: 12px; text-align: center; color: var(--text-light);">
-            <p>${mensaje}</p>
-            <p style="font-size: 12px;">Registra asistencia para ver reportes aquí</p>
-        </div>`;
     }
+    
+    renderizarTablaDetalle(datosFiltrados);
 }
 
-console.log('✅ reportes-v17.js CARGADO');
+// ===== LIMPIAR FILTROS =====
+function limpiarFiltrosDetalle() {
+    document.getElementById('filtroFecha').value = '';
+    document.getElementById('filtroEstado').value = '';
+    document.getElementById('filtroFechaDia').textContent = '';
+    renderizarTablaDetalle(datosEventoActual);
+}
+
+// ===== VOLVER A CARDS =====
+function volverACards() {
+    eventoActual = null;
+    document.getElementById('reporteDetalleContainer').style.display = 'none';
+    document.querySelector('.reporte-cards-container').style.display = 'grid';
+    limpiarFiltrosDetalle();
+}
+
+// ===== INICIALIZAR =====
+window.addEventListener('load', () => {
+    console.log('🚀 Reportes inicializado');
+    cargarReporteGrupo('coro');
+});
