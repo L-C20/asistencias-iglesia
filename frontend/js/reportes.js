@@ -1,238 +1,152 @@
-console.log('🚀 REPORTES.JS CARGANDO');
+console.log('✅ reportes.js SE CARGÓ - funciones definidas');
 
 var grupoActual = 'coro';
 var datosEventoActual = [];
+var token = localStorage.getItem('token');
 
-// ===== VERIFICAR ELEMENTO =====
-function verificarElemento(id) {
-    const el = document.getElementById(id);
-    if (!el) {
-        console.warn('⚠️ Elemento NO encontrado:', id);
-        return false;
-    }
-    console.log('✅ Elemento OK:', id);
-    return true;
-}
-
-// ===== CARGAR REPORTE POR GRUPO =====
+// ===== CARGAR GRUPO =====
 window.cargarReporteGrupo = function(grupo, autoLoad) {
-    console.log('👁️ cargarReporteGrupo:', grupo, 'autoLoad:', autoLoad);
-    
+    console.log('🔵 cargarReporteGrupo -', grupo, '- autoLoad:', autoLoad);
     grupoActual = grupo;
     
-    if (autoLoad) {
-        console.log('⚙️ AutoLoad - solo conteos');
-        cargarConteos(grupo);
-        return;
-    }
-    
-    // Actualizar botones
-    const botones = document.querySelectorAll('.grupo-btn');
-    if (botones.length === 0) {
-        console.error('❌ No hay botones .grupo-btn');
-        return;
-    }
-    
-    botones.forEach(btn => btn.classList.remove('active'));
+    // Cambiar botones activos
+    document.querySelectorAll('.grupo-btn').forEach(b => b.classList.remove('active'));
     if (event && event.target) {
         event.target.classList.add('active');
     }
     
-    // Mostrar tarjetas
-    const vistaTarjetas = document.getElementById('vistaTarjetas');
-    const vistaDetalle = document.getElementById('vistaDetalle');
+    // Mostrar tarjetas, ocultar detalle
+    const vT = document.getElementById('vistaTarjetas');
+    const vD = document.getElementById('vistaDetalle');
+    if (vT) vT.style.display = 'block';
+    if (vD) vD.style.display = 'none';
     
-    if (vistaTarjetas) {
-        vistaTarjetas.style.display = 'block';
-        console.log('✅ Mostrando tarjetas');
-    }
-    if (vistaDetalle) {
-        vistaDetalle.style.display = 'none';
-        console.log('✅ Ocultando detalle');
-    }
-    
-    cargarConteos(grupo);
-};
-
-// ===== CARGAR CONTEOS =====
-function cargarConteos(grupo) {
-    console.log('📊 Conteos:', grupo);
-    
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.error('❌ Sin token');
-        return;
-    }
-    
-    // Verificar elementos
-    if (!document.getElementById('countSantoCulto')) {
-        console.error('❌ countSantoCulto no existe');
-        return;
-    }
-    
+    // Cargar conteos
     fetch(`/api/reportes/conteos/${grupo}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {'Authorization': `Bearer ${token}`}
     })
-    .then(res => res.json())
-    .then(data => {
-        console.log('📦 Conteos recibidos:', data);
-        
-        const els = ['countSantoCulto', 'countEnsayo', 'countBautismo'];
-        const keys = ['santo_culto', 'ensayo', 'bautismo'];
-        
-        els.forEach((el, i) => {
-            const elem = document.getElementById(el);
-            if (elem) {
-                elem.textContent = data[keys[i]] || '0';
-            }
-        });
+    .then(r => r.json())
+    .then(d => {
+        console.log('📊 Conteos:', d);
+        document.getElementById('countSantoCulto').textContent = d.santo_culto || 0;
+        document.getElementById('countEnsayo').textContent = d.ensayo || 0;
+        document.getElementById('countBautismo').textContent = d.bautismo || 0;
     })
-    .catch(err => console.error('❌ Error:', err));
-}
+    .catch(e => console.error('❌', e));
+};
 
 // ===== ABRIR EVENTO =====
-window.abrirReporteEvento = function(tipoEvento) {
-    console.log('🎯 Evento:', tipoEvento);
+window.abrirReporteEvento = function(tipo) {
+    console.log('🟢 abrirReporteEvento -', tipo);
     
-    // Verificar elementos críticos
-    if (!document.getElementById('vistaTarjetas')) {
-        console.error('❌ vistaTarjetas no existe');
-        return;
-    }
-    if (!document.getElementById('vistaDetalle')) {
-        console.error('❌ vistaDetalle no existe');
-        return;
-    }
-    if (!document.getElementById('tablaDetalleBody')) {
-        console.error('❌ tablaDetalleBody no existe');
-        return;
-    }
+    const nom = {'santo_culto': 'Santo Culto', 'ensayo': 'Ensayos', 'bautismo': 'Bautismo'}[tipo];
     
-    const nombres = {
-        'santo_culto': 'Santo Culto',
-        'ensayo': 'Ensayos',
-        'bautismo': 'Bautismo'
-    };
+    // Ocultar tarjetas, mostrar detalle
+    const vT = document.getElementById('vistaTarjetas');
+    const vD = document.getElementById('vistaDetalle');
+    if (vT) vT.style.display = 'none';
+    if (vD) vD.style.display = 'block';
     
-    document.getElementById('vistaTarjetas').style.display = 'none';
-    document.getElementById('vistaDetalle').style.display = 'block';
+    const tit = document.getElementById('detalleEventoTitulo');
+    if (tit) tit.textContent = nom;
     
-    const titulo = document.getElementById('detalleEventoTitulo');
-    if (titulo) titulo.textContent = nombres[tipoEvento];
+    console.log('📡 Fetching evento:', tipo);
     
-    cargarDatos(tipoEvento);
-    window.scrollTo(0, 0);
+    fetch(`/api/reportes/evento/${grupoActual}?tipo_evento=${tipo}`, {
+        headers: {'Authorization': `Bearer ${token}`}
+    })
+    .then(r => r.json())
+    .then(d => {
+        console.log('✅ Datos recibidos:', d.length, 'registros');
+        datosEventoActual = d;
+        
+        const tb = document.getElementById('tablaDetalleBody');
+        if (!tb) {
+            console.error('❌ tablaDetalleBody no existe');
+            return;
+        }
+        
+        if (!d || d.length === 0) {
+            tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>';
+            return;
+        }
+        
+        tb.innerHTML = d.map(item => `
+            <tr>
+                <td>${item.nombre} ${item.apellido || ''}</td>
+                <td>${item.instrumento || item.voz || '-'}</td>
+                <td>${item.presente ? '✓' : '-'}</td>
+                <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
+                <td>${item.justified ? '✓' : '-'}</td>
+            </tr>
+        `).join('');
+        
+        console.log('✅ Tabla renderizada');
+    })
+    .catch(e => console.error('❌ Error:', e));
 };
-
-// ===== CARGAR DATOS =====
-function cargarDatos(tipoEvento) {
-    console.log('📋 Datos:', tipoEvento);
-    
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.error('❌ Sin token');
-        return;
-    }
-    
-    const url = `/api/reportes/evento/${grupoActual}?tipo_evento=${tipoEvento}`;
-    console.log('📡 URL:', url);
-    
-    fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log('✅ Datos:', data.length, 'registros');
-        datosEventoActual = data;
-        renderizarTabla(data);
-    })
-    .catch(err => console.error('❌ Error:', err));
-}
-
-// ===== RENDERIZAR TABLA =====
-function renderizarTabla(datos) {
-    const tbody = document.getElementById('tablaDetalleBody');
-    if (!tbody) {
-        console.error('❌ tablaDetalleBody no existe');
-        return;
-    }
-    
-    if (!datos || datos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = datos.map(item => `
-        <tr>
-            <td>${item.nombre} ${item.apellido || ''}</td>
-            <td>${item.instrumento || item.voz || '-'}</td>
-            <td>${item.presente ? '✓' : '-'}</td>
-            <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
-            <td>${item.justified ? '✓' : '-'}</td>
-        </tr>
-    `).join('');
-    
-    console.log('✅ Tabla:', datos.length, 'filas');
-}
 
 // ===== VOLVER =====
 window.volverATarjetas = function() {
-    console.log('🔙 Volver');
-    
-    const vistaTarjetas = document.getElementById('vistaTarjetas');
-    const vistaDetalle = document.getElementById('vistaDetalle');
-    
-    if (vistaTarjetas) vistaTarjetas.style.display = 'block';
-    if (vistaDetalle) vistaDetalle.style.display = 'none';
-    
-    window.limpiarFiltrosDetalle();
+    console.log('🔙 Volver a tarjetas');
+    const vT = document.getElementById('vistaTarjetas');
+    const vD = document.getElementById('vistaDetalle');
+    if (vT) vT.style.display = 'block';
+    if (vD) vD.style.display = 'none';
 };
 
 // ===== FILTROS =====
 window.aplicarFiltrosDetalle = function() {
-    console.log('🔍 Filtros');
-    
-    const fecha = document.getElementById('filtroFecha');
-    const estado = document.getElementById('filtroEstado');
-    
-    if (!fecha || !estado) {
-        console.error('❌ Filtros no existen');
-        return;
-    }
+    console.log('🔍 Aplicar filtros');
+    const fecha = document.getElementById('filtroFecha').value;
+    const estado = document.getElementById('filtroEstado').value;
     
     let datos = datosEventoActual;
     
-    if (fecha.value) {
-        datos = datos.filter(item => item.fecha === fecha.value);
-        const d = new Date(fecha.value + 'T00:00:00');
+    if (fecha) {
+        datos = datos.filter(i => i.fecha === fecha);
+        const d = new Date(fecha + 'T00:00:00');
         const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-        const diaSemana = document.getElementById('diaSemana');
-        if (diaSemana) diaSemana.textContent = `(${dias[d.getDay()]})`;
+        const dia = document.getElementById('diaSemana');
+        if (dia) dia.textContent = `(${dias[d.getDay()]})`;
     }
     
-    if (estado.value === 'true') {
-        datos = datos.filter(item => item.presente);
-    } else if (estado.value === 'false') {
-        datos = datos.filter(item => !item.presente && !item.justified);
-    } else if (estado.value === 'justified') {
-        datos = datos.filter(item => item.justified);
-    }
+    if (estado === 'true') datos = datos.filter(i => i.presente);
+    else if (estado === 'false') datos = datos.filter(i => !i.presente && !i.justified);
+    else if (estado === 'justified') datos = datos.filter(i => i.justified);
     
-    renderizarTabla(datos);
+    const tb = document.getElementById('tablaDetalleBody');
+    if (tb) {
+        tb.innerHTML = datos.map(item => `
+            <tr>
+                <td>${item.nombre} ${item.apellido || ''}</td>
+                <td>${item.instrumento || item.voz || '-'}</td>
+                <td>${item.presente ? '✓' : '-'}</td>
+                <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
+                <td>${item.justified ? '✓' : '-'}</td>
+            </tr>
+        `).join('');
+    }
 };
 
 window.limpiarFiltrosDetalle = function() {
     console.log('🧹 Limpiar');
+    document.getElementById('filtroFecha').value = '';
+    document.getElementById('filtroEstado').value = '';
+    document.getElementById('diaSemana').textContent = '';
     
-    const fecha = document.getElementById('filtroFecha');
-    const estado = document.getElementById('filtroEstado');
-    const diaSemana = document.getElementById('diaSemana');
-    
-    if (fecha) fecha.value = '';
-    if (estado) estado.value = '';
-    if (diaSemana) diaSemana.textContent = '';
-    
-    renderizarTabla(datosEventoActual);
+    const tb = document.getElementById('tablaDetalleBody');
+    if (tb) {
+        tb.innerHTML = datosEventoActual.map(item => `
+            <tr>
+                <td>${item.nombre} ${item.apellido || ''}</td>
+                <td>${item.instrumento || item.voz || '-'}</td>
+                <td>${item.presente ? '✓' : '-'}</td>
+                <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
+                <td>${item.justified ? '✓' : '-'}</td>
+            </tr>
+        `).join('');
+    }
 };
 
-console.log('✅ REPORTES.JS LISTO');
+console.log('✅ REPORTES.JS LISTO - todas las funciones definidas');
