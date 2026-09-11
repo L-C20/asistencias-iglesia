@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Asistencia</title>
     <link rel="stylesheet" href="css/styles.css">
-       <link rel="stylesheet" href="/css/configuracion.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 </head>
@@ -540,6 +539,88 @@
                 </form>
             </div>
         </div>
+        </div>
+    </div>
+
+    <!-- MODALES CONFIGURACIÓN -->
+    <div id="modalNuevoUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Nuevo Usuario</span>
+                <button class="modal-close" onclick="cerrarModal('modalNuevoUsuario')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nombre de Usuario:</label>
+                    <input type="text" id="nuevoUsuarioNombre" placeholder="usuario1" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" id="nuevoUsuarioPassword" placeholder="Contraseña" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol:</label>
+                    <select id="nuevoUsuarioRol">
+                        <option value="operario">Operario</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalNuevoUsuario')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarNuevoUsuario()">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditarUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Editar Usuario</span>
+                <button class="modal-close" onclick="cerrarModal('modalEditarUsuario')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="usuarioEditarId">
+                <div class="form-group">
+                    <label>Nombre de Usuario:</label>
+                    <input type="text" id="usuarioEditarNombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol:</label>
+                    <select id="usuarioEditarRol">
+                        <option value="operario">Operario</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="usuarioEditarActivo">
+                        Activo
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalEditarUsuario')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarUsuarioEditado()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalResetearPassword" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Resetear Contraseña</span>
+                <button class="modal-close" onclick="cerrarModal('modalResetearPassword')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Resetear contraseña para <strong id="usuarioResetNombre"></strong>?</p>
+                <p style="font-size: 12px; color: #6b7280;">Se generará una nueva contraseña aleatoria que deberás compartir con el usuario.</p>
+                <input type="hidden" id="usuarioResetId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalResetearPassword')">Cancelar</button>
+                <button class="btn btn-primary" onclick="resetearPassword()">Resetear</button>
+            </div>
         </div>
     </div>
 

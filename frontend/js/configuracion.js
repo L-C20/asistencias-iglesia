@@ -102,7 +102,7 @@ async function cargarUsuarios() {
 
 // ===== RENDERIZAR TABLA USUARIOS =====
 function renderizarTablaUsuarios(usuarios) {
-    const tbody = document.querySelector('.tabla-datos tbody');
+    const tbody = document.querySelector('#usuariosTableBody');
     if (!tbody) {
         console.error('❌ Tabla de usuarios no encontrada');
         return;
@@ -130,11 +130,7 @@ function renderizarTablaUsuarios(usuarios) {
                 </button>
                 <button class="btn btn-sm" style="background: #fef3c7; color: #92400e;" onclick="abrirModalResetearPassword(${usuario.id}, '${usuario.usuario}')" title="Resetear contraseña">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <path d="M12 1v6m0 6v6"></path>
-                        <path d="M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24"></path>
-                        <path d="M1 12h6m6 0h6"></path>
-                        <path d="M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"></path>
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
                     </svg>
                 </button>
                 <button class="btn btn-sm" style="background: #fee2e2; color: #991b1b;" onclick="confirmarEliminarUsuario(${usuario.id}, '${usuario.usuario}')" title="Eliminar">
@@ -273,17 +269,19 @@ async function resetearPassword() {
 }
 
 // ===== CAMBIAR MI CONTRASEÑA =====
-async function cambiarMiContraseña() {
-    const passwordActual = document.getElementById('miPasswordActual').value;
-    const passwordNueva = document.getElementById('miPasswordNueva').value;
-    const passwordConfirm = document.getElementById('miPasswordConfirm').value;
+async function cambiarMiContraseña(event) {
+    event.preventDefault();
+    
+    const passwordActual = document.getElementById('passwordActual').value;
+    const passwordNueva = document.getElementById('passwordNueva').value;
+    const passwordConfirmar = document.getElementById('passwordConfirmar').value;
 
-    if (!passwordActual || !passwordNueva || !passwordConfirm) {
+    if (!passwordActual || !passwordNueva || !passwordConfirmar) {
         alert('Completa todos los campos');
         return;
     }
 
-    if (passwordNueva !== passwordConfirm) {
+    if (passwordNueva !== passwordConfirmar) {
         alert('Las contraseñas nuevas no coinciden');
         return;
     }
@@ -306,9 +304,9 @@ async function cambiarMiContraseña() {
         }
 
         alert('Contraseña actualizada exitosamente');
-        document.getElementById('miPasswordActual').value = '';
-        document.getElementById('miPasswordNueva').value = '';
-        document.getElementById('miPasswordConfirm').value = '';
+        document.getElementById('passwordActual').value = '';
+        document.getElementById('passwordNueva').value = '';
+        document.getElementById('passwordConfirmar').value = '';
     } catch (error) {
         console.error('❌ Error cambiando contraseña:', error);
         alert('Error al cambiar contraseña');
