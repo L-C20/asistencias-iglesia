@@ -9,6 +9,17 @@
     <link rel="stylesheet" href="css/reportes.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <!-- VARIABLES GLOBALES NECESARIAS -->
+    <script>
+        const API_URL = '/api';
+        console.log('🌐 API_URL:', API_URL);
+        
+        // Función de error global
+        window.mostrarError = function(mensaje) {
+            console.error('❌', mensaje);
+            alert('Error: ' + mensaje);
+        };
+    </script>
     <!-- REPORTES.JS PRIMERO EN EL HEAD -->
     <script src="js/reportes.js"></script>
 </head>
