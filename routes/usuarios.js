@@ -1,76 +1,54 @@
 const express = require('express');
 const db = require('../database');
 const { verifyToken } = require('./auth');
+const crypto = require('crypto');
 const router = express.Router();
 
-// Obtener todos los usuarios - GET /api/usuarios
-router.get('/', verifyToken, async (req, res) => {
+// Middleware para verificar si es admin
+const verificarAdmin = async (req, res, next) => {
   try {
-    console.log('📋 Obteniendo lista de usuarios');
+    const usuarioId = req.user.id;
     
     const result = await db.query(
-      'SELECT id, usuario, rol, activo, fecha_creacion FROM usuarios ORDER BY usuario'
+      'SELECT rol FROM usuarios WHERE id = $1',
+      [usuarioId]
     );
 
-    console.log('✅ Usuarios obtenidos:', result.rows.length);
+    if (result.rows.length === 0 || result.rows[0].rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado: Solo administradores' });
+    }
+
+    next();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// GET /api/usuarios - Listar todos los usuarios (solo admin)
+router.get('/', verifyToken, verificarAdmin, async (req, res) => {
+  try {
+    console.log('📋 Obteniendo usuarios...');
+    
+    const result = await db.query(
+      'SELECT id, usuario, rol, activo, fecha_creacion FROM usuarios ORDER BY fecha_creacion DESC'
+    );
+
+    console.log(`✅ ${result.rows.length} usuarios encontrados`);
     res.json(result.rows);
   } catch (error) {
-    console.error('❌ Error obteniendo usuarios:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
+    console.error('❌ Error en GET /usuarios:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Crear nuevo usuario - POST /api/usuarios/crear
-router.post('/crear', verifyToken, async (req, res) => {
+// GET /api/usuarios/perfil - Obtener perfil del usuario actual
+router.get('/perfil/actual', verifyToken, async (req, res) => {
   try {
-    const { usuario, password, rol } = req.body;
-
-    console.log('➕ Creando nuevo usuario:', usuario);
-
-    if (!usuario || !password || !rol) {
-      return res.status(400).json({ error: 'Datos incompletos' });
-    }
-
-    if (!['admin', 'user'].includes(rol)) {
-      return res.status(400).json({ error: 'Rol inválido' });
-    }
-
-    // Verificar que el usuario no exista
-    const existente = await db.query(
-      'SELECT id FROM usuarios WHERE usuario = $1',
-      [usuario]
-    );
-
-    if (existente.rows.length > 0) {
-      return res.status(400).json({ error: 'El usuario ya existe' });
-    }
-
-    // Crear usuario
+    const usuarioId = req.user.id;
+    
     const result = await db.query(
-      'INSERT INTO usuarios (usuario, password, rol, activo) VALUES ($1, $2, $3, true) RETURNING id, usuario, rol, activo',
-      [usuario, password, rol]
-    );
-
-    console.log('✅ Usuario creado:', usuario);
-
-    res.json({
-      success: true,
-      usuario: result.rows[0]
-    });
-  } catch (error) {
-    console.error('❌ Error creando usuario:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
-  }
-});
-
-// Obtener usuario por ID - GET /api/usuarios/:id
-router.get('/:id', verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await db.query(
-      'SELECT id, usuario, rol, activo FROM usuarios WHERE id = $1',
-      [id]
+      'SELECT id, usuario, rol, activo, fecha_creacion FROM usuarios WHERE id = $1',
+      [usuarioId]
     );
 
     if (result.rows.length === 0) {
@@ -79,69 +57,121 @@ router.get('/:id', verifyToken, async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('❌ Error obteniendo usuario:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Editar usuario - PUT /api/usuarios/:id
-router.put('/:id', verifyToken, async (req, res) => {
+// POST /api/usuarios/crear - Crear nuevo usuario (solo admin)
+router.post('/crear', verifyToken, verificarAdmin, async (req, res) => {
+  try {
+    const { usuario, password, rol } = req.body;
+
+    console.log('➕ Creando usuario:', usuario, 'Rol:', rol);
+
+    if (!usuario || !password) {
+      return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+    }
+
+    // Validar rol
+    if (!['admin', 'operario'].includes(rol)) {
+      return res.status(400).json({ error: 'Rol inválido' });
+    }
+
+    // Verificar si usuario existe
+    const existente = await db.query(
+      'SELECT id FROM usuarios WHERE usuario = $1',
+      [usuario]
+    );
+
+    if (existente.rows.length > 0) {
+      return res.status(400).json({ error: 'Usuario ya existe' });
+    }
+
+    // Crear usuario
+    const result = await db.query(
+      'INSERT INTO usuarios (usuario, password, rol, activo) VALUES ($1, $2, $3, true) RETURNING id, usuario, rol, activo, fecha_creacion',
+      [usuario, password, rol]
+    );
+
+    console.log('✅ Usuario creado:', usuario);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error en POST /crear:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /api/usuarios/:id - Actualizar usuario (solo admin)
+router.put('/:id', verifyToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { usuario, rol, activo } = req.body;
 
-    console.log('✏️ Editando usuario:', id);
+    console.log('✏️ Actualizando usuario:', id);
 
-    if (!usuario || !rol) {
-      return res.status(400).json({ error: 'Datos incompletos' });
+    // No permitir editar al mismo admin
+    if (req.user.id == id && rol !== 'admin') {
+      return res.status(403).json({ error: 'No puedes cambiar tu propio rol' });
     }
 
-    const result = await db.query(
-      'UPDATE usuarios SET usuario = $1, rol = $2, activo = $3 WHERE id = $4 RETURNING id, usuario, rol, activo',
-      [usuario, rol, activo !== undefined ? activo : true, id]
-    );
+    let query = 'UPDATE usuarios SET ';
+    const values = [];
+    let paramCount = 1;
+
+    if (usuario !== undefined) {
+      query += `usuario = $${paramCount}, `;
+      values.push(usuario);
+      paramCount++;
+    }
+
+    if (rol !== undefined) {
+      if (!['admin', 'operario'].includes(rol)) {
+        return res.status(400).json({ error: 'Rol inválido' });
+      }
+      query += `rol = $${paramCount}, `;
+      values.push(rol);
+      paramCount++;
+    }
+
+    if (activo !== undefined) {
+      query += `activo = $${paramCount}, `;
+      values.push(activo);
+      paramCount++;
+    }
+
+    // Remover última coma
+    query = query.slice(0, -2);
+    query += ` WHERE id = $${paramCount} RETURNING id, usuario, rol, activo`;
+    values.push(id);
+
+    const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    console.log('✅ Usuario actualizado:', usuario);
-
-    res.json({
-      success: true,
-      usuario: result.rows[0]
-    });
+    console.log('✅ Usuario actualizado');
+    res.json(result.rows[0]);
   } catch (error) {
-    console.error('❌ Error editando usuario:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
+    console.error('❌ Error en PUT /:id:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Eliminar usuario - DELETE /api/usuarios/:id
-router.delete('/:id', verifyToken, async (req, res) => {
+// DELETE /api/usuarios/:id - Eliminar usuario (solo admin)
+router.delete('/:id', verifyToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
     console.log('🗑️ Eliminando usuario:', id);
 
-    // No permitir eliminar el último admin
-    const admins = await db.query(
-      'SELECT COUNT(*) as count FROM usuarios WHERE rol = $1 AND activo = true AND id != $2',
-      ['admin', id]
-    );
-
-    if (parseInt(admins.rows[0].count) === 0) {
-      const user = await db.query(
-        'SELECT rol FROM usuarios WHERE id = $1',
-        [id]
-      );
-      if (user.rows[0]?.rol === 'admin') {
-        return res.status(400).json({ error: 'No puedes eliminar el único administrador' });
-      }
+    // No permitir eliminar al mismo admin
+    if (req.user.id == id) {
+      return res.status(403).json({ error: 'No puedes eliminar tu propia cuenta' });
     }
 
     const result = await db.query(
-      'DELETE FROM usuarios WHERE id = $1 RETURNING usuario',
+      'DELETE FROM usuarios WHERE id = $1 RETURNING id, usuario',
       [id]
     );
 
@@ -149,30 +179,26 @@ router.delete('/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    console.log('✅ Usuario eliminado:', result.rows[0].usuario);
-
-    res.json({
-      success: true,
-      message: 'Usuario eliminado correctamente'
-    });
+    console.log('✅ Usuario eliminado');
+    res.json({ mensaje: 'Usuario eliminado', usuario: result.rows[0].usuario });
   } catch (error) {
-    console.error('❌ Error eliminando usuario:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
+    console.error('❌ Error en DELETE /:id:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Resetear contraseña de usuario - POST /api/usuarios/:id/resetear-password
-router.post('/:id/resetear-password', verifyToken, async (req, res) => {
+// POST /api/usuarios/:id/resetear-password - Resetear contraseña (solo admin)
+router.post('/:id/resetear-password', verifyToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log('🔑 Reseteando contraseña de usuario:', id);
+    console.log('🔑 Reseteando contraseña para usuario:', id);
 
-    // Generar contraseña temporal
-    const nuevaPassword = Math.random().toString(36).substring(2, 10);
+    // Generar contraseña aleatoria
+    const nuevaPassword = crypto.randomBytes(6).toString('hex');
 
     const result = await db.query(
-      'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING usuario',
+      'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING id, usuario',
       [nuevaPassword, id]
     );
 
@@ -180,16 +206,56 @@ router.post('/:id/resetear-password', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    console.log('✅ Contraseña reseteada para:', result.rows[0].usuario);
-
-    res.json({
-      success: true,
+    console.log('✅ Contraseña reseteada');
+    res.json({ 
+      mensaje: 'Contraseña reseteada',
       usuario: result.rows[0].usuario,
-      nuevaPassword: nuevaPassword
+      nueva_password: nuevaPassword,
+      aviso: '⚠️ Comparte esta contraseña de forma segura con el usuario'
     });
   } catch (error) {
-    console.error('❌ Error reseteando contraseña:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
+    console.error('❌ Error en POST /resetear-password:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/usuarios/cambiar-password - Cambiar tu propia contraseña
+router.post('/cambiar-password/actual', verifyToken, async (req, res) => {
+  try {
+    const { passwordActual, passwordNueva } = req.body;
+    const usuarioId = req.user.id;
+
+    console.log('🔐 Cambiando contraseña para usuario:', usuarioId);
+
+    if (!passwordActual || !passwordNueva) {
+      return res.status(400).json({ error: 'Contraseñas requeridas' });
+    }
+
+    // Verificar contraseña actual
+    const usuario = await db.query(
+      'SELECT password FROM usuarios WHERE id = $1',
+      [usuarioId]
+    );
+
+    if (usuario.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    if (usuario.rows[0].password !== passwordActual) {
+      return res.status(401).json({ error: 'Contraseña actual incorrecta' });
+    }
+
+    // Actualizar contraseña
+    await db.query(
+      'UPDATE usuarios SET password = $1 WHERE id = $2',
+      [passwordNueva, usuarioId]
+    );
+
+    console.log('✅ Contraseña actualizada');
+    res.json({ mensaje: 'Contraseña actualizada exitosamente' });
+  } catch (error) {
+    console.error('❌ Error en cambiar-password:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
