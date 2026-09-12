@@ -283,39 +283,6 @@ window.obtenerFechasCultoDeSemana = function() {
     return fechas;
 };
 
-// ===== GENERAR TABLA HORIZONTAL POR CULTOS =====
-window.generarTablaHorizontal = function(datos) {
-    if (!datos || datos.length === 0) return '<tr><td colspan="10">Sin datos</td></tr>';
-
-    const fechasCulto = window.obtenerFechasCultoDeSemana();
-    const miembros = [...new Set(datos.map(d => `${d.nombre}|${d.apellido || ''}`))];
-
-    let html = '';
-
-    miembros.forEach(miembro => {
-        const [nombre, apellido] = miembro.split('|');
-        html += `<tr><td style="font-weight:700;min-width:180px">${nombre} ${apellido}</td>`;
-
-        fechasCulto.forEach(fecha => {
-            const registro = datos.find(d => d.nombre === nombre && d.apellido === apellido && d.fecha.split('T')[0] === fecha);
-            let estado = 'P';
-            if (!registro) {
-                estado = '-';
-            } else if (registro.justified) {
-                estado = 'AJ';
-            } else if (!registro.presente) {
-                estado = 'A';
-            }
-
-            const color = estado === 'P' ? 'green' : estado === 'AJ' ? 'orange' : estado === 'A' ? 'red' : 'gray';
-            html += `<td style="text-align:center;font-weight:600;color:${color};padding:12px">${estado}</td>`;
-        });
-        html += '</tr>';
-    });
-
-    return html;
-};
-
 // ===== OBTENER DÍA DEL CULTO =====
 window.obtenerDiaCulto = function(fechaStr) {
     if (!fechaStr) return '-';
@@ -336,46 +303,4 @@ window.obtenerDiaCulto = function(fechaStr) {
     const fechaFormato = fecha.toLocaleDateString('es-ES', opciones);
 
     return `${nombreDia} ${fechaFormato}`;
-};
-
-// ===== ACTUALIZAR FILTROS =====
-// ===== FIX: ASEGURAR QUE USA LA NUEVA TABLA =====
-console.log('✅ Sobrescribiendo generarTablaHorizontal en reportes.js');
-
-window.generarTablaHorizontal_OLD = window.generarTablaHorizontal;
-window.generarTablaHorizontal = function(datos) {
-    if (!datos || datos.length === 0) return '<tr><td colspan="10" style="text-align:center;padding:20px">Sin datos</td></tr>';
-    
-    if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
-    
-    const fechasCulto = window.obtenerFechasCultoDeSemana();
-    console.log('📅 TABLA: Fechas de culto a mostrar:', fechasCulto);
-    
-    const miembros = [...new Set(datos.map(d => `${d.nombre}|${d.apellido || ''}|${d.id}|${d.instrumento || d.voz || '-'}`))];
-    console.log('👥 TABLA: Miembros:', miembros.length);
-    
-    let html = '';
-    
-    miembros.forEach(miembro => {
-        const [nombre, apellido, id, instrumento] = miembro.split('|');
-        const nombreCompleto = `${nombre}${apellido ? ' ' + apellido : ''}`;
-        
-        html += `<tr>`;
-        html += `<td style="font-weight:700;font-size:13px;padding:10px 8px">${nombreCompleto}</td>`;
-        html += `<td style="font-size:12px;color:#6b7280;padding:10px 8px">${instrumento}</td>`;
-        
-        fechasCulto.forEach(fecha => {
-            const registro = datos.find(d => d.id == id && d.fecha.split('T')[0] === fecha);
-            const presente = registro && registro.presente;
-            const check = presente ? '✓' : '';
-            const color = presente ? '#10b981' : '#d1d5db';
-            const fontSize = presente ? '18px' : '14px';
-            
-            html += `<td style="text-align:center;font-weight:800;color:${color};padding:10px 4px;font-size:${fontSize}">${check}</td>`;
-        });
-        
-        html += '</tr>';
-    });
-    
-    return html;
 };
