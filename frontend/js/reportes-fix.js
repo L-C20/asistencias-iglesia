@@ -16,7 +16,7 @@ window.actualizarHeaderTabla = function() {
             const diasAbr = { 0: 'Dom', 2: 'Mar', 6: 'Sáb' };
             const diaAbr = diasAbr[diaSemana] || '-';
             const fechaFormato = `${String(dia).padStart(2, '0')}/${mes}`;
-            html += `<th style="text-align:center;font-weight:800;min-width:60px;padding:6px 4px;line-height:1.1;font-size:11px"><div style="font-weight:800;font-size:12px">${diaAbr}.</div><div style="font-weight:600;color:#6b7280;font-size:10px;margin-top:2px">${fechaFormato}</div></th>`;
+            html += `<th style="text-align:center;font-weight:800;min-width:60px;padding:6px 4px;line-height:1.1;font-size:11px;color:white"><div style="font-weight:800;font-size:12px">${diaAbr}.</div><div style="font-weight:600;font-size:10px;margin-top:2px;opacity:0.9">${fechaFormato}</div></th>`;
         });
 
         html += '</tr>';
