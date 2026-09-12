@@ -1,13 +1,12 @@
 console.log('✅ reportes.js SE CARGÓ');
 
-var grupoActualReporte = 'coro';
-var datosEventoActual = [];
-var tokenReporte = localStorage.getItem('token');
+// NO declarar variables globales que otros scripts usan
+// Usar variables privadas en scope de funciones
 
 // ===== CARGAR GRUPO =====
 window.cargarReporteGrupo = function(grupo, autoLoad) {
     console.log('🔵 cargarReporteGrupo -', grupo);
-    grupoActualReporte = grupo;
+    window.grupoReporte = grupo;
     
     document.querySelectorAll('.grupo-btn').forEach(b => b.classList.remove('active'));
     if (event && event.target) {
@@ -19,8 +18,9 @@ window.cargarReporteGrupo = function(grupo, autoLoad) {
     if (vT) vT.style.display = 'block';
     if (vD) vD.style.display = 'none';
     
+    const token = localStorage.getItem('token');
     fetch(`/api/reportes/conteos/${grupo}`, {
-        headers: {'Authorization': `Bearer ${tokenReporte}`}
+        headers: {'Authorization': `Bearer ${token}`}
     })
     .then(r => r.json())
     .then(d => {
@@ -46,13 +46,16 @@ window.abrirReporteEvento = function(tipo) {
     const tit = document.getElementById('detalleEventoTitulo');
     if (tit) tit.textContent = nom;
     
-    fetch(`/api/reportes/evento/${grupoActualReporte}?tipo_evento=${tipo}`, {
-        headers: {'Authorization': `Bearer ${tokenReporte}`}
+    const token = localStorage.getItem('token');
+    const grupo = window.grupoReporte || 'coro';
+    
+    fetch(`/api/reportes/evento/${grupo}?tipo_evento=${tipo}`, {
+        headers: {'Authorization': `Bearer ${token}`}
     })
     .then(r => r.json())
     .then(d => {
         console.log('✅ Datos:', d.length, 'registros');
-        datosEventoActual = d;
+        window.datosReporte = d;
         
         const tb = document.getElementById('tablaDetalleBody');
         if (!tb) return;
@@ -90,7 +93,7 @@ window.aplicarFiltrosDetalle = function() {
     const fecha = document.getElementById('filtroFecha').value;
     const estado = document.getElementById('filtroEstado').value;
     
-    let datos = datosEventoActual;
+    let datos = window.datosReporte || [];
     
     if (fecha) {
         datos = datos.filter(i => i.fecha === fecha);
@@ -124,9 +127,10 @@ window.limpiarFiltrosDetalle = function() {
     document.getElementById('filtroEstado').value = '';
     document.getElementById('diaSemana').textContent = '';
     
+    const datos = window.datosReporte || [];
     const tb = document.getElementById('tablaDetalleBody');
     if (tb) {
-        tb.innerHTML = datosEventoActual.map(item => `
+        tb.innerHTML = datos.map(item => `
             <tr>
                 <td>${item.nombre} ${item.apellido || ''}</td>
                 <td>${item.instrumento || item.voz || '-'}</td>

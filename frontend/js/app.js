@@ -1,6 +1,6 @@
 // ===== VARIABLES GLOBALES =====
-let token = localStorage.getItem('token');
-let API_URL = window.location.origin === 'http://localhost:3000' 
+var token = localStorage.getItem('token');
+var API_URL = window.location.origin === 'http://localhost:3000' 
     ? 'http://localhost:3000/api' 
     : '/api';
 

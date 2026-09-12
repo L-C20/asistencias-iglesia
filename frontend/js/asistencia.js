@@ -1,9 +1,9 @@
 // Variables globales
-let miembrosActuales = [];
-let grupoActual = null;
-let asistenciasParaGuardar = {};
-let tipoEventoActual = null;
-let fechaEventoActual = null;
+var miembrosActuales = [];
+var grupoActual = null;
+var asistenciasParaGuardar = {};
+var tipoEventoActual = null;
+var fechaEventoActual = null;
 
 console.log('🚀 asistencia-v12.js iniciando');
 
@@ -196,23 +196,26 @@ function renderizarListaAsistencia(grupo) {
                 <div class="miembro-detalle">${grupo === 'coro' ? (miembro.voz || 'Sin asignar') : (miembro.instrumento || 'Sin asignar')}</div>
             </div>
             <div class="miembro-switches">
-                <label class="switch-label">
+                <label class="toggle-switch presente">
                     <input type="radio" name="asistencia-${miembro.id}" value="present" 
                         onchange="cambiarAsistencia(this)" 
                         ${registro.presente === true ? 'checked' : ''} />
-                    <span class="switch-text">Presente</span>
+                    <span class="toggle-icon">P</span>
+                    <span class="toggle-label">Presente</span>
                 </label>
-                <label class="switch-label">
+                <label class="toggle-switch ausente">
                     <input type="radio" name="asistencia-${miembro.id}" value="absent" 
                         onchange="cambiarAsistencia(this)" 
                         ${registro.presente === false ? 'checked' : ''} />
-                    <span class="switch-text">Ausente</span>
+                    <span class="toggle-icon">A</span>
+                    <span class="toggle-label">Ausente</span>
                 </label>
-                <label class="switch-label">
+                <label class="toggle-switch justificado">
                     <input type="radio" name="asistencia-${miembro.id}" value="justified" 
                         onchange="cambiarAsistencia(this)" 
                         ${registro.presente === 'justified' ? 'checked' : ''} />
-                    <span class="switch-text">Justificado</span>
+                    <span class="toggle-icon">AJ</span>
+                    <span class="toggle-label">Justificado</span>
                 </label>
             </div>
         `;
