@@ -161,7 +161,7 @@ function abrirModalEditarUsuario(id, usuario, rol, activo) {
     document.getElementById('usuarioEditarRol').value = rol;
     document.getElementById('usuarioEditarActivo').checked = activo;
 
-    modal.style.display = 'block';
+    modal.classList.add('show');
 }
 
 // ===== ABRIR MODAL RESETEAR PASSWORD =====
@@ -175,7 +175,7 @@ function abrirModalResetearPassword(id, usuario) {
     document.getElementById('usuarioResetId').value = id;
     document.getElementById('usuarioResetNombre').innerHTML = usuario;
 
-    modal.style.display = 'block';
+    modal.classList.add('show');
 }
 
 // ===== CONFIRMAR ELIMINAR USUARIO =====
@@ -325,7 +325,7 @@ function abrirModalNuevoUsuario() {
     document.getElementById('nuevoUsuarioPassword').value = '';
     document.getElementById('nuevoUsuarioRol').value = 'operario';
 
-    modal.style.display = 'block';
+    modal.classList.add('show');
 }
 
 // ===== GUARDAR NUEVO USUARIO =====
@@ -369,7 +369,7 @@ async function guardarNuevoUsuario() {
 function cerrarModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.style.display = 'none';
+        modal.classList.remove('show');
     }
 }
 
@@ -381,7 +381,7 @@ function configurarEventos() {
         modales.forEach(id => {
             const modal = document.getElementById(id);
             if (event.target === modal) {
-                modal.style.display = 'none';
+                modal.classList.remove('show');
             }
         });
     };
