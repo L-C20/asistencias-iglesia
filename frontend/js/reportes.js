@@ -173,7 +173,8 @@ window.aplicarFiltrosDetalle = function() {
 
     datos = datos.filter(i => {
         if (!i.fecha) return false;
-        return fechasCulto.includes(i.fecha);
+        const fechaFormato = i.fecha.split('T')[0]; // Convertir 2026-09-13T00:00:00.000Z -> 2026-09-13
+        return fechasCulto.includes(fechaFormato);
     });
 
     console.log('📅 Filtrados por semana de culto:', datos.length, 'registros');
