@@ -161,7 +161,8 @@ window.aplicarFiltrosDetalle = function() {
         return;
     }
 
-    let datos = datosReporte;
+    // HACER COPIA PROFUNDA PARA NO MODIFICAR DATOS ORIGINALES
+    let datos = JSON.parse(JSON.stringify(datosReporte));
 
     // Filtrar por fechas de culto de la semana
     const fechasCulto = window.obtenerFechasCultoDeSemana();
