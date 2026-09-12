@@ -153,26 +153,65 @@ router.get('/miembro/:miembro_id', verifyToken, async (req, res) => {
 router.get('/resumen/:grupo', verifyToken, async (req, res) => {
     try {
         const { grupo } = req.params;
-        
+
         const result = await db.query(`
-            SELECT 
+            SELECT
                 COUNT(DISTINCT m.id) as total_miembros,
                 COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as total_presentes,
                 COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as total_ausentes,
                 COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'justified' THEN 1 END) as total_justificados,
                 COUNT(DISTINCT ra.fecha) as total_eventos,
                 ROUND(
-                    COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) * 100.0 / 
+                    COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) * 100.0 /
                     NULLIF(COUNT(ra.id), 0), 2
                 ) as porcentaje_general
             FROM miembros m
             LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
             WHERE LOWER(m.grupo) = $1
         `, [grupo.toLowerCase()]);
-        
+
         res.json(result.rows[0]);
     } catch (error) {
         console.error('❌ Error en resumen:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ===== DEBUG: Ver miembros y asistencia =====
+router.get('/debug/:grupo', verifyToken, async (req, res) => {
+    try {
+        const { grupo } = req.params;
+
+        const result = await db.query(`
+            SELECT
+                m.id,
+                m.nombre,
+                m.grupo,
+                COUNT(ra.id) as total_registros,
+                COUNT(CASE WHEN ra.tipo_evento = 'santo_culto' THEN 1 END) as santo_culto_count,
+                json_agg(json_build_object('fecha', ra.fecha, 'tipo_evento', ra.tipo_evento, 'presente', ra.presente)) as registros
+            FROM miembros m
+            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
+            WHERE m.grupo = $1
+            GROUP BY m.id, m.nombre, m.grupo
+            ORDER BY m.nombre
+        `, [grupo]);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('❌ Error en debug:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ===== RESET: Limpiar asistencia =====
+router.post('/reset-asistencia', verifyToken, async (req, res) => {
+    try {
+        console.log('🧹 Limpiando registro_asistencia...');
+        await db.query('TRUNCATE TABLE registro_asistencia RESTART IDENTITY CASCADE');
+        res.json({ ok: true, mensaje: '✓ Datos de asistencia eliminados. Recarga desde Asistencia.' });
+    } catch (error) {
+        console.error('❌ Error en reset:', error);
         res.status(500).json({ error: error.message });
     }
 });
