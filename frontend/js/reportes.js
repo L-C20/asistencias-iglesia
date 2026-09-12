@@ -293,7 +293,8 @@ window.obtenerFechasCultoDeSemana = function() {
 window.obtenerDiaCulto = function(fechaStr) {
     if (!fechaStr) return '-';
 
-    const fecha = new Date(fechaStr + 'T00:00:00');
+    const fechaParts = fechaStr.split('T')[0];
+    const fecha = new Date(fechaParts);
     const diaSemana = fecha.getDay();
 
     // 0=domingo, 2=martes, 6=sábado
@@ -304,10 +305,10 @@ window.obtenerDiaCulto = function(fechaStr) {
     };
 
     const nombreDia = diasCulto[diaSemana] || '-';
-    const dia = fecha.getDate();
-    const mes = fecha.toLocaleString('es-ES', { month: 'short' });
+    const opciones = { day: 'numeric', month: 'short' };
+    const fechaFormato = fecha.toLocaleDateString('es-ES', opciones);
 
-    return `${nombreDia} ${dia} ${mes}`;
+    return `${nombreDia} ${fechaFormato}`;
 };
 
 // ===== ACTUALIZAR FILTROS =====
