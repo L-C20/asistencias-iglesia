@@ -11,9 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
     <!-- VARIABLES GLOBALES NECESARIAS -->
     <script>
-        const API_URL = '/api';
-        console.log('🌐 API_URL:', API_URL);
-        
         // Función de error global
         window.mostrarError = function(mensaje) {
             console.error('❌', mensaje);
@@ -88,9 +85,12 @@
             const btnText = document.getElementById('btnText');
             const loading = document.getElementById('loading');
 
+            console.log('🔐 Login intento:', usuario);
+
             if (!usuario || !password) {
                 errorDiv.textContent = 'Por favor completa todos los campos';
                 errorDiv.style.display = 'block';
+                console.error('❌ Campos vacíos');
                 return;
             }
 
@@ -99,24 +99,35 @@
             loading.style.display = 'inline';
 
             try {
-                const response = await fetch(`/api/auth/login`, {
+                const url = `/api/auth/login`;
+                console.log('📡 POST:', url);
+                console.log('👤 Usuario:', usuario);
+                console.log('🔑 Password enviado:', password.length, 'caracteres');
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ usuario, password })
                 });
 
+                console.log('📨 Response status:', response.status);
+
                 const data = await response.json();
+                console.log('📦 Response data:', data);
 
                 if (response.ok && data.token) {
+                    console.log('✅ Login exitoso!');
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('usuario', usuario);
                     window.location.href = '/';
                 } else {
+                    console.error('❌ Login fallido:', data.error);
                     errorDiv.textContent = data.error || 'Error al iniciar sesión';
                     errorDiv.style.display = 'block';
                 }
             } catch (error) {
-                errorDiv.textContent = 'Error de conexión';
+                console.error('❌ Error de conexión:', error);
+                errorDiv.textContent = 'Error de conexión: ' + error.message;
                 errorDiv.style.display = 'block';
             } finally {
                 btnLogin.disabled = false;
@@ -130,6 +141,7 @@
         });
 
         window.addEventListener('load', () => {
+            console.log('🌐 Página de login cargada');
             document.getElementById('usuario').focus();
         });
     </script>
