@@ -254,7 +254,7 @@ window.irASemanaProxima = function() {
 window.irAEstaSemana = function() {
     semanaMostrada = new Date();
     actualizarVisibleSemana();
-};
+}
 
 window.actualizarVisibleSemana = function() {
     const semana = window.calcularSemana(semanaMostrada);
@@ -263,12 +263,7 @@ window.actualizarVisibleSemana = function() {
     const labelEl = document.getElementById('labelSemana');
     const fechasEl = document.getElementById('fechasSemana');
 
-    // Verificar si es esta semana
-    const hoy = new Date();
-    const semanaHoy = window.calcularSemana(hoy);
-    const esEstaSemana = semana.lunes.getTime() === semanaHoy.lunes.getTime();
-
-    if (labelEl) labelEl.textContent = esEstaSemana ? '📅 Esta semana' : '📅 Semana seleccionada';
+    if (labelEl) labelEl.textContent = 'Semana seleccionada';
     if (fechasEl) fechasEl.textContent = rango;
 
     console.log('📅 Semana actualizada:', rango);
