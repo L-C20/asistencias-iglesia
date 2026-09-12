@@ -101,7 +101,7 @@ window.abrirReporteEvento = function(tipo) {
             console.error('❌ Datos inválidos:', d);
             const tb = document.getElementById('tablaDetalleBody');
             if (tb) {
-                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Error al cargar datos</td></tr>';
+                tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px">Error al cargar datos</td></tr>';
             }
             return;
         }
@@ -115,7 +115,7 @@ window.abrirReporteEvento = function(tipo) {
         }
 
         if (d.length === 0) {
-            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Sin datos para este evento</td></tr>';
+            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px">Sin datos para este evento</td></tr>';
             return;
         }
 
@@ -123,6 +123,7 @@ window.abrirReporteEvento = function(tipo) {
             <tr>
                 <td>${item.nombre} ${item.apellido || ''}</td>
                 <td>${item.instrumento || item.voz || '-'}</td>
+                <td><strong>${window.obtenerDiaCulto(item.fecha)}</strong></td>
                 <td>${item.presente ? '✓' : '-'}</td>
                 <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
                 <td>${item.justified ? '✓' : '-'}</td>
@@ -189,7 +190,7 @@ window.aplicarFiltrosDetalle = function() {
     const tb = document.getElementById('tablaDetalleBody');
     if (tb) {
         if (datos.length === 0) {
-            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-light);">No hay datos para esta semana</td></tr>';
+            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-light);">No hay datos para esta semana</td></tr>';
             return;
         }
 
