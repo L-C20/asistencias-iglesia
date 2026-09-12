@@ -283,8 +283,8 @@ router.post('/setup', async (req, res) => {
   }
 });
 
-// POST /api/usuarios/reset-admin - Resetear admin a marcelo/Marcelo26
-router.post('/reset-admin', async (req, res) => {
+// GET /api/usuarios/reset-admin - Resetear admin a marcelo/Marcelo26
+router.get('/reset-admin', async (req, res) => {
   try {
     const bcrypt = require('bcryptjs');
     console.log('🔐 Reseteando admin...');
@@ -297,10 +297,10 @@ router.post('/reset-admin', async (req, res) => {
     );
 
     console.log('✅ Admin reseteado');
-    res.json({ ok: true, mensaje: 'Usuario: marcelo, Contraseña: Marcelo26' });
+    res.json({ ok: true, mensaje: '✅ Admin actualizado. Usuario: marcelo | Contraseña: Marcelo26' });
   } catch (error) {
     console.error('❌ Error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ ok: false, error: error.message });
   }
 });
 
