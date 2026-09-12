@@ -303,7 +303,11 @@ window.obtenerDiaCulto = function(fechaStr) {
         6: 'Sábado'
     };
 
-    return diasCulto[diaSemana] || '-';
+    const nombreDia = diasCulto[diaSemana] || '-';
+    const dia = fecha.getDate();
+    const mes = fecha.toLocaleString('es-ES', { month: 'short' });
+
+    return `${nombreDia} ${dia} ${mes}`;
 };
 
 // ===== ACTUALIZAR FILTROS =====
