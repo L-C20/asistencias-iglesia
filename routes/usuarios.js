@@ -283,30 +283,23 @@ router.post('/setup', async (req, res) => {
   }
 });
 
-// POST /api/usuarios/update-admin-credentials - Cambiar usuario y contraseña del admin
-router.post('/update-admin-credentials', async (req, res) => {
+// POST /api/usuarios/reset-admin - Resetear admin a marcelo/Marcelo26
+router.post('/reset-admin', async (req, res) => {
   try {
-    const { nuevoUsuario, nuevaPassword } = req.body;
     const bcrypt = require('bcryptjs');
+    console.log('🔐 Reseteando admin...');
 
-    console.log('🔐 Actualizando credenciales admin...');
+    const hashedPassword = await bcrypt.hash('Marcelo26', 10);
 
-    // Encriptar contraseña
-    const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
-
-    const result = await db.query(
-      'UPDATE usuarios SET usuario = $1, password = $2 WHERE usuario = $3 RETURNING id, usuario, nombre_completo, rol',
-      [nuevoUsuario, hashedPassword, 'usuario1']
+    await db.query(
+      'UPDATE usuarios SET usuario = $1, password = $2, nombre_completo = $3, rol = $4 WHERE id = 1',
+      ['marcelo', hashedPassword, 'Marcelo Borgia', 'admin']
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    console.log('✅ Credenciales actualizadas');
-    res.json({ ok: true, mensaje: 'Credenciales actualizadas. Logea con las nuevas.', usuario: result.rows[0] });
+    console.log('✅ Admin reseteado');
+    res.json({ ok: true, mensaje: 'Usuario: marcelo, Contraseña: Marcelo26' });
   } catch (error) {
-    console.error('❌ Error en update-admin-credentials:', error.message);
+    console.error('❌ Error:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
