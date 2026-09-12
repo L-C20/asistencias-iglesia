@@ -1,29 +1,26 @@
-console.log('✅ reportes.js SE CARGÓ - funciones definidas');
+console.log('✅ reportes.js SE CARGÓ');
 
-var grupoActual = 'coro';
+var grupoActualReporte = 'coro';
 var datosEventoActual = [];
-var token = localStorage.getItem('token');
+var tokenReporte = localStorage.getItem('token');
 
 // ===== CARGAR GRUPO =====
 window.cargarReporteGrupo = function(grupo, autoLoad) {
-    console.log('🔵 cargarReporteGrupo -', grupo, '- autoLoad:', autoLoad);
-    grupoActual = grupo;
+    console.log('🔵 cargarReporteGrupo -', grupo);
+    grupoActualReporte = grupo;
     
-    // Cambiar botones activos
     document.querySelectorAll('.grupo-btn').forEach(b => b.classList.remove('active'));
     if (event && event.target) {
         event.target.classList.add('active');
     }
     
-    // Mostrar tarjetas, ocultar detalle
     const vT = document.getElementById('vistaTarjetas');
     const vD = document.getElementById('vistaDetalle');
     if (vT) vT.style.display = 'block';
     if (vD) vD.style.display = 'none';
     
-    // Cargar conteos
     fetch(`/api/reportes/conteos/${grupo}`, {
-        headers: {'Authorization': `Bearer ${token}`}
+        headers: {'Authorization': `Bearer ${tokenReporte}`}
     })
     .then(r => r.json())
     .then(d => {
@@ -41,7 +38,6 @@ window.abrirReporteEvento = function(tipo) {
     
     const nom = {'santo_culto': 'Santo Culto', 'ensayo': 'Ensayos', 'bautismo': 'Bautismo'}[tipo];
     
-    // Ocultar tarjetas, mostrar detalle
     const vT = document.getElementById('vistaTarjetas');
     const vD = document.getElementById('vistaDetalle');
     if (vT) vT.style.display = 'none';
@@ -50,21 +46,16 @@ window.abrirReporteEvento = function(tipo) {
     const tit = document.getElementById('detalleEventoTitulo');
     if (tit) tit.textContent = nom;
     
-    console.log('📡 Fetching evento:', tipo);
-    
-    fetch(`/api/reportes/evento/${grupoActual}?tipo_evento=${tipo}`, {
-        headers: {'Authorization': `Bearer ${token}`}
+    fetch(`/api/reportes/evento/${grupoActualReporte}?tipo_evento=${tipo}`, {
+        headers: {'Authorization': `Bearer ${tokenReporte}`}
     })
     .then(r => r.json())
     .then(d => {
-        console.log('✅ Datos recibidos:', d.length, 'registros');
+        console.log('✅ Datos:', d.length, 'registros');
         datosEventoActual = d;
         
         const tb = document.getElementById('tablaDetalleBody');
-        if (!tb) {
-            console.error('❌ tablaDetalleBody no existe');
-            return;
-        }
+        if (!tb) return;
         
         if (!d || d.length === 0) {
             tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>';
@@ -80,15 +71,13 @@ window.abrirReporteEvento = function(tipo) {
                 <td>${item.justified ? '✓' : '-'}</td>
             </tr>
         `).join('');
-        
-        console.log('✅ Tabla renderizada');
     })
-    .catch(e => console.error('❌ Error:', e));
+    .catch(e => console.error('❌', e));
 };
 
 // ===== VOLVER =====
 window.volverATarjetas = function() {
-    console.log('🔙 Volver a tarjetas');
+    console.log('🔙 Volver');
     const vT = document.getElementById('vistaTarjetas');
     const vD = document.getElementById('vistaDetalle');
     if (vT) vT.style.display = 'block';
@@ -97,7 +86,7 @@ window.volverATarjetas = function() {
 
 // ===== FILTROS =====
 window.aplicarFiltrosDetalle = function() {
-    console.log('🔍 Aplicar filtros');
+    console.log('🔍 Filtros');
     const fecha = document.getElementById('filtroFecha').value;
     const estado = document.getElementById('filtroEstado').value;
     
@@ -149,4 +138,4 @@ window.limpiarFiltrosDetalle = function() {
     }
 };
 
-console.log('✅ REPORTES.JS LISTO - todas las funciones definidas');
+console.log('✅ REPORTES.JS LISTO');
