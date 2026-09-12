@@ -122,16 +122,9 @@ window.abrirReporteEvento = function(tipo) {
             return;
         }
 
-        tb.innerHTML = d.map(item => `
-            <tr>
-                <td>${item.nombre} ${item.apellido || ''}</td>
-                <td>${item.instrumento || item.voz || '-'}</td>
-                <td><strong>${window.obtenerDiaCulto(item.fecha)}</strong></td>
-                <td>${item.presente ? '✓' : '-'}</td>
-                <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
-                <td>${item.justified ? '✓' : '-'}</td>
-            </tr>
-        `).join('');
+        // Generar tabla horizontal por cultos
+        const tablaHorizontal = generarTablaHorizontal(d);
+        tb.innerHTML = tablaHorizontal;
 
         console.log('✅ Tabla renderizada');
     })
@@ -291,6 +284,39 @@ window.obtenerFechasCultoDeSemana = function() {
     }
 
     return fechas;
+};
+
+// ===== GENERAR TABLA HORIZONTAL POR CULTOS =====
+window.generarTablaHorizontal = function(datos) {
+    if (!datos || datos.length === 0) return '<tr><td colspan="10">Sin datos</td></tr>';
+
+    const fechasCulto = window.obtenerFechasCultoDeSemana();
+    const miembros = [...new Set(datos.map(d => `${d.nombre}|${d.apellido || ''}`))];
+
+    let html = '';
+
+    miembros.forEach(miembro => {
+        const [nombre, apellido] = miembro.split('|');
+        html += `<tr><td style="font-weight:700;min-width:180px">${nombre} ${apellido}</td>`;
+
+        fechasCulto.forEach(fecha => {
+            const registro = datos.find(d => d.nombre === nombre && d.apellido === apellido && d.fecha.split('T')[0] === fecha);
+            let estado = 'P';
+            if (!registro) {
+                estado = '-';
+            } else if (registro.justified) {
+                estado = 'AJ';
+            } else if (!registro.presente) {
+                estado = 'A';
+            }
+
+            const color = estado === 'P' ? 'green' : estado === 'AJ' ? 'orange' : estado === 'A' ? 'red' : 'gray';
+            html += `<td style="text-align:center;font-weight:600;color:${color};padding:12px">${estado}</td>`;
+        });
+        html += '</tr>';
+    });
+
+    return html;
 };
 
 // ===== OBTENER DÍA DEL CULTO =====
