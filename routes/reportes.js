@@ -60,16 +60,9 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 m.instrumento,
                 m.voz,
                 ra.fecha,
-                ra.presente,
-                ra.nota,
-                CASE
-                    WHEN ra.presente = 'true' THEN true
-                    ELSE false
-                END as presente,
-                CASE
-                    WHEN ra.presente = 'justified' THEN true
-                    ELSE false
-                END as justified
+                COALESCE(ra.presente, false) as presente,
+                COALESCE(ra.justificado, false) as justified,
+                ra.nota
             FROM miembros m
             LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
                 AND ra.tipo_evento = $2

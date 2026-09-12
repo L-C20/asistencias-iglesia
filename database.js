@@ -42,20 +42,25 @@ async function initializeDatabase() {
         miembro_id INTEGER NOT NULL REFERENCES miembros(id),
         tipo_evento VARCHAR(50) NOT NULL,
         fecha DATE NOT NULL,
-        presente VARCHAR(20) CHECK (presente IN ('true', 'false', 'justified')),
+        presente BOOLEAN,
+        justificado BOOLEAN DEFAULT false,
         nota VARCHAR(255),
         fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Agregar columna para ausencias justificadas si no existe
-    const checkColumn = await pool.query(`
-      SELECT column_name FROM information_schema.columns
-      WHERE table_name = 'registro_asistencia' AND column_name = 'justified'
-    `);
-
-    if (checkColumn.rows.length === 0) {
-      console.log('Agregando compatibilidad con justified...');
+    // Intentar agregar columna justificado si no existe
+    try {
+      const checkColumn = await pool.query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'registro_asistencia' AND column_name = 'justificado'
+      `);
+      if (checkColumn.rows.length === 0) {
+        await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN justificado BOOLEAN DEFAULT false`);
+        console.log('✓ Columna justificado agregada');
+      }
+    } catch (e) {
+      console.log('ℹ Columna justificado ya existe');
     }
 
     // Crear índices para optimizar búsquedas
