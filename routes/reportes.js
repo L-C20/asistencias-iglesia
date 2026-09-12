@@ -9,16 +9,16 @@ router.get('/conteos/:grupo', verifyToken, async (req, res) => {
         const { grupo } = req.params;
         
         const result = await db.query(`
-            SELECT 
+            SELECT
                 tipo_evento,
                 COUNT(*) as total
             FROM registro_asistencia
-            WHERE LOWER(tipo_evento) IN ('santo_culto', 'ensayo', 'bautismo')
+            WHERE tipo_evento IN ('santo_culto', 'ensayo', 'bautismo')
             AND miembro_id IN (
-                SELECT id FROM miembros WHERE LOWER(grupo) = $1
+                SELECT id FROM miembros WHERE grupo = $1
             )
             GROUP BY tipo_evento
-        `, [grupo.toLowerCase()]);
+        `, [grupo]);
         
         console.log('📊 Resultado conteos:', result.rows);
         
@@ -45,11 +45,15 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
     try {
         const { grupo } = req.params;
         const { tipo_evento } = req.query;
-        
+
         console.log(`🎯 Obteniendo datos: grupo=${grupo}, evento=${tipo_evento}`);
-        
+
+        if (!tipo_evento) {
+            return res.status(400).json({ error: 'tipo_evento es requerido' });
+        }
+
         const result = await db.query(`
-            SELECT 
+            SELECT
                 m.id,
                 m.nombre,
                 m.apellido,
@@ -58,22 +62,27 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 ra.fecha,
                 ra.presente,
                 ra.nota,
-                CASE 
-                    WHEN CAST(ra.presente AS TEXT) = 'justified' THEN true
+                CASE
+                    WHEN ra.presente = 'true' THEN true
+                    ELSE false
+                END as presente,
+                CASE
+                    WHEN ra.presente = 'justified' THEN true
                     ELSE false
                 END as justified
             FROM miembros m
-            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id 
-                AND LOWER(ra.tipo_evento) = $2
-            WHERE LOWER(m.grupo) = $1
+            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
+                AND ra.tipo_evento = $2
+            WHERE m.grupo = $1
             ORDER BY m.nombre, m.apellido, ra.fecha DESC
-        `, [grupo.toLowerCase(), tipo_evento.toLowerCase()]);
-        
+        `, [grupo, tipo_evento]);
+
         console.log('📋 Registros encontrados:', result.rows.length);
-        
+
         res.json(result.rows);
     } catch (error) {
-        console.error('❌ Error en evento:', error);
+        console.error('❌ Error en evento:', error.message);
+        console.error('Stack:', error.stack);
         res.status(500).json({ error: error.message });
     }
 });

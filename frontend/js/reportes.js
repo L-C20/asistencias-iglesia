@@ -83,22 +83,38 @@ window.abrirReporteEvento = function(tipo) {
     fetch(url, {
         headers: {'Authorization': `Bearer ${token}`}
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) {
+            console.error('❌ Response no OK:', r.status, r.statusText);
+            throw new Error(`Error HTTP ${r.status}`);
+        }
+        return r.json();
+    })
     .then(d => {
-        console.log('✅ Datos recibidos:', d.length, 'registros');
+        console.log('✅ Datos recibidos:', d ? d.length : 0, 'registros');
+
+        if (!d || !Array.isArray(d)) {
+            console.error('❌ Datos inválidos:', d);
+            const tb = document.getElementById('tablaDetalleBody');
+            if (tb) {
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Error al cargar datos</td></tr>';
+            }
+            return;
+        }
+
         datosReporte = d;
-        
+
         const tb = document.getElementById('tablaDetalleBody');
         if (!tb) {
             console.error('❌ No existe tablaDetalleBody');
             return;
         }
-        
-        if (!d || d.length === 0) {
+
+        if (d.length === 0) {
             tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Sin datos para este evento</td></tr>';
             return;
         }
-        
+
         tb.innerHTML = d.map(item => `
             <tr>
                 <td>${item.nombre} ${item.apellido || ''}</td>
@@ -108,10 +124,16 @@ window.abrirReporteEvento = function(tipo) {
                 <td>${item.justified ? '✓' : '-'}</td>
             </tr>
         `).join('');
-        
+
         console.log('✅ Tabla renderizada');
     })
-    .catch(e => console.error('❌ Error evento:', e));
+    .catch(e => {
+        console.error('❌ Error evento:', e);
+        const tb = document.getElementById('tablaDetalleBody');
+        if (tb) {
+            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:red">Error: ' + e.message + '</td></tr>';
+        }
+    });
 };
 
 // ===== VOLVER =====

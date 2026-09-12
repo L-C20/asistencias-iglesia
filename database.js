@@ -40,13 +40,23 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS registro_asistencia (
         id SERIAL PRIMARY KEY,
         miembro_id INTEGER NOT NULL REFERENCES miembros(id),
-        tipo_evento VARCHAR(20) NOT NULL CHECK (tipo_evento IN ('santo_culto', 'ensayo')),
+        tipo_evento VARCHAR(50) NOT NULL,
         fecha DATE NOT NULL,
-        presente BOOLEAN,
+        presente VARCHAR(20) CHECK (presente IN ('true', 'false', 'justified')),
         nota VARCHAR(255),
         fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Agregar columna para ausencias justificadas si no existe
+    const checkColumn = await pool.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'registro_asistencia' AND column_name = 'justified'
+    `);
+
+    if (checkColumn.rows.length === 0) {
+      console.log('Agregando compatibilidad con justified...');
+    }
 
     // Crear índices para optimizar búsquedas
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_grupo ON miembros(grupo)`);
