@@ -15,7 +15,7 @@ router.post('/login', async (req, res) => {
 
     // Buscar usuario en BD
     const result = await db.query(
-      'SELECT id, usuario, password, rol FROM usuarios WHERE usuario = $1 AND activo = true',
+      'SELECT id, usuario, password, rol, nombre_completo FROM usuarios WHERE usuario = $1 AND activo = true',
       [usuario]
     );
 
@@ -41,10 +41,13 @@ router.post('/login', async (req, res) => {
     res.json({
       success: true,
       token,
+      rol: user.rol,
+      nombre_completo: user.nombre_completo || user.usuario,
       user: {
         id: user.id,
         usuario: user.usuario,
-        rol: user.rol
+        rol: user.rol,
+        nombre_completo: user.nombre_completo
       }
     });
 

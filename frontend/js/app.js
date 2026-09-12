@@ -1,7 +1,9 @@
 // ===== VARIABLES GLOBALES =====
 var token = localStorage.getItem('token');
-var API_URL = window.location.origin === 'http://localhost:3000' 
-    ? 'http://localhost:3000/api' 
+var usuarioRol = localStorage.getItem('usuarioRol');
+var usuarioNombre = localStorage.getItem('usuarioNombre');
+var API_URL = window.location.origin === 'http://localhost:3000'
+    ? 'http://localhost:3000/api'
     : '/api';
 
 console.log('🔧 app.js inicializando - API_URL:', API_URL);
@@ -25,15 +27,25 @@ function initApp() {
     // Si hay token, mostrar dashboard
     if (storedToken) {
         token = storedToken;
+        usuarioRol = localStorage.getItem('usuarioRol');
+        usuarioNombre = localStorage.getItem('usuarioNombre');
+
         loginPage.style.display = 'none';
         dashboardPage.style.display = 'flex';
-        
+
         const usuarioActual = document.getElementById('usuarioActual');
         if (usuarioActual) {
-            usuarioActual.textContent = `Bienvenido: ${storedUsuario || 'Usuario'}`;
+            const nombre = usuarioNombre || storedUsuario || 'Usuario';
+            usuarioActual.textContent = `Bienvenido: ${nombre}`;
         }
-        
-        console.log('✅ Sesión iniciada - Cargando datos iniciales');
+
+        // Ocultar Configuración si NO es admin
+        const configTab = document.querySelector('[onclick*="configuracion"]');
+        if (configTab && usuarioRol !== 'admin') {
+            configTab.style.display = 'none';
+        }
+
+        console.log('✅ Sesión iniciada - Rol:', usuarioRol, '- Cargando datos iniciales');
         
         // Activar tab Inicio
         cambiarTab('inicio');
@@ -95,9 +107,11 @@ async function handleLogin(e) {
             token = data.token;
             localStorage.setItem('token', token);
             localStorage.setItem('usuario', usuario);
-            
-            console.log('✅ Login exitoso');
-            mostrarToast('Bienvenido ' + usuario, 'success');
+            localStorage.setItem('usuarioRol', data.rol || 'operario');
+            localStorage.setItem('usuarioNombre', data.nombre_completo || usuario);
+
+            console.log('✅ Login exitoso - Rol:', data.rol);
+            mostrarToast('Bienvenido ' + (data.nombre_completo || usuario), 'success');
             
             // Reinicializar app
             setTimeout(() => {
