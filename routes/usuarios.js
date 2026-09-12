@@ -287,12 +287,16 @@ router.post('/setup', async (req, res) => {
 router.post('/update-admin-credentials', async (req, res) => {
   try {
     const { nuevoUsuario, nuevaPassword } = req.body;
+    const bcrypt = require('bcryptjs');
 
     console.log('🔐 Actualizando credenciales admin...');
 
+    // Encriptar contraseña
+    const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+
     const result = await db.query(
       'UPDATE usuarios SET usuario = $1, password = $2 WHERE usuario = $3 RETURNING id, usuario, nombre_completo, rol',
-      [nuevoUsuario, nuevaPassword, 'usuario1']
+      [nuevoUsuario, hashedPassword, 'usuario1']
     );
 
     if (result.rows.length === 0) {
