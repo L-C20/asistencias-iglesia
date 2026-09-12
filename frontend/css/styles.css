@@ -980,40 +980,45 @@ h1, h2, h3, h4, h5, h6 {
 .tabla-miembros {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    box-shadow: var(--shadow-sm);
 }
 
 .tabla-datos {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
-    table-layout: fixed;
+    font-size: 14px;
+    table-layout: auto;
 }
 
 .tabla-datos thead {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .tabla-datos thead th {
-    padding: 14px 12px;
+    padding: 16px 16px;
     text-align: left;
     font-weight: 700;
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .tabla-datos tbody tr {
     border-bottom: 1px solid var(--border);
-    transition: var(--transition);
+    transition: background-color 0.2s ease;
 }
 
 .tabla-datos tbody tr:hover {
-    background: var(--light);
+    background: var(--primary-light);
 }
 
 .tabla-datos tbody tr:last-child {
@@ -1021,34 +1026,41 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tabla-datos td {
-    padding: 14px 12px;
+    padding: 16px 16px;
     color: var(--text);
     vertical-align: middle;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .celda-nombre {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
-    font-size: 13px;
+    font-size: 14px;
+    width: 40%;
+    min-width: 150px;
 }
 
 .celda-detalle {
     color: var(--text-light);
-    font-size: 12px;
+    font-size: 13px;
+    width: 30%;
+    min-width: 120px;
 }
 
 .celda-numero {
     text-align: center;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
+    width: 15%;
+    min-width: 80px;
 }
 
 .celda-porcentaje {
     text-align: center;
     white-space: normal;
+    width: 15%;
+    min-width: 80px;
 }
 
 .progress-bar-simple {
