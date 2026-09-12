@@ -61,7 +61,12 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 COALESCE(m.voz, '') as voz,
                 ra.fecha,
                 COALESCE(CAST(ra.presente AS boolean), false) as presente,
-                COALESCE(ra.justificado, false) as justified,
+                CASE
+                    WHEN ra.justificado IS NULL THEN false
+                    WHEN ra.justificado::text = 'true' THEN true
+                    WHEN ra.justificado::text = 'justified' THEN true
+                    ELSE CAST(ra.justificado AS boolean)
+                END as justified,
                 COALESCE(ra.nota, '') as nota
             FROM miembros m
             LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
