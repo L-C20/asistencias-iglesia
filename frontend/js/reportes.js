@@ -152,26 +152,34 @@ window.volverATarjetas = function() {
 // ===== FILTROS =====
 window.aplicarFiltrosDetalle = function() {
     console.log('🔍 Aplicar filtros');
-    
-    const fecha = document.getElementById('filtroFecha');
+
+    const fechaDesde = document.getElementById('filtroFechaDesde');
+    const fechaHasta = document.getElementById('filtroFechaHasta');
     const estado = document.getElementById('filtroEstado');
-    
-    if (!fecha || !estado) {
+
+    if (!fechaDesde || !fechaHasta || !estado) {
         console.error('❌ No existen elementos de filtro');
         return;
     }
-    
+
     let datos = datosReporte;
-    
-    if (fecha.value) {
-        datos = datos.filter(i => i.fecha === fecha.value);
-        
-        const d = new Date(fecha.value + 'T00:00:00');
-        const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-        const diaSemana = document.getElementById('diaSemana');
-        if (diaSemana) diaSemana.textContent = `(${dias[d.getDay()]})`;
+
+    // Filtrar por rango de fechas
+    if (fechaDesde.value || fechaHasta.value) {
+        datos = datos.filter(i => {
+            if (!i.fecha) return false;
+
+            const fecha = new Date(i.fecha);
+            const desde = fechaDesde.value ? new Date(fechaDesde.value) : new Date('1900-01-01');
+            const hasta = fechaHasta.value ? new Date(fechaHasta.value) : new Date('2100-12-31');
+
+            return fecha >= desde && fecha <= hasta;
+        });
+
+        console.log('📅 Filtrados por fecha:', datos.length, 'registros');
     }
-    
+
+    // Filtrar por estado
     if (estado.value === 'true') {
         datos = datos.filter(i => i.presente);
     } else if (estado.value === 'false') {
@@ -179,9 +187,14 @@ window.aplicarFiltrosDetalle = function() {
     } else if (estado.value === 'justified') {
         datos = datos.filter(i => i.justified);
     }
-    
+
     const tb = document.getElementById('tablaDetalleBody');
     if (tb) {
+        if (datos.length === 0) {
+            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-light);">No hay datos para los filtros seleccionados</td></tr>';
+            return;
+        }
+
         tb.innerHTML = datos.map(item => `
             <tr>
                 <td>${item.nombre} ${item.apellido || ''}</td>
@@ -196,17 +209,22 @@ window.aplicarFiltrosDetalle = function() {
 
 window.limpiarFiltrosDetalle = function() {
     console.log('🧹 Limpiar filtros');
-    
-    const fecha = document.getElementById('filtroFecha');
+
+    const fechaDesde = document.getElementById('filtroFechaDesde');
+    const fechaHasta = document.getElementById('filtroFechaHasta');
     const estado = document.getElementById('filtroEstado');
-    const diaSemana = document.getElementById('diaSemana');
-    
-    if (fecha) fecha.value = '';
+
+    if (fechaDesde) fechaDesde.value = '';
+    if (fechaHasta) fechaHasta.value = '';
     if (estado) estado.value = '';
-    if (diaSemana) diaSemana.textContent = '';
-    
+
     const tb = document.getElementById('tablaDetalleBody');
     if (tb) {
+        if (datosReporte.length === 0) {
+            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Sin datos para este evento</td></tr>';
+            return;
+        }
+
         tb.innerHTML = datosReporte.map(item => `
             <tr>
                 <td>${item.nombre} ${item.apellido || ''}</td>
