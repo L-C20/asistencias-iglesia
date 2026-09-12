@@ -2,6 +2,10 @@ console.log('✅ reportes.js CARGANDO - VERSIÓN FUNCIONAL');
 
 var grupoReporte = 'coro';
 var datosReporte = [];
+var semanaMostrada = new Date(); // Semana actual por defecto
+
+// Días de culto: 2 (martes), 6 (sábado), 0 (domingo)
+const DIAS_CULTO = [0, 2, 6];
 
 // ===== CARGAR GRUPO =====
 window.cargarReporteGrupo = function(grupo, autoLoad) {
@@ -151,33 +155,27 @@ window.volverATarjetas = function() {
 
 // ===== FILTROS =====
 window.aplicarFiltrosDetalle = function() {
-    console.log('🔍 Aplicar filtros');
+    console.log('🔍 Aplicar filtros por semana');
 
-    const fechaDesde = document.getElementById('filtroFechaDesde');
-    const fechaHasta = document.getElementById('filtroFechaHasta');
     const estado = document.getElementById('filtroEstado');
 
-    if (!fechaDesde || !fechaHasta || !estado) {
+    if (!estado) {
         console.error('❌ No existen elementos de filtro');
         return;
     }
 
     let datos = datosReporte;
 
-    // Filtrar por rango de fechas
-    if (fechaDesde.value || fechaHasta.value) {
-        datos = datos.filter(i => {
-            if (!i.fecha) return false;
+    // Filtrar por fechas de culto de la semana
+    const fechasCulto = window.obtenerFechasCultoDeSemana();
+    console.log('📅 Fechas de culto de la semana:', fechasCulto);
 
-            const fecha = new Date(i.fecha);
-            const desde = fechaDesde.value ? new Date(fechaDesde.value) : new Date('1900-01-01');
-            const hasta = fechaHasta.value ? new Date(fechaHasta.value) : new Date('2100-12-31');
+    datos = datos.filter(i => {
+        if (!i.fecha) return false;
+        return fechasCulto.includes(i.fecha);
+    });
 
-            return fecha >= desde && fecha <= hasta;
-        });
-
-        console.log('📅 Filtrados por fecha:', datos.length, 'registros');
-    }
+    console.log('📅 Filtrados por semana de culto:', datos.length, 'registros');
 
     // Filtrar por estado
     if (estado.value === 'true') {
@@ -191,7 +189,7 @@ window.aplicarFiltrosDetalle = function() {
     const tb = document.getElementById('tablaDetalleBody');
     if (tb) {
         if (datos.length === 0) {
-            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-light);">No hay datos para los filtros seleccionados</td></tr>';
+            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-light);">No hay datos para esta semana</td></tr>';
             return;
         }
 
@@ -210,31 +208,82 @@ window.aplicarFiltrosDetalle = function() {
 window.limpiarFiltrosDetalle = function() {
     console.log('🧹 Limpiar filtros');
 
-    const fechaDesde = document.getElementById('filtroFechaDesde');
-    const fechaHasta = document.getElementById('filtroFechaHasta');
     const estado = document.getElementById('filtroEstado');
 
-    if (fechaDesde) fechaDesde.value = '';
-    if (fechaHasta) fechaHasta.value = '';
     if (estado) estado.value = '';
 
-    const tb = document.getElementById('tablaDetalleBody');
-    if (tb) {
-        if (datosReporte.length === 0) {
-            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Sin datos para este evento</td></tr>';
-            return;
-        }
-
-        tb.innerHTML = datosReporte.map(item => `
-            <tr>
-                <td>${item.nombre} ${item.apellido || ''}</td>
-                <td>${item.instrumento || item.voz || '-'}</td>
-                <td>${item.presente ? '✓' : '-'}</td>
-                <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
-                <td>${item.justified ? '✓' : '-'}</td>
-            </tr>
-        `).join('');
-    }
+    aplicarFiltrosDetalle();
 };
 
-console.log('✅ REPORTES.JS LISTO - todas las funciones definidas');
+// ===== NAVEGACIÓN DE SEMANAS =====
+window.calcularSemana = function(fecha) {
+    // Calcula lunes-domingo de la semana
+    const d = new Date(fecha);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Lunes
+    const lunes = new Date(d.setDate(diff));
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+
+    return { lunes, domingo };
+};
+
+window.formatearRangoSemana = function(semana) {
+    const opciones = { month: 'short', day: 'numeric' };
+    const lunesStr = semana.lunes.toLocaleDateString('es-ES', opciones);
+    const domingoStr = semana.domingo.toLocaleDateString('es-ES', opciones);
+    return `${lunesStr} - ${domingoStr}`;
+};
+
+window.irASemanaAnterior = function() {
+    semanaMostrada.setDate(semanaMostrada.getDate() - 7);
+    actualizarVisibleSemana();
+};
+
+window.irASemanaProxima = function() {
+    semanaMostrada.setDate(semanaMostrada.getDate() + 7);
+    actualizarVisibleSemana();
+};
+
+window.irAEstaSemana = function() {
+    semanaMostrada = new Date();
+    actualizarVisibleSemana();
+};
+
+window.actualizarVisibleSemana = function() {
+    const semana = window.calcularSemana(semanaMostrada);
+    const rango = window.formatearRangoSemana(semana);
+
+    const labelEl = document.getElementById('labelSemana');
+    const fechasEl = document.getElementById('fechasSemana');
+
+    // Verificar si es esta semana
+    const hoy = new Date();
+    const semanaHoy = window.calcularSemana(hoy);
+    const esEstaSemana = semana.lunes.getTime() === semanaHoy.lunes.getTime();
+
+    if (labelEl) labelEl.textContent = esEstaSemana ? '📅 Esta semana' : '📅 Semana seleccionada';
+    if (fechasEl) fechasEl.textContent = rango;
+
+    console.log('📅 Semana actualizada:', rango);
+    aplicarFiltrosDetalle();
+};
+
+window.obtenerFechasCultoDeSemana = function() {
+    const semana = window.calcularSemana(semanaMostrada);
+    const fechas = [];
+
+    for (let i = 0; i < 7; i++) {
+        const fecha = new Date(semana.lunes);
+        fecha.setDate(semana.lunes.getDate() + i);
+        const diaSemana = fecha.getDay();
+
+        if (DIAS_CULTO.includes(diaSemana)) {
+            fechas.push(fecha.toISOString().split('T')[0]);
+        }
+    }
+
+    return fechas;
+};
+
+// ===== ACTUALIZAR FILTROS =====
