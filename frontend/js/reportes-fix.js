@@ -44,12 +44,23 @@ window.generarTablaHorizontal = function(datos) {
 
         fechasCulto.forEach(fecha => {
             const registro = datos.find(d => d.id == id && d.fecha.split('T')[0] === fecha);
-            const presente = registro && registro.presente;
-            const check = presente ? '✓' : '';
-            const color = presente ? '#10b981' : '#d1d5db';
-            const fontSize = presente ? '18px' : '14px';
+            let estado = '-';
+            let color = '#d1d5db';
 
-            html += `<td style="text-align:center;font-weight:800;color:${color};padding:10px 4px;font-size:${fontSize}">${check}</td>`;
+            if (registro) {
+                if (registro.justified) {
+                    estado = 'AJ';
+                    color = '#f59e0b'; // Amarillo
+                } else if (!registro.presente) {
+                    estado = 'A';
+                    color = '#ef4444'; // Rojo
+                } else {
+                    estado = 'P';
+                    color = '#10b981'; // Verde
+                }
+            }
+
+            html += `<td style="text-align:center;font-weight:800;color:${color};padding:10px 4px;font-size:13px">${estado}</td>`;
         });
 
         html += '</tr>';
