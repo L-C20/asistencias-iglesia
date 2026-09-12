@@ -56,19 +56,13 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
             SELECT
                 m.id,
                 m.nombre,
-                m.apellido,
-                m.instrumento,
-                m.voz,
+                COALESCE(m.apellido, '') as apellido,
+                COALESCE(m.instrumento, '') as instrumento,
+                COALESCE(m.voz, '') as voz,
                 ra.fecha,
-                CASE
-                    WHEN ra.presente = 'true' OR ra.presente = true THEN true
-                    ELSE false
-                END as presente,
-                CASE
-                    WHEN ra.presente = 'justified' OR ra.justificado = true THEN true
-                    ELSE false
-                END as justified,
-                ra.nota
+                COALESCE(CAST(ra.presente AS boolean), false) as presente,
+                COALESCE(ra.justificado, false) as justified,
+                COALESCE(ra.nota, '') as nota
             FROM miembros m
             LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
                 AND ra.tipo_evento = $2
@@ -82,7 +76,11 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
     } catch (error) {
         console.error('❌ Error en evento:', error.message);
         console.error('Stack:', error.stack);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({
+            error: error.message,
+            details: error.toString(),
+            query: 'SELECT from miembros LEFT JOIN registro_asistencia'
+        });
     }
 });
 
