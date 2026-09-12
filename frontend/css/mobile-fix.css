@@ -1,0 +1,455 @@
+/* ============ MOBILE COMPLETE FIX - AGGRESSIVE ============ */
+
+* {
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    /* BASE */
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    /* DASHBOARD */
+    .dashboard-page {
+        flex-direction: column;
+        width: 100vw;
+        overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 999;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+        display: block;
+        transform: translateX(0);
+    }
+
+    /* NAVBAR */
+    .navbar {
+        padding: 10px 12px !important;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .navbar h1 {
+        font-size: 16px !important;
+        margin: 0;
+    }
+
+    .usuario-info {
+        font-size: 10px !important;
+        white-space: nowrap;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+        width: 100%;
+        padding-top: 50px;
+        overflow-y: auto;
+    }
+
+    .container {
+        padding: 10px !important;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+
+    /* TYPOGRAPHY */
+    h1 { font-size: 18px !important; }
+    h2 { font-size: 16px !important; }
+    h3 { font-size: 14px !important; }
+    p { font-size: 13px !important; }
+
+    /* FORMS */
+    .form-group {
+        margin-bottom: 12px !important;
+    }
+
+    .form-group label {
+        font-size: 11px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 8px 10px !important;
+        font-size: 13px !important;
+        width: 100%;
+    }
+
+    /* BUTTONS */
+    .btn {
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+        border-radius: 6px !important;
+        width: 100%;
+    }
+
+    .btn-sm {
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+    }
+
+    .btn svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    /* CARDS */
+    .card-grupo {
+        padding: 16px 12px !important;
+    }
+
+    .card-icon {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .card-icon svg {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .cards-container {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    /* TABLES */
+    .tabla-scrollable {
+        border-radius: 8px;
+        margin: 0;
+    }
+
+    .tabla-scrollable table {
+        font-size: 11px;
+    }
+
+    .tabla-scrollable th {
+        padding: 8px 6px !important;
+        font-size: 10px !important;
+    }
+
+    .tabla-scrollable td {
+        padding: 6px 4px !important;
+        font-size: 11px !important;
+    }
+
+    .tabla-datos th,
+    .tabla-datos td {
+        padding: 6px 4px !important;
+        font-size: 10px !important;
+    }
+
+    /* MODAL */
+    .modal-content {
+        padding: 20px 14px !important;
+        width: 95% !important;
+        max-width: 95vw !important;
+        border-radius: 12px !important;
+    }
+
+    .modal-header {
+        margin-bottom: 16px !important;
+        padding-bottom: 12px !important;
+    }
+
+    .modal-header span {
+        font-size: 16px !important;
+    }
+
+    .close,
+    .modal-close {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 20px !important;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 12px !important;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* REPORTES */
+    .reportes-header {
+        margin-bottom: 12px !important;
+        padding-bottom: 12px !important;
+    }
+
+    .reportes-header h2 {
+        font-size: 18px !important;
+        gap: 8px;
+    }
+
+    .reportes-header h2 svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    .grupo-selector {
+        gap: 6px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .grupo-btn {
+        padding: 8px 10px !important;
+        font-size: 11px !important;
+        flex: 1;
+        min-width: 70px;
+    }
+
+    .tarjeta-evento {
+        padding: 16px 10px !important;
+        min-height: 140px;
+        gap: 10px;
+    }
+
+    .tarjeta-evento h3 {
+        font-size: 14px !important;
+    }
+
+    .evento-count {
+        font-size: 28px !important;
+    }
+
+    /* FILTROS */
+    .filtros-bloque {
+        flex-direction: column;
+        padding: 10px !important;
+        gap: 10px !important;
+        border-radius: 10px;
+        min-height: auto;
+    }
+
+    .seccion-semana {
+        border-right: none !important;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 8px !important;
+        justify-content: center;
+    }
+
+    .info-semana {
+        min-width: auto;
+        text-align: center;
+    }
+
+    .label-semana {
+        font-size: 12px !important;
+    }
+
+    .fechas-semana {
+        font-size: 10px !important;
+    }
+
+    .seccion-filtros {
+        padding: 8px !important;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-nav-mini {
+        padding: 5px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        font-size: 10px !important;
+    }
+
+    .select-estado {
+        padding: 6px 6px !important;
+        font-size: 11px !important;
+    }
+
+    /* CONFIGURACIÓN */
+    .config-header {
+        padding: 16px 12px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .config-header h2 {
+        font-size: 16px !important;
+    }
+
+    .config-header h2 svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    .config-container {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .config-section {
+        padding: 16px 12px !important;
+    }
+
+    .config-section h3 {
+        font-size: 14px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .section-header .btn {
+        width: 100%;
+    }
+
+    .tabla-usuarios {
+        font-size: 10px;
+    }
+
+    .tabla-usuarios th,
+    .tabla-usuarios td {
+        padding: 8px 6px !important;
+    }
+
+    /* TAB CONTENT */
+    .tab-content {
+        padding: 10px !important;
+    }
+
+    /* FILTROS MIEMBROS */
+    .filtros-miembros {
+        gap: 6px !important;
+        flex-wrap: wrap;
+    }
+
+    .filtro-group {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .filtro-group select {
+        padding: 6px !important;
+        font-size: 11px !important;
+    }
+
+    /* TAB FOOTER */
+    .tab-footer {
+        padding: 10px !important;
+        gap: 8px;
+    }
+
+    .tab-footer .btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    /* EXTRA SMALL */
+
+    .navbar {
+        padding: 8px 10px !important;
+    }
+
+    .navbar h1 {
+        font-size: 14px !important;
+    }
+
+    h1 { font-size: 16px !important; }
+    h2 { font-size: 14px !important; }
+    h3 { font-size: 12px !important; }
+
+    .container {
+        padding: 8px !important;
+    }
+
+    .form-group {
+        margin-bottom: 10px !important;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 7px 8px !important;
+        font-size: 12px !important;
+    }
+
+    .btn {
+        padding: 7px 8px !important;
+        font-size: 11px !important;
+    }
+
+    .tabla-scrollable th {
+        padding: 6px 4px !important;
+        font-size: 9px !important;
+    }
+
+    .tabla-scrollable td {
+        padding: 5px 3px !important;
+        font-size: 10px !important;
+    }
+
+    .modal-content {
+        padding: 16px 12px !important;
+    }
+
+    .grupo-btn {
+        padding: 7px 8px !important;
+        font-size: 10px !important;
+    }
+
+    .tarjeta-evento {
+        padding: 12px 8px !important;
+        min-height: 120px;
+    }
+
+    .evento-count {
+        font-size: 24px !important;
+    }
+
+    .config-section {
+        padding: 12px 10px !important;
+    }
+
+    .filtros-bloque {
+        padding: 8px !important;
+        gap: 8px !important;
+    }
+
+    .seccion-semana {
+        padding: 6px !important;
+    }
+
+    .seccion-filtros {
+        padding: 6px !important;
+        gap: 6px;
+    }
+
+    .btn-nav-mini {
+        padding: 4px !important;
+        min-width: 24px !important;
+        min-height: 24px !important;
+        font-size: 9px !important;
+    }
+}
+
+/* HIDE SIDEBAR TOGGLE ON DESKTOP */
+@media (min-width: 769px) {
+    .sidebar-toggle {
+        display: none !important;
+    }
+}
