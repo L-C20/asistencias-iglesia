@@ -1,0 +1,486 @@
+/* ============ MOBILE OPTIMIZATIONS ============ */
+
+/* VIEWPORT & BASE */
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        width: 280px;
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: flex !important;
+    }
+
+    .dashboard-page {
+        flex-direction: column;
+    }
+
+    .main-content {
+        width: 100%;
+        padding-top: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* TYPOGRAPHY */
+    body {
+        font-size: 14px;
+    }
+
+    h1 { font-size: 20px !important; }
+    h2 { font-size: 18px !important; }
+    h3 { font-size: 16px !important; }
+
+    .navbar h1 {
+        font-size: 18px !important;
+    }
+
+    /* PADDING & SPACING */
+    .container {
+        padding: 12px !important;
+    }
+
+    .tab-content {
+        padding: 12px !important;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        width: 260px;
+    }
+
+    .sidebar-header {
+        padding: 16px 12px !important;
+    }
+
+    .sidebar-menu {
+        padding: 8px !important;
+    }
+
+    .sidebar-menu-item {
+        padding: 10px 12px !important;
+        font-size: 13px;
+        gap: 10px;
+    }
+
+    .sidebar-menu-item svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    /* NAVBAR */
+    .navbar {
+        padding: 12px 16px !important;
+        gap: 8px;
+    }
+
+    .navbar h1 {
+        margin: 0;
+    }
+
+    .usuario-info {
+        font-size: 12px !important;
+    }
+
+    /* BUTTONS */
+    .btn {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+        gap: 6px;
+    }
+
+    .btn-sm {
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+    }
+
+    .btn svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    /* FORMS */
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 12px !important;
+        font-size: 14px !important;
+        border-radius: 6px !important;
+    }
+
+    /* TABLES */
+    .tabla-datos {
+        font-size: 12px;
+    }
+
+    .tabla-datos th {
+        font-size: 11px;
+        padding: 10px 6px !important;
+    }
+
+    .tabla-datos td {
+        padding: 8px 6px !important;
+    }
+
+    .tabla-datos th,
+    .tabla-datos td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tabla-scrollable {
+        border-radius: 8px;
+    }
+
+    .tabla-scrollable th {
+        padding: 12px 8px !important;
+    }
+
+    .tabla-scrollable td {
+        padding: 10px 8px !important;
+    }
+
+    /* CARDS */
+    .card-grupo {
+        padding: 20px 16px !important;
+    }
+
+    .card-icon {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    .card-icon svg {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .card-grupo h3 {
+        font-size: 16px;
+    }
+
+    .card-count {
+        font-size: 12px;
+    }
+
+    .cards-container {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    /* MODAL */
+    .modal-content {
+        padding: 24px 16px !important;
+        width: 95% !important;
+        max-width: none !important;
+        max-height: 85vh !important;
+    }
+
+    .modal-content h3 {
+        font-size: 18px;
+    }
+
+    .close {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 24px;
+    }
+
+    /* FILTROS */
+    .filtros-bloque {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px !important;
+        gap: 12px !important;
+        border-radius: 8px;
+    }
+
+    .seccion-semana {
+        border-right: none !important;
+        border-bottom: 1px solid var(--border);
+        padding: 10px !important;
+    }
+
+    .seccion-filtros {
+        padding: 10px !important;
+        flex-wrap: wrap;
+    }
+
+    .info-semana {
+        min-width: auto;
+    }
+
+    .label-semana {
+        font-size: 12px;
+    }
+
+    .fechas-semana {
+        font-size: 11px;
+    }
+
+    .btn-nav-mini {
+        padding: 6px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        font-size: 12px;
+    }
+
+    .select-estado {
+        padding: 8px 8px !important;
+        font-size: 12px !important;
+    }
+
+    /* LOGIN */
+    .login-box {
+        padding: 32px 20px !important;
+        border-radius: 16px;
+    }
+
+    .login-box h1 {
+        font-size: 24px !important;
+    }
+
+    .login-box h2 {
+        font-size: 13px;
+    }
+
+    .form-group input {
+        padding: 11px 12px !important;
+        font-size: 14px !important;
+    }
+
+    /* GRILLAS */
+    .tarjetas-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .filtros-miembros {
+        gap: 8px !important;
+        flex-wrap: wrap;
+    }
+
+    .filtro-group {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    /* CONFIGURACIÓN */
+    .config-section {
+        padding: 16px 12px !important;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .section-header h3 {
+        margin: 0;
+        width: 100%;
+    }
+
+    .section-header .btn {
+        width: 100%;
+    }
+
+    /* REPORTES */
+    .reportes-header {
+        margin-bottom: 16px !important;
+    }
+
+    .reportes-header h2 {
+        font-size: 20px !important;
+    }
+
+    .grupo-selector {
+        gap: 8px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .grupo-btn {
+        padding: 10px 14px !important;
+        font-size: 12px !important;
+        flex: 1;
+    }
+
+    .tarjeta-evento {
+        padding: 20px 12px !important;
+        min-height: 160px;
+        gap: 12px;
+    }
+
+    .tarjeta-evento h3 {
+        font-size: 15px;
+    }
+
+    .evento-count {
+        font-size: 32px !important;
+    }
+
+    /* SCROLLABLE CONTENT */
+    .tabla-scrollable {
+        border-radius: 10px;
+    }
+
+    .tabla-scrollable tbody tr:hover {
+        background: transparent;
+    }
+
+    /* FOOTER */
+    .tab-footer {
+        padding: 12px !important;
+    }
+
+    .tab-footer .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    /* EXTRA SMALL */
+
+    h1 { font-size: 18px !important; }
+    h2 { font-size: 16px !important; }
+    h3 { font-size: 14px !important; }
+
+    .navbar {
+        padding: 10px 12px !important;
+    }
+
+    .navbar h1 {
+        font-size: 16px !important;
+    }
+
+    .usuario-info {
+        font-size: 11px !important;
+    }
+
+    .container {
+        padding: 10px !important;
+    }
+
+    .btn {
+        padding: 9px 10px !important;
+        font-size: 12px !important;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 9px 10px !important;
+        font-size: 13px !important;
+    }
+
+    .tabla-datos th {
+        font-size: 10px;
+        padding: 8px 4px !important;
+    }
+
+    .tabla-datos td {
+        font-size: 11px;
+        padding: 6px 4px !important;
+    }
+
+    .cards-container {
+        gap: 10px !important;
+    }
+
+    .card-grupo {
+        padding: 16px 12px !important;
+    }
+
+    .grupo-btn {
+        padding: 9px 12px !important;
+        font-size: 11px !important;
+    }
+
+    .modal-content {
+        padding: 20px 14px !important;
+    }
+
+    .filtros-bloque {
+        padding: 10px !important;
+        gap: 10px !important;
+    }
+
+    .seccion-semana {
+        padding: 8px !important;
+    }
+
+    .seccion-filtros {
+        padding: 8px !important;
+        gap: 8px;
+    }
+
+    .select-estado {
+        padding: 7px 6px !important;
+        font-size: 11px !important;
+    }
+
+    .btn-nav-mini {
+        padding: 5px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        font-size: 11px;
+    }
+
+    .tarjeta-evento {
+        padding: 16px 10px !important;
+    }
+
+    .evento-count {
+        font-size: 28px !important;
+    }
+
+    .login-box {
+        padding: 24px 16px !important;
+    }
+
+    .login-box h1 {
+        font-size: 20px !important;
+    }
+}
+
+/* HIDE/SHOW HELPERS */
+@media (min-width: 769px) {
+    .sidebar-toggle {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        display: none;
+    }
+
+    .overlay.show {
+        display: block;
+    }
+}
