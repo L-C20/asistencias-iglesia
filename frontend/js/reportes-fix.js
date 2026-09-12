@@ -1,19 +1,22 @@
-// ===== TABLA MEJORADA - NOMBRE | INSTRUMENTO | DOM | MAR | SAB =====
+// ===== TABLA MEJORADA - NOMBRE | INSTRUMENTO | DOM. 10/09 | MAR. 08/09 | SAB. 12/09 =====
 window.actualizarHeaderTabla = function() {
     const fechasCulto = window.obtenerFechasCultoDeSemana();
     const headEl = document.getElementById('tablaDetalleHead');
 
     if (headEl) {
         let html = '<tr>';
-        html += '<th style="text-align:left;font-weight:800">Nombre y Apellido</th>';
-        html += '<th style="text-align:left;font-weight:800">Instrumento</th>';
+        html += '<th style="text-align:left;font-weight:800;padding:8px">Nombre y Apellido</th>';
+        html += '<th style="text-align:left;font-weight:800;padding:8px">Instrumento</th>';
 
         fechasCulto.forEach(fecha => {
             const fecha_obj = new Date(fecha + 'T00:00:00');
             const diaSemana = fecha_obj.getDay();
+            const dia = fecha_obj.getDate();
+            const mes = String(fecha_obj.getMonth() + 1).padStart(2, '0');
             const diasAbr = { 0: 'Dom', 2: 'Mar', 6: 'Sáb' };
             const diaAbr = diasAbr[diaSemana] || '-';
-            html += `<th style="text-align:center;font-weight:800;min-width:50px">${diaAbr}</th>`;
+            const fechaFormato = `${String(dia).padStart(2, '0')}/${mes}`;
+            html += `<th style="text-align:center;font-weight:800;min-width:60px;padding:6px 4px;line-height:1.1;font-size:11px"><div style="font-weight:800;font-size:12px">${diaAbr}.</div><div style="font-weight:600;color:#6b7280;font-size:10px;margin-top:2px">${fechaFormato}</div></th>`;
         });
 
         html += '</tr>';
