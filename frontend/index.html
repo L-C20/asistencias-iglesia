@@ -467,38 +467,33 @@
                         <button class="btn-volver" onclick="volverATarjetas()">← Volver</button>
                         <h3 id="detalleEventoTitulo"></h3>
 
-                        <!-- Filtros Integrados con Navegación de Semanas -->
+                        <!-- Filtros y Navegación de Semanas -->
                         <div class="filtros-bloque">
-                            <div class="grupo-navegacion">
-                                <button class="btn btn-nav" onclick="irASemanaAnterior()">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <div class="seccion-semana">
+                                <button class="btn-nav-mini" onclick="irASemanaAnterior()" title="Semana anterior">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="15 18 9 12 15 6"></polyline>
                                     </svg>
                                 </button>
-                                <div class="info-semana-compacta">
-                                    <span id="labelSemana">Esta semana</span>
-                                    <span id="fechasSemana"></span>
+                                <div class="info-semana">
+                                    <span id="labelSemana" class="label-semana">Esta semana</span>
+                                    <span id="fechasSemana" class="fechas-semana"></span>
                                 </div>
-                                <button class="btn btn-nav" onclick="irASemanaProxima()">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <button class="btn-nav-mini" onclick="irASemanaProxima()" title="Semana siguiente">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="9 18 15 12 9 6"></polyline>
                                     </svg>
                                 </button>
                             </div>
 
-                            <div style="flex: 1; border-right: 1px solid var(--border); display: none;"></div>
-
-                            <div class="grupo-controles">
+                            <div class="seccion-filtros">
                                 <button class="btn btn-primary btn-sm" onclick="irAEstaSemana()">Hoy</button>
-                                <div class="filtro-item">
-                                    <label>Estado:</label>
-                                    <select id="filtroEstado" onchange="aplicarFiltrosDetalle()">
-                                        <option value="">Todos</option>
-                                        <option value="true">Presente</option>
-                                        <option value="false">Ausente</option>
-                                        <option value="justified">Ausente Justificado</option>
-                                    </select>
-                                </div>
+                                <select id="filtroEstado" class="select-estado" onchange="aplicarFiltrosDetalle()">
+                                    <option value="">Todos</option>
+                                    <option value="true">Presente</option>
+                                    <option value="false">Ausente</option>
+                                    <option value="justified">Justificado</option>
+                                </select>
                                 <button class="btn btn-secondary btn-sm" onclick="limpiarFiltrosDetalle()">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
