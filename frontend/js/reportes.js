@@ -253,6 +253,10 @@ window.actualizarVisibleSemana = function() {
     if (fechasEl) fechasEl.textContent = rango;
 
     console.log('📅 Semana actualizada:', rango);
+    console.log('📅 Nueva semana:', semanaMostrada);
+
+    // ACTUALIZAR HEADER Y FILTRO
+    if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
     aplicarFiltrosDetalle();
 };
 
