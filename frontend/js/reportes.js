@@ -197,6 +197,7 @@ window.aplicarFiltrosDetalle = function() {
             <tr>
                 <td>${item.nombre} ${item.apellido || ''}</td>
                 <td>${item.instrumento || item.voz || '-'}</td>
+                <td><strong>${window.obtenerDiaCulto(item.fecha)}</strong></td>
                 <td>${item.presente ? '✓' : '-'}</td>
                 <td>${!item.presente && !item.justified ? '✓' : '-'}</td>
                 <td>${item.justified ? '✓' : '-'}</td>
@@ -284,6 +285,23 @@ window.obtenerFechasCultoDeSemana = function() {
     }
 
     return fechas;
+};
+
+// ===== OBTENER DÍA DEL CULTO =====
+window.obtenerDiaCulto = function(fechaStr) {
+    if (!fechaStr) return '-';
+
+    const fecha = new Date(fechaStr + 'T00:00:00');
+    const diaSemana = fecha.getDay();
+
+    // 0=domingo, 2=martes, 6=sábado
+    const diasCulto = {
+        0: 'Domingo',
+        2: 'Martes',
+        6: 'Sábado'
+    };
+
+    return diasCulto[diaSemana] || '-';
 };
 
 // ===== ACTUALIZAR FILTROS =====
