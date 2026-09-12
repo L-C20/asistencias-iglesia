@@ -60,7 +60,10 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 COALESCE(m.instrumento, '') as instrumento,
                 COALESCE(m.voz, '') as voz,
                 ra.fecha,
-                COALESCE(ra.presente, false) as presente,
+                CASE
+                    WHEN COALESCE(ra.presente::text, '') IN ('true', 't', '1') THEN true
+                    ELSE false
+                END as presente,
                 CASE
                     WHEN COALESCE(ra.justificado::text, '') IN ('true', 'justified', 't', '1') THEN true
                     ELSE false
