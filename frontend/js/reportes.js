@@ -3,6 +3,7 @@ console.log('✅ reportes.js CARGANDO - VERSIÓN FUNCIONAL');
 var grupoReporte = 'coro';
 var datosReporte = [];
 var semanaMostrada = new Date(); // Semana actual por defecto
+var tipoEventoActual = 'santo_culto'; // Track current event type
 
 // Días de culto: 2 (martes), 6 (sábado), 0 (domingo)
 const DIAS_CULTO = [0, 2, 6];
@@ -58,7 +59,9 @@ window.cargarReporteGrupo = function(grupo, autoLoad) {
 // ===== ABRIR EVENTO =====
 window.abrirReporteEvento = function(tipo) {
     console.log('🟢 abrirReporteEvento:', tipo);
-    
+
+    tipoEventoActual = tipo;
+
     const nombres = {
         'santo_culto': 'Santo Culto',
         'ensayo': 'Ensayos',
@@ -281,7 +284,13 @@ window.obtenerFechasCultoDeSemana = function() {
         fecha.setDate(semana.lunes.getDate() + i);
         const diaSemana = fecha.getDay();
 
-        if (DIAS_CULTO.includes(diaSemana)) {
+        // Si es santo_culto, solo días específicos; si es ensayo/bautismo, todos los días
+        if (tipoEventoActual === 'santo_culto') {
+            if (DIAS_CULTO.includes(diaSemana)) {
+                fechas.push(fecha.toISOString().split('T')[0]);
+            }
+        } else {
+            // Todos los días para ensayo y bautismo
             fechas.push(fecha.toISOString().split('T')[0]);
         }
     }
