@@ -283,4 +283,28 @@ router.post('/setup', async (req, res) => {
   }
 });
 
+// POST /api/usuarios/update-admin-credentials - Cambiar usuario y contraseña del admin
+router.post('/update-admin-credentials', async (req, res) => {
+  try {
+    const { nuevoUsuario, nuevaPassword } = req.body;
+
+    console.log('🔐 Actualizando credenciales admin...');
+
+    const result = await db.query(
+      'UPDATE usuarios SET usuario = $1, password = $2 WHERE usuario = $3 RETURNING id, usuario, nombre_completo, rol',
+      [nuevoUsuario, nuevaPassword, 'usuario1']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    console.log('✅ Credenciales actualizadas');
+    res.json({ ok: true, mensaje: 'Credenciales actualizadas. Logea con las nuevas.', usuario: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error en update-admin-credentials:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
