@@ -420,9 +420,16 @@
     font-weight: 500;
 }
 
-.tabla-scrollable td:nth-child(3),
+.tabla-scrollable td:nth-child(3) {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    width: 20%;
+}
+
 .tabla-scrollable td:nth-child(4),
-.tabla-scrollable td:nth-child(5) {
+.tabla-scrollable td:nth-child(5),
+.tabla-scrollable td:nth-child(6) {
     text-align: center;
     font-weight: 800;
     color: var(--reportes-success);
