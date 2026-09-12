@@ -28,40 +28,45 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS miembros (
         id SERIAL PRIMARY KEY,
         nombre VARCHAR(255) NOT NULL,
+        apellido VARCHAR(255),
         grupo VARCHAR(20) NOT NULL CHECK (grupo IN ('coro', 'orquesta')),
+        instrumento VARCHAR(100),
+        voz VARCHAR(50),
         email VARCHAR(255),
         activo BOOLEAN DEFAULT true,
         fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
+    // Agregar columnas faltantes si la tabla ya existe
+    try {
+      await pool.query(`ALTER TABLE miembros ADD COLUMN apellido VARCHAR(255)`);
+    } catch (e) { /* ya existe */ }
+    try {
+      await pool.query(`ALTER TABLE miembros ADD COLUMN instrumento VARCHAR(100)`);
+    } catch (e) { /* ya existe */ }
+    try {
+      await pool.query(`ALTER TABLE miembros ADD COLUMN voz VARCHAR(50)`);
+    } catch (e) { /* ya existe */ }
+
     // Tabla de registro de asistencia
     await pool.query(`
       CREATE TABLE IF NOT EXISTS registro_asistencia (
         id SERIAL PRIMARY KEY,
-        miembro_id INTEGER NOT NULL REFERENCES miembros(id),
+        miembro_id INTEGER NOT NULL REFERENCES miembros(id) ON DELETE CASCADE,
         tipo_evento VARCHAR(50) NOT NULL,
         fecha DATE NOT NULL,
-        presente BOOLEAN,
+        presente BOOLEAN DEFAULT false,
         justificado BOOLEAN DEFAULT false,
         nota VARCHAR(255),
         fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Intentar agregar columna justificado si no existe
+    // Agregar columnas faltantes si la tabla ya existe
     try {
-      const checkColumn = await pool.query(`
-        SELECT column_name FROM information_schema.columns
-        WHERE table_name = 'registro_asistencia' AND column_name = 'justificado'
-      `);
-      if (checkColumn.rows.length === 0) {
-        await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN justificado BOOLEAN DEFAULT false`);
-        console.log('✓ Columna justificado agregada');
-      }
-    } catch (e) {
-      console.log('ℹ Columna justificado ya existe');
-    }
+      await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN justificado BOOLEAN DEFAULT false`);
+    } catch (e) { /* ya existe */ }
 
     // Crear índices para optimizar búsquedas
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_grupo ON miembros(grupo)`);
