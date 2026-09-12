@@ -259,4 +259,28 @@ router.post('/cambiar-password/actual', verifyToken, async (req, res) => {
   }
 });
 
+// POST /api/usuarios/setup - Setup inicial (sin auth, solo primer admin)
+router.post('/setup', async (req, res) => {
+  try {
+    const { usuario, nombre_completo } = req.body;
+
+    console.log('⚙️ Setup usuario1 a admin:', usuario);
+
+    const result = await db.query(
+      'UPDATE usuarios SET rol = $1, nombre_completo = $2 WHERE usuario = $3 RETURNING id, usuario, rol, nombre_completo',
+      ['admin', nombre_completo, usuario]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    console.log('✅ Usuario actualizado a admin');
+    res.json({ ok: true, usuario: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error en setup:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

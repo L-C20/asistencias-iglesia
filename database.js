@@ -17,11 +17,17 @@ async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         usuario VARCHAR(50) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        nombre_completo VARCHAR(255),
         rol VARCHAR(20) DEFAULT 'operario',
         activo BOOLEAN DEFAULT true,
         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Agregar columna nombre_completo si no existe
+    try {
+      await pool.query(`ALTER TABLE usuarios ADD COLUMN nombre_completo VARCHAR(255)`);
+    } catch (e) { /* ya existe */ }
 
     // Tabla de miembros
     await pool.query(`
