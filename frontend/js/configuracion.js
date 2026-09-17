@@ -5,11 +5,12 @@ let usuarioActual = null;
 let esAdmin = false;
 
 // ===== INICIALIZAR CONFIGURACIÓN =====
-function inicializarConfiguracion() {
+// El perfil define si es admin, y de eso depende si se pueden listar usuarios.
+async function inicializarConfiguracion() {
     console.log('⚙️ Inicializando configuración...');
-    
-    obtenerPerfilActual();
-    cargarUsuarios();
+
+    await obtenerPerfilActual();
+    await cargarUsuarios();
     configurarEventos();
 }
 
@@ -110,10 +111,10 @@ function renderizarTablaUsuarios(usuarios) {
 
     tbody.innerHTML = usuarios.map(usuario => `
         <tr>
-            <td class="celda-nombre"><strong>${usuario.usuario}</strong></td>
+            <td class="celda-nombre">${usuario.usuario}</td>
             <td class="celda-detalle">
                 <span class="badge ${usuario.rol === 'admin' ? 'badge-admin' : 'badge-operario'}">
-                    ${usuario.rol === 'admin' ? '👑 Admin' : '👤 Operario'}
+                    ${usuario.rol === 'admin' ? 'Admin' : 'Operario'}
                 </span>
             </td>
             <td class="celda-detalle">
@@ -122,18 +123,18 @@ function renderizarTablaUsuarios(usuarios) {
                 </span>
             </td>
             <td class="celda-acciones">
-                <button class="btn btn-sm" style="background: #dbeafe; color: #1e40af;" onclick="abrirModalEditarUsuario(${usuario.id}, '${usuario.usuario}', '${usuario.rol}', ${usuario.activo})" title="Editar">
+                <button class="btn btn-sm" onclick="abrirModalEditarUsuario(${usuario.id}, '${usuario.usuario}', '${usuario.rol}', ${usuario.activo})" title="Editar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                 </button>
-                <button class="btn btn-sm" style="background: #fef3c7; color: #92400e;" onclick="abrirModalResetearPassword(${usuario.id}, '${usuario.usuario}')" title="Resetear contraseña">
+                <button class="btn btn-sm" onclick="abrirModalResetearPassword(${usuario.id}, '${usuario.usuario}')" title="Resetear contraseña">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
                     </svg>
                 </button>
-                <button class="btn btn-sm" style="background: #fee2e2; color: #991b1b;" onclick="confirmarEliminarUsuario(${usuario.id}, '${usuario.usuario}')" title="Eliminar">
+                <button class="btn btn-sm btn-danger" onclick="confirmarEliminarUsuario(${usuario.id}, '${usuario.usuario}')" title="Eliminar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>

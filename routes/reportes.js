@@ -40,6 +40,40 @@ router.get('/conteos/:grupo', verifyToken, async (req, res) => {
     }
 });
 
+// ===== RESUMEN PARA LA PANTALLA DE INICIO =====
+router.get('/resumen/:grupo', verifyToken, async (req, res) => {
+    try {
+        const { grupo } = req.params;
+
+        const result = await db.query(`
+            SELECT
+                (SELECT COUNT(*) FROM miembros WHERE grupo = $1 AND activo = true) AS integrantes,
+                COUNT(DISTINCT (ra.fecha, ra.tipo_evento)) AS eventos,
+                MAX(ra.fecha) AS ultima_fecha,
+                COUNT(*) FILTER (WHERE ra.presente) AS presentes,
+                COUNT(*) AS registros
+            FROM registro_asistencia ra
+            JOIN miembros m ON m.id = ra.miembro_id
+            WHERE m.grupo = $1
+        `, [grupo]);
+
+        const r = result.rows[0];
+        const registros = Number(r.registros);
+
+        res.json({
+            integrantes: Number(r.integrantes),
+            eventos: Number(r.eventos),
+            ultima_fecha: r.ultima_fecha,
+            asistencia_promedio: registros > 0
+                ? Math.round((Number(r.presentes) / registros) * 100)
+                : null
+        });
+    } catch (error) {
+        console.error('❌ Error en resumen:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ===== DATOS DE UN EVENTO ESPECÍFICO =====
 router.get('/evento/:grupo', verifyToken, async (req, res) => {
     try {

@@ -36,7 +36,13 @@ function initApp() {
         const usuarioActual = document.getElementById('usuarioActual');
         if (usuarioActual) {
             const nombre = usuarioNombre || storedUsuario || 'Usuario';
-            usuarioActual.textContent = `Bienvenido: ${nombre}`;
+            usuarioActual.innerHTML = '';
+            const avatar = document.createElement('span');
+            avatar.className = 'avatar';
+            avatar.textContent = nombre.trim().charAt(0).toUpperCase();
+            const etiqueta = document.createElement('span');
+            etiqueta.textContent = nombre;
+            usuarioActual.append(avatar, etiqueta);
         }
 
         // Ocultar Configuración si NO es admin
@@ -57,6 +63,10 @@ function initApp() {
                 cargarConteosMiembros();
             } else {
                 console.warn('⚠️ cargarConteosMiembros no está definida');
+            }
+
+            if (typeof cargarResumenInicio === 'function') {
+                cargarResumenInicio();
             }
             
             if (typeof cargarReporteGrupo === 'function') {
@@ -180,6 +190,16 @@ function cambiarTab(nombreTab) {
         tab.style.display = 'block';
         console.log('✅ Tab mostrado:', nombreTab);
         
+        // Al volver a Inicio, refrescar el resumen (puede venir de guardar asistencias)
+        if (nombreTab === 'inicio' && typeof cargarResumenInicio === 'function') {
+            cargarResumenInicio();
+        }
+
+        // Los conteos de reportes también pueden haber cambiado
+        if (nombreTab === 'reportes' && typeof cargarReporteGrupo === 'function') {
+            cargarReporteGrupo('orquesta');
+        }
+
         // Si es un tab de miembros, cargar datos
         if (nombreTab === 'orquesta-miembros') {
             console.log('👥 Cargando miembros de orquesta');

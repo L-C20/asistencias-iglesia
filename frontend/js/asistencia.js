@@ -191,30 +191,31 @@ function renderizarListaAsistencia(grupo) {
         miembroDiv.className = 'miembro-row';
         miembroDiv.id = `asistencia-${miembro.id}`;
         
+        const esPresente = registro.presente === true && !registro.justificado;
+        const esAusente = registro.presente === false && !registro.justificado;
+        const esJustificado = !!registro.justificado;
+
         miembroDiv.innerHTML = `
             <div class="miembro-info">
                 <div class="miembro-nombre">${miembro.nombre}</div>
                 <div class="miembro-detalle">${miembro.instrumento || 'Sin asignar'}</div>
             </div>
             <div class="miembro-switches">
-                <label class="toggle-switch presente">
-                    <input type="radio" name="asistencia-${miembro.id}" value="present" 
-                        onchange="cambiarAsistencia(this)" 
-                        ${registro.presente === true && !registro.justificado ? 'checked' : ''} />
+                <label class="toggle-switch presente ${esPresente ? 'on' : ''}">
+                    <input type="radio" name="asistencia-${miembro.id}" value="present"
+                        onchange="cambiarAsistencia(this)" ${esPresente ? 'checked' : ''} />
                     <span class="toggle-icon">P</span>
                     <span class="toggle-label">Presente</span>
                 </label>
-                <label class="toggle-switch ausente">
-                    <input type="radio" name="asistencia-${miembro.id}" value="absent" 
-                        onchange="cambiarAsistencia(this)" 
-                        ${registro.presente === false && !registro.justificado ? 'checked' : ''} />
+                <label class="toggle-switch ausente ${esAusente ? 'on' : ''}">
+                    <input type="radio" name="asistencia-${miembro.id}" value="absent"
+                        onchange="cambiarAsistencia(this)" ${esAusente ? 'checked' : ''} />
                     <span class="toggle-icon">A</span>
                     <span class="toggle-label">Ausente</span>
                 </label>
-                <label class="toggle-switch justificado">
-                    <input type="radio" name="asistencia-${miembro.id}" value="justified" 
-                        onchange="cambiarAsistencia(this)" 
-                        ${registro.justificado ? 'checked' : ''} />
+                <label class="toggle-switch justificado ${esJustificado ? 'on' : ''}">
+                    <input type="radio" name="asistencia-${miembro.id}" value="justified"
+                        onchange="cambiarAsistencia(this)" ${esJustificado ? 'checked' : ''} />
                     <span class="toggle-icon">AJ</span>
                     <span class="toggle-label">Justificado</span>
                 </label>
@@ -240,6 +241,12 @@ function cambiarAsistencia(checkbox) {
         justificado: justificado,
         nota: asistenciasParaGuardar[miembroId]?.nota || ''
     };
+
+    // Respaldo del resaltado para navegadores sin soporte de :has()
+    document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+        const toggle = input.closest('.toggle-switch');
+        if (toggle) toggle.classList.toggle('on', input.checked);
+    });
 
     console.log('✏️ Asistencia actualizada:', { miembroId, presente, justificado });
 }

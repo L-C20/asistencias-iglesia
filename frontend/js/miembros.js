@@ -77,16 +77,18 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         
         // Crear filas para cada miembro
         miembros.forEach((miembro, index) => {
-            const detalleExtra = miembro.instrumento || 'Sin asignar';
+            const instrumento = miembro.instrumento
+                ? miembro.instrumento
+                : '<span class="sin-asignar">Sin asignar</span>';
 
-            console.log(`  Fila ${index + 1}: ${miembro.nombre} - ${detalleExtra}`);
+            console.log(`  Fila ${index + 1}: ${miembro.nombre} - ${miembro.instrumento || 'sin instrumento'}`);
             
             const tr = document.createElement('tr');
             tr.className = 'tabla-row';
             tr.id = `miembro-row-${miembro.id}`;
             tr.innerHTML = `
                 <td class="celda-nombre">${miembro.nombre || 'Sin nombre'}</td>
-                <td class="celda-detalle"><strong>${detalleExtra}</strong></td>
+                <td class="celda-detalle">${instrumento}</td>
                 <td class="celda-acciones">
                     <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}); return false;" title="Editar">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -306,6 +308,39 @@ async function cargarConteosMiembros() {
         if (orquestaCount) orquestaCount.textContent = `${miembrosOrquesta.length} integrantes`;
     } catch (error) {
         console.error('Error cargando conteos:', error);
+    }
+}
+
+// ===== RESUMEN DE INICIO =====
+async function cargarResumenInicio() {
+    try {
+        const response = await fetch(`${API_URL}/reportes/resumen/orquesta`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const r = await response.json();
+
+        const set = (id, valor) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = valor;
+        };
+
+        set('statIntegrantes', r.integrantes);
+        set('statEventos', r.eventos);
+        set('statPresentismo', r.asistencia_promedio === null ? '—' : `${r.asistencia_promedio}%`);
+
+        if (r.ultima_fecha) {
+            const f = new Date(r.ultima_fecha);
+            set('statUltima', f.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }));
+            set('statUltimaHint', f.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }));
+        } else {
+            set('statUltima', '—');
+            set('statUltimaHint', 'sin registros aún');
+        }
+    } catch (error) {
+        console.error('❌ Error cargando resumen:', error);
     }
 }
 

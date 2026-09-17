@@ -4,13 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Asistencia</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/configuracion-v2.css">
-    <link rel="stylesheet" href="css/reportes.css">
-    <link rel="stylesheet" href="css/mobile.css">
-    <link rel="stylesheet" href="css/mobile-fix.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <link rel="stylesheet" href="css/app.css">
     <!-- VARIABLES GLOBALES NECESARIAS -->
     <script>
         // Función de error global
@@ -29,19 +23,20 @@
     <div id="loginPage" class="login-page" style="display: flex;">
         <div class="login-container">
             <div class="login-box">
-                <div style="text-align: center; margin-bottom: 32px;">
-                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white;">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
-                            <path d="M12 6v6l4 2"></path>
+                <div class="login-marca">
+                    <div class="login-logo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
                         </svg>
                     </div>
-                    <h1 style="margin: 0; font-size: 28px; color: #1f2937;">Asistencia</h1>
-                    <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 14px;">Orquesta</p>
+                    <h1>Asistencia</h1>
+                    <p>Orquesta</p>
                 </div>
-                
-                <div id="errorMessage" style="background: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 20px; display: none; border-left: 4px solid #ef4444;"></div>
-                
+
+                <div id="errorMessage" class="alerta-error"></div>
+
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="form-group">
                         <label>Usuario</label>
@@ -53,30 +48,25 @@
                         <input type="password" id="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); transition: all 0.3s ease;" id="btnLogin">
+                    <button type="submit" class="btn btn-primary" id="btnLogin">
                         <span id="btnText">Iniciar Sesión</span>
-                        <span id="loading" style="display: none; text-align: center; color: #6b7280; font-size: 12px;">
-                            <span style="width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; margin-right: 8px; vertical-align: middle;"></span>
+                        <span id="loading" class="btn-cargando">
+                            <span class="spinner"></span>
                             Cargando...
                         </span>
                     </button>
                 </form>
-                
-                <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #6b7280;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; margin-right:4px;">
-                        <circle cx="12" cy="12" r="10"></circle>
+
+                <div class="login-pie">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                     Acceso seguro
                 </div>
             </div>
         </div>
     </div>
-
-    <style>
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
 
     <script>
         async function handleLogin(event) {
@@ -154,8 +144,19 @@
         
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h1>Sistema</h1>
-                <p>Asistencia</p>
+                <div class="marca-app">
+                    <div class="marca-logo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                    </div>
+                    <div class="marca-texto">
+                        <h2>Orquesta</h2>
+                        <p>Control de asistencia</p>
+                    </div>
+                </div>
             </div>
 
             <ul class="sidebar-menu">
@@ -214,7 +215,61 @@
                 <div id="inicio" class="tab-content active">
                     <div class="inicio-header">
                         <h2>Bienvenido</h2>
-                        <p>Selecciona un grupo para registrar asistencia</p>
+                        <p>Resumen de la actividad de la orquesta</p>
+                    </div>
+
+                    <div class="resumen-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                </svg>
+                                Integrantes
+                            </div>
+                            <div class="stat-value" id="statIntegrantes">—</div>
+                            <div class="stat-hint">activos en la orquesta</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Eventos registrados
+                            </div>
+                            <div class="stat-value" id="statEventos">—</div>
+                            <div class="stat-hint">cultos, ensayos y bautismos</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                Última asistencia
+                            </div>
+                            <div class="stat-value" id="statUltima">—</div>
+                            <div class="stat-hint" id="statUltimaHint">sin registros aún</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                                </svg>
+                                Presentismo
+                            </div>
+                            <div class="stat-value" id="statPresentismo">—</div>
+                            <div class="stat-hint">promedio sobre lo registrado</div>
+                        </div>
                     </div>
 
                     <div class="cards-container">
@@ -385,20 +440,14 @@
                             </div>
 
                             <div class="seccion-filtros">
-                                <button class="btn btn-primary btn-sm" onclick="irAEstaSemana()">Hoy</button>
+                                <button class="btn btn-secondary btn-sm" onclick="irAEstaSemana()">Hoy</button>
                                 <select id="filtroEstado" class="select-estado" onchange="aplicarFiltrosDetalle()">
                                     <option value="">Todos</option>
                                     <option value="true">Presente</option>
                                     <option value="false">Ausente</option>
                                     <option value="justified">Justificado</option>
                                 </select>
-                                <button class="btn btn-secondary btn-sm" onclick="limpiarFiltrosDetalle()">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                                        <path d="M3 3v5h5"></path>
-                                    </svg>
-                                    Limpiar
-                                </button>
+                                <button class="link-limpiar" onclick="limpiarFiltrosDetalle()">Limpiar</button>
                             </div>
                         </div>
 
@@ -564,7 +613,7 @@
             </div>
             <div class="modal-body">
                 <p>¿Resetear contraseña para <strong id="usuarioResetNombre"></strong>?</p>
-                <p style="font-size: 12px; color: #6b7280;">Se generará una nueva contraseña aleatoria que deberás compartir con el usuario.</p>
+                <p class="modal-subtitle">Se generará una nueva contraseña aleatoria que deberás compartir con el usuario.</p>
                 <input type="hidden" id="usuarioResetId">
             </div>
             <div class="modal-footer">
