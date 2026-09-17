@@ -29,11 +29,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// Ruta protegida - dashboard
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'dashboard.html'));
-});
-
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
