@@ -2,7 +2,7 @@
 var miembrosActuales = [];
 var grupoActual = null;
 var asistenciasParaGuardar = {};
-var tipoEventoActual = null;
+var tipoEventoAsistencia = null;
 var fechaEventoActual = null;
 
 console.log('🚀 asistencia-v12.js iniciando');
@@ -14,12 +14,12 @@ function irAAsistencia(grupo) {
     console.log('═══════════════════════════════════════');
     
     // Verificar que grupo sea válido
-    if (!grupo || (grupo !== 'coro' && grupo !== 'orquesta')) {
+    if (grupo !== 'orquesta') {
         console.error('❌ Grupo inválido:', grupo);
         mostrarError('Grupo inválido');
         return;
     }
-    
+
     grupoActual = grupo;
     console.log('✅ grupoActual establecido:', grupoActual);
     
@@ -76,7 +76,7 @@ function guardarConfiguracionEvento(e) {
         return;
     }
     
-    tipoEventoActual = tipoEvento;
+    tipoEventoAsistencia = tipoEvento;
     fechaEventoActual = fecha;
     
     console.log('✅ Datos guardados');
@@ -136,7 +136,7 @@ async function cargarMiembrosParaAsistencia(grupo) {
 // ===== CARGAR REGISTROS EXISTENTES =====
 async function cargarRegistrosExistentes(grupo) {
     try {
-        const url = `${API_URL}/asistencia/${grupo}/${fechaEventoActual}/${tipoEventoActual}`;
+        const url = `${API_URL}/asistencia/${grupo}/${fechaEventoActual}/${tipoEventoAsistencia}`;
         console.log('📡 [cargarRegistrosExistentes] Fetch:', url);
         
         const response = await fetch(url, {
@@ -151,6 +151,7 @@ async function cargarRegistrosExistentes(grupo) {
             registros.forEach(reg => {
                 asistenciasParaGuardar[reg.miembro_id] = {
                     presente: reg.presente,
+                    justificado: reg.justificado || false,
                     nota: reg.nota || ''
                 };
             });
@@ -165,7 +166,7 @@ async function cargarRegistrosExistentes(grupo) {
 function renderizarListaAsistencia(grupo) {
     console.log('🎨 [renderizarListaAsistencia] Grupo:', grupo);
     
-    const containerId = grupo === 'coro' ? 'listaMiembrosAsistenciaCoro' : 'listaMiembrosAsistenciaOrquesta';
+    const containerId = 'listaMiembrosAsistenciaOrquesta';
     const container = document.getElementById(containerId);
     
     console.log('🔍 Contenedor ID:', containerId);
@@ -184,7 +185,7 @@ function renderizarListaAsistencia(grupo) {
     }
     
     miembrosActuales.forEach(miembro => {
-        const registro = asistenciasParaGuardar[miembro.id] || { presente: null, nota: '' };
+        const registro = asistenciasParaGuardar[miembro.id] || { presente: null, justificado: false, nota: '' };
         
         const miembroDiv = document.createElement('div');
         miembroDiv.className = 'miembro-row';
@@ -193,27 +194,27 @@ function renderizarListaAsistencia(grupo) {
         miembroDiv.innerHTML = `
             <div class="miembro-info">
                 <div class="miembro-nombre">${miembro.nombre}</div>
-                <div class="miembro-detalle">${grupo === 'coro' ? (miembro.voz || 'Sin asignar') : (miembro.instrumento || 'Sin asignar')}</div>
+                <div class="miembro-detalle">${miembro.instrumento || 'Sin asignar'}</div>
             </div>
             <div class="miembro-switches">
                 <label class="toggle-switch presente">
                     <input type="radio" name="asistencia-${miembro.id}" value="present" 
                         onchange="cambiarAsistencia(this)" 
-                        ${registro.presente === true ? 'checked' : ''} />
+                        ${registro.presente === true && !registro.justificado ? 'checked' : ''} />
                     <span class="toggle-icon">P</span>
                     <span class="toggle-label">Presente</span>
                 </label>
                 <label class="toggle-switch ausente">
                     <input type="radio" name="asistencia-${miembro.id}" value="absent" 
                         onchange="cambiarAsistencia(this)" 
-                        ${registro.presente === false ? 'checked' : ''} />
+                        ${registro.presente === false && !registro.justificado ? 'checked' : ''} />
                     <span class="toggle-icon">A</span>
                     <span class="toggle-label">Ausente</span>
                 </label>
                 <label class="toggle-switch justificado">
                     <input type="radio" name="asistencia-${miembro.id}" value="justified" 
                         onchange="cambiarAsistencia(this)" 
-                        ${registro.presente === 'justified' ? 'checked' : ''} />
+                        ${registro.justificado ? 'checked' : ''} />
                     <span class="toggle-icon">AJ</span>
                     <span class="toggle-label">Justificado</span>
                 </label>
@@ -230,18 +231,17 @@ function renderizarListaAsistencia(grupo) {
 function cambiarAsistencia(checkbox) {
     const name = checkbox.name; // "asistencia-{miembro_id}"
     const miembroId = parseInt(name.split('-')[1]);
-    
-    let presente;
-    if (checkbox.value === 'present') presente = true;
-    else if (checkbox.value === 'absent') presente = false;
-    else if (checkbox.value === 'justified') presente = 'justified';
-    
+
+    const presente = checkbox.value === 'present';
+    const justificado = checkbox.value === 'justified';
+
     asistenciasParaGuardar[miembroId] = {
         presente: presente,
+        justificado: justificado,
         nota: asistenciasParaGuardar[miembroId]?.nota || ''
     };
-    
-    console.log('✏️ Asistencia actualizada:', { miembroId, presente });
+
+    console.log('✏️ Asistencia actualizada:', { miembroId, presente, justificado });
 }
 
 // ===== GUARDAR TODAS LAS ASISTENCIAS =====
@@ -250,7 +250,7 @@ async function guardarTodasAsistencias() {
         console.log('═══════════════════════════════════════');
         console.log('💾 [guardarTodasAsistencias] Iniciando');
         console.log('   Grupo:', grupoActual);
-        console.log('   Tipo evento:', tipoEventoActual);
+        console.log('   Tipo evento:', tipoEventoAsistencia);
         console.log('   Fecha:', fechaEventoActual);
         console.log('   Total registros:', Object.keys(asistenciasParaGuardar).length);
         console.log('═══════════════════════════════════════');
@@ -274,9 +274,10 @@ async function guardarTodasAsistencias() {
                     },
                     body: JSON.stringify({
                         miembro_id: parseInt(miembroId),
-                        tipo_evento: tipoEventoActual,
+                        tipo_evento: tipoEventoAsistencia,
                         fecha: fechaEventoActual,
                         presente: asistencia.presente,
+                        justificado: asistencia.justificado || false,
                         nota: asistencia.nota || null
                     })
                 });
@@ -330,7 +331,7 @@ function limpiarAsistencia() {
     miembrosActuales = [];
     grupoActual = null;
     asistenciasParaGuardar = {};
-    tipoEventoActual = null;
+    tipoEventoAsistencia = null;
     fechaEventoActual = null;
     console.log('🧹 Asistencia limpiada');
 }

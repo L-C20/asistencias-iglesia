@@ -6,11 +6,8 @@ const INSTRUMENTOS = [
   'Órgano', 'Acordeón', 'Bajo'
 ];
 
-const VOCES = ['Soprano', 'Contralto', 'Tenor', 'Bajo'];
-
 // Variables globales para editar
 let miembroEnEdicion = null;
-let grupoEnEdicion = null;
 
 // ===== CARGAR MIEMBROS CON FILTRO =====
 async function cargarMiembrosPorFiltro(grupo, filtro = '') {
@@ -44,16 +41,11 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         // Aplicar filtro
         if (filtro && filtro !== '') {
             console.log('🔎 Aplicando filtro:', filtro);
-            if (grupo === 'coro') {
-                miembros = miembros.filter(m => m.voz === filtro);
-                console.log('✓ Después de filtrar por voz:', miembros.length, 'miembros');
-            } else if (grupo === 'orquesta') {
-                miembros = miembros.filter(m => m.instrumento === filtro);
-                console.log('✓ Después de filtrar por instrumento:', miembros.length, 'miembros');
-            }
+            miembros = miembros.filter(m => m.instrumento === filtro);
+            console.log('✓ Después de filtrar por instrumento:', miembros.length, 'miembros');
         }
-        
-        const containerId = grupo === 'coro' ? 'listaMiembrosCoro' : 'listaMiembrosOrquesta';
+
+        const containerId = 'listaMiembrosOrquesta';
         const container = document.getElementById(containerId);
         
         console.log('🎯 Buscando contenedor:', containerId, '- Encontrado:', !!container);
@@ -85,25 +77,23 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         
         // Crear filas para cada miembro
         miembros.forEach((miembro, index) => {
-            const detalleExtra = grupo === 'coro' 
-                ? (miembro.voz || 'Sin asignar') 
-                : (miembro.instrumento || 'Sin asignar');
-            
+            const detalleExtra = miembro.instrumento || 'Sin asignar';
+
             console.log(`  Fila ${index + 1}: ${miembro.nombre} - ${detalleExtra}`);
             
             const tr = document.createElement('tr');
             tr.className = 'tabla-row';
-            tr.id = `miembro-row-${grupo}-${miembro.id}`;
+            tr.id = `miembro-row-${miembro.id}`;
             tr.innerHTML = `
                 <td class="celda-nombre">${miembro.nombre || 'Sin nombre'}</td>
                 <td class="celda-detalle"><strong>${detalleExtra}</strong></td>
                 <td class="celda-acciones">
-                    <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}, '${grupo}'); return false;" title="Editar">
+                    <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}); return false;" title="Editar">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                         </svg>
                     </button>
-                    <button class="btn btn-sm btn-danger" type="button" onclick="eliminarMiembroConfirm(${miembro.id}, '${grupo}'); return false;" title="Eliminar">
+                    <button class="btn btn-sm btn-danger" type="button" onclick="eliminarMiembroConfirm(${miembro.id}); return false;" title="Eliminar">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -123,60 +113,37 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
 }
 
 // ===== ABRIR MODAL AGREGAR MIEMBRO =====
-function abrirModalAgregarMiembro(grupo) {
+function abrirModalAgregarMiembro() {
     const modal = document.getElementById('modalAgregarMiembro');
     if (!modal) return;
-    
+
     miembroEnEdicion = null;
-    grupoEnEdicion = null;
-    
+
     // Actualizar título y botón
     document.getElementById('modalTitulo').textContent = 'Agregar Nuevo Miembro';
     document.getElementById('btnGuardarTexto').textContent = 'Agregar';
-    
-    document.getElementById('grupoNuevo').value = grupo;
+
     document.getElementById('nombreNuevo').value = '';
-    
+
     const selectInstrumento = document.getElementById('instrumentoNuevo');
-    const selectVoz = document.getElementById('vozNueva');
-    
     selectInstrumento.innerHTML = '<option value="">-- Seleccionar instrumento --</option>';
-    selectVoz.innerHTML = '<option value="">-- Seleccionar voz --</option>';
-    
-    if (grupo === 'orquesta') {
-        selectInstrumento.style.display = 'block';
-        selectVoz.style.display = 'none';
-        document.getElementById('labelInstrumento').style.display = 'block';
-        document.getElementById('labelVoz').style.display = 'none';
-        
-        INSTRUMENTOS.forEach(inst => {
-            const option = document.createElement('option');
-            option.value = inst;
-            option.textContent = inst;
-            selectInstrumento.appendChild(option);
-        });
-    } else {
-        selectInstrumento.style.display = 'none';
-        selectVoz.style.display = 'block';
-        document.getElementById('labelInstrumento').style.display = 'none';
-        document.getElementById('labelVoz').style.display = 'block';
-        
-        VOCES.forEach(voz => {
-            const option = document.createElement('option');
-            option.value = voz;
-            option.textContent = voz;
-            selectVoz.appendChild(option);
-        });
-    }
-    
+    selectInstrumento.style.display = 'block';
+
+    INSTRUMENTOS.forEach(inst => {
+        const option = document.createElement('option');
+        option.value = inst;
+        option.textContent = inst;
+        selectInstrumento.appendChild(option);
+    });
+
     modal.classList.add('show');
 }
 
 // ===== EDITAR MIEMBRO =====
-async function editarMiembroFunc(miembroId, grupo) {
+async function editarMiembroFunc(miembroId) {
     try {
-        console.log('✏️ Editando miembro:', miembroId, 'Grupo:', grupo);
-        
+        console.log('✏️ Editando miembro:', miembroId);
+
         // Cargar datos del miembro
         const response = await fetch(`${API_URL}/asistencia/miembro/${miembroId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -190,53 +157,29 @@ async function editarMiembroFunc(miembroId, grupo) {
         console.log('📋 Datos del miembro:', miembro);
         
         miembroEnEdicion = miembro;
-        grupoEnEdicion = grupo;
-        
+
         // Actualizar título y botón
         document.getElementById('modalTitulo').textContent = 'Editar Integrante';
         document.getElementById('btnGuardarTexto').textContent = 'Guardar Cambios';
-        
+
         // Abrir modal en modo edición
         const modal = document.getElementById('modalAgregarMiembro');
         if (!modal) return;
-        
-        document.getElementById('grupoNuevo').value = grupo;
+
         document.getElementById('nombreNuevo').value = miembro.nombre;
-        
+
         const selectInstrumento = document.getElementById('instrumentoNuevo');
-        const selectVoz = document.getElementById('vozNueva');
-        
         selectInstrumento.innerHTML = '<option value="">-- Seleccionar instrumento --</option>';
-        selectVoz.innerHTML = '<option value="">-- Seleccionar voz --</option>';
-        
-        if (grupo === 'orquesta') {
-            selectInstrumento.style.display = 'block';
-            selectVoz.style.display = 'none';
-            document.getElementById('labelInstrumento').style.display = 'block';
-            document.getElementById('labelVoz').style.display = 'none';
-            
-            INSTRUMENTOS.forEach(inst => {
-                const option = document.createElement('option');
-                option.value = inst;
-                option.textContent = inst;
-                if (inst === miembro.instrumento) option.selected = true;
-                selectInstrumento.appendChild(option);
-            });
-        } else {
-            selectInstrumento.style.display = 'none';
-            selectVoz.style.display = 'block';
-            document.getElementById('labelInstrumento').style.display = 'none';
-            document.getElementById('labelVoz').style.display = 'block';
-            
-            VOCES.forEach(voz => {
-                const option = document.createElement('option');
-                option.value = voz;
-                option.textContent = voz;
-                if (voz === miembro.voz) option.selected = true;
-                selectVoz.appendChild(option);
-            });
-        }
-        
+        selectInstrumento.style.display = 'block';
+
+        INSTRUMENTOS.forEach(inst => {
+            const option = document.createElement('option');
+            option.value = inst;
+            option.textContent = inst;
+            if (inst === miembro.instrumento) option.selected = true;
+            selectInstrumento.appendChild(option);
+        });
+
         modal.classList.add('show');
         mostrarToast('Editando integrante', 'info');
         
@@ -251,25 +194,18 @@ async function guardarNuevoMiembro(e) {
     e.preventDefault();
     
     const nombre = document.getElementById('nombreNuevo').value;
-    const grupo = document.getElementById('grupoNuevo').value;
     const instrumento = document.getElementById('instrumentoNuevo').value;
-    const voz = document.getElementById('vozNueva').value;
-    
+
     if (!nombre) {
         mostrarError('El nombre es requerido');
         return;
     }
-    
-    if (grupo === 'orquesta' && !instrumento) {
+
+    if (!instrumento) {
         mostrarError('Debe seleccionar un instrumento');
         return;
     }
-    
-    if (grupo === 'coro' && !voz) {
-        mostrarError('Debe seleccionar una voz');
-        return;
-    }
-    
+
     try {
         // Si está editando
         if (miembroEnEdicion) {
@@ -283,17 +219,16 @@ async function guardarNuevoMiembro(e) {
                 },
                 body: JSON.stringify({
                     nombre: nombre,
-                    voz: grupo === 'coro' ? voz : null,
-                    instrumento: grupo === 'orquesta' ? instrumento : null
+                    instrumento: instrumento
                 })
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok) {
-                cerrarModal();
+                cerrarModalMiembro();
                 mostrarToast('Integrante actualizado correctamente', 'success');
-                cargarMiembrosPorFiltro(grupo, '');
+                cargarMiembrosPorFiltro('orquesta', '');
                 cargarConteosMiembros();
             } else {
                 mostrarError(data.error || 'Error al actualizar');
@@ -310,18 +245,17 @@ async function guardarNuevoMiembro(e) {
                 },
                 body: JSON.stringify({
                     nombre: nombre,
-                    grupo: grupo,
-                    instrumento: grupo === 'orquesta' ? instrumento : null,
-                    voz: grupo === 'coro' ? voz : null
+                    grupo: 'orquesta',
+                    instrumento: instrumento
                 })
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok) {
-                cerrarModal();
+                cerrarModalMiembro();
                 mostrarToast('Integrante agregado correctamente', 'success');
-                cargarMiembrosPorFiltro(grupo, '');
+                cargarMiembrosPorFiltro('orquesta', '');
                 cargarConteosMiembros();
             } else {
                 mostrarError(data.error || 'Error al agregar integrante');
@@ -334,23 +268,23 @@ async function guardarNuevoMiembro(e) {
 }
 
 // ===== ELIMINAR MIEMBRO CON CONFIRMACIÓN =====
-function eliminarMiembroConfirm(miembroId, grupo) {
+function eliminarMiembroConfirm(miembroId) {
     if (confirm('¿Estás seguro de que deseas eliminar este integrante?')) {
-        eliminarMiembro(miembroId, grupo);
+        eliminarMiembro(miembroId);
     }
 }
 
 // ===== ELIMINAR MIEMBRO =====
-async function eliminarMiembro(miembroId, grupo) {
+async function eliminarMiembro(miembroId) {
     try {
         const response = await fetch(`${API_URL}/asistencia/miembro/${miembroId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
             mostrarToast('Integrante eliminado correctamente', 'success');
-            cargarMiembrosPorFiltro(grupo, '');
+            cargarMiembrosPorFiltro('orquesta', '');
             cargarConteosMiembros();
         } else {
             mostrarError('Error al eliminar integrante');
@@ -364,13 +298,6 @@ async function eliminarMiembro(miembroId, grupo) {
 // ===== CARGAR CONTEOS =====
 async function cargarConteosMiembros() {
     try {
-        const respCoro = await fetch(`${API_URL}/asistencia/miembros/coro`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const miembrosCoro = await respCoro.json();
-        const coroCount = document.getElementById('coroCount');
-        if (coroCount) coroCount.textContent = `${miembrosCoro.length} integrantes`;
-
         const respOrquesta = await fetch(`${API_URL}/asistencia/miembros/orquesta`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -383,14 +310,14 @@ async function cargarConteosMiembros() {
 }
 
 // ===== CERRAR MODAL =====
-function cerrarModal() {
+// Nombre propio: configuracion.js define su propio cerrarModal(modalId) y se carga después.
+function cerrarModalMiembro() {
     const modal = document.getElementById('modalAgregarMiembro');
     if (modal) {
         modal.classList.remove('show');
     }
     document.getElementById('formNuevoMiembro').reset();
     miembroEnEdicion = null;
-    grupoEnEdicion = null;
 }
 
 // ===== INICIALIZAR AL CARGAR PÁGINA =====
@@ -399,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         if (typeof token !== 'undefined' && token) {
             console.log('✅ TOKEN DISPONIBLE - Cargando datos...');
-            cargarMiembrosPorFiltro('coro', '');
             cargarMiembrosPorFiltro('orquesta', '');
             cargarConteosMiembros();
         } else {

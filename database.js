@@ -117,21 +117,16 @@ async function seedDatabase() {
     }
     console.log('✓ 4 usuarios creados (usuario1 a usuario4, contraseña: sigme)');
 
-    // Insertar miembros de ejemplo (3 + 1 vacío)
-    const miembros = [
-      ['Juan García', 'coro'],
-      ['María López', 'orquesta'],
-      ['Pedro Rodríguez', 'coro'],
-      ['[Nuevo miembro]', 'coro'] // Espacio para agregar el 4to
-    ];
+    // Insertar miembros de ejemplo
+    const miembros = ['Juan García', 'María López', 'Pedro Rodríguez'];
 
-    for (const [nombre, grupo] of miembros) {
+    for (const nombre of miembros) {
       await pool.query(
         'INSERT INTO miembros (nombre, grupo) VALUES ($1, $2)',
-        [nombre, grupo]
+        [nombre, 'orquesta']
       );
     }
-    console.log('✓ 4 miembros de ejemplo creados');
+    console.log('✓ 3 miembros de ejemplo creados');
 
   } catch (error) {
     console.error('Error en seed:', error.message);

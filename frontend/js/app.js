@@ -60,15 +60,14 @@ function initApp() {
             }
             
             if (typeof cargarReporteGrupo === 'function') {
-                console.log('📈 Llamando cargarReporteGrupo("coro", true)');
-                cargarReporteGrupo('coro', true);
+                console.log('📈 Llamando cargarReporteGrupo("orquesta")');
+                cargarReporteGrupo('orquesta');
             } else {
                 console.warn('⚠️ cargarReporteGrupo no está definida');
             }
-            
+
             if (typeof cargarMiembrosPorFiltro === 'function') {
                 console.log('👥 Llamando cargarMiembrosPorFiltro');
-                cargarMiembrosPorFiltro('coro', '');
                 cargarMiembrosPorFiltro('orquesta', '');
             }
         }, 800);
@@ -168,19 +167,8 @@ function cambiarTab(nombreTab) {
     });
     
     // Agregar clase active al item correspondiente
-    let menuItemToActivate = null;
-    if (nombreTab === 'inicio') {
-        menuItemToActivate = document.querySelector('.sidebar-menu-item');
-    } else if (nombreTab === 'coro-miembros') {
-        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[1];
-    } else if (nombreTab === 'orquesta-miembros') {
-        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[2];
-    } else if (nombreTab === 'reportes') {
-        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[3];
-    } else if (nombreTab === 'configuracion') {
-        menuItemToActivate = document.querySelectorAll('.sidebar-menu-item')[4];
-    }
-    
+    const menuItemToActivate = document.querySelector(`.sidebar-menu-item[onclick*="'${nombreTab}'"]`);
+
     if (menuItemToActivate) {
         menuItemToActivate.classList.add('active');
         console.log('✅ Menú actualizado:', nombreTab);
@@ -193,20 +181,18 @@ function cambiarTab(nombreTab) {
         console.log('✅ Tab mostrado:', nombreTab);
         
         // Si es un tab de miembros, cargar datos
-        if (nombreTab === 'coro-miembros' || nombreTab === 'orquesta-miembros') {
-            const grupo = nombreTab.includes('coro') ? 'coro' : 'orquesta';
-            console.log('👥 Cargando miembros para:', grupo);
+        if (nombreTab === 'orquesta-miembros') {
+            console.log('👥 Cargando miembros de orquesta');
             if (typeof cargarMiembrosPorFiltro === 'function') {
-                cargarMiembrosPorFiltro(grupo, '');
+                cargarMiembrosPorFiltro('orquesta', '');
             }
         }
-        
+
         // Si es asistencia, cargar datos
         if (nombreTab.startsWith('asistencia-')) {
-            const grupo = nombreTab.includes('coro') ? 'coro' : 'orquesta';
-            console.log('📋 Preparando asistencia para:', grupo);
+            console.log('📋 Preparando asistencia de orquesta');
             if (typeof grupoActual !== 'undefined') {
-                grupoActual = grupo;
+                grupoActual = 'orquesta';
             }
         }
         

@@ -30,7 +30,7 @@ window.generarTablaHorizontal = function(datos) {
     window.actualizarHeaderTabla();
 
     const fechasCulto = window.obtenerFechasCultoDeSemana();
-    const miembros = [...new Set(datos.map(d => `${d.nombre}|${d.apellido || ''}|${d.id}|${d.instrumento || d.voz || '-'}`))];
+    const miembros = [...new Set(datos.map(d => `${d.nombre}|${d.apellido || ''}|${d.id}|${d.instrumento || '-'}`))];
 
     let html = '';
 
@@ -43,7 +43,7 @@ window.generarTablaHorizontal = function(datos) {
         html += `<td style="font-size:12px;color:#6b7280;padding:10px 8px">${instrumento}</td>`;
 
         fechasCulto.forEach(fecha => {
-            const registro = datos.find(d => d.id == id && d.fecha.split('T')[0] === fecha);
+            const registro = datos.find(d => d.id == id && d.fecha && d.fecha.split('T')[0] === fecha);
             let estado = '-';
             let color = '#d1d5db';
 

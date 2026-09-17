@@ -1,13 +1,13 @@
 {
   "name": "asistencia-iglesia",
   "version": "1.0.0",
-  "description": "Sistema de asistencia para orquesta y coro",
+  "description": "Sistema de asistencia para orquesta",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": ["asistencia", "iglesia", "orquesta", "coro"],
+  "keywords": ["asistencia", "iglesia", "orquesta"],
   "author": "",
   "license": "ISC",
   "dependencies": {

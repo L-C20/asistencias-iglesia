@@ -1,6 +1,6 @@
 console.log('✅ reportes.js CARGANDO - VERSIÓN FUNCIONAL');
 
-var grupoReporte = 'coro';
+var grupoReporte = 'orquesta';
 var datosReporte = [];
 var semanaMostrada = new Date(); // Semana actual por defecto
 var tipoEventoActual = 'santo_culto'; // Track current event type
@@ -8,26 +8,12 @@ var tipoEventoActual = 'santo_culto'; // Track current event type
 // Días de culto: 2 (martes), 6 (sábado), 0 (domingo)
 const DIAS_CULTO = [0, 2, 6];
 
-// ===== CARGAR GRUPO =====
-window.cargarReporteGrupo = function(grupo, autoLoad) {
-    console.log('🔵 cargarReporteGrupo:', grupo, 'autoLoad:', autoLoad);
-    
+// ===== CARGAR CONTEOS DEL GRUPO =====
+window.cargarReporteGrupo = function(grupo) {
+    console.log('🔵 cargarReporteGrupo:', grupo);
+
     grupoReporte = grupo;
-    
-    // Solo actualizar UI si no es autoLoad
-    if (!autoLoad) {
-        document.querySelectorAll('.grupo-btn').forEach(b => b.classList.remove('active'));
-        if (event && event.target) {
-            event.target.classList.add('active');
-        }
-        
-        const vT = document.getElementById('vistaTarjetas');
-        const vD = document.getElementById('vistaDetalle');
-        if (vT) vT.style.display = 'block';
-        if (vD) vD.style.display = 'none';
-    }
-    
-    // Cargar conteos
+
     const token = localStorage.getItem('token');
     if (!token) {
         console.error('❌ Sin token');

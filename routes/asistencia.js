@@ -6,14 +6,14 @@ const router = express.Router();
 // Obtener miembros por grupo - GET /api/asistencia/miembros/:grupo
 router.get('/miembros/:grupo', verifyToken, async (req, res) => {
   try {
-    const { grupo } = req.params; // 'coro' o 'orquesta'
+    const { grupo } = req.params;
 
-    if (!['coro', 'orquesta'].includes(grupo)) {
+    if (grupo !== 'orquesta') {
       return res.status(400).json({ error: 'Grupo inválido' });
     }
 
     const result = await db.query(
-      'SELECT id, nombre, grupo, voz, instrumento FROM miembros WHERE grupo = $1 AND activo = true ORDER BY nombre',
+      'SELECT id, nombre, grupo, instrumento FROM miembros WHERE grupo = $1 AND activo = true ORDER BY nombre',
       [grupo]
     );
 
@@ -27,7 +27,7 @@ router.get('/miembros/:grupo', verifyToken, async (req, res) => {
 // Registrar asistencia - POST /api/asistencia/registrar
 router.post('/registrar', verifyToken, async (req, res) => {
   try {
-    const { miembro_id, tipo_evento, fecha, presente, nota } = req.body;
+    const { miembro_id, tipo_evento, fecha, presente, justificado, nota } = req.body;
 
     if (!miembro_id || !tipo_evento || !fecha) {
       return res.status(400).json({ error: 'Datos incompletos' });
@@ -42,16 +42,16 @@ router.post('/registrar', verifyToken, async (req, res) => {
     if (existing.rows.length > 0) {
       // Actualizar registro existente
       await db.query(
-        'UPDATE registro_asistencia SET presente = $1, nota = $2 WHERE id = $3',
-        [presente, nota || null, existing.rows[0].id]
+        'UPDATE registro_asistencia SET presente = $1, justificado = $2, nota = $3 WHERE id = $4',
+        [presente === true, justificado === true, nota || null, existing.rows[0].id]
       );
       return res.json({ success: true, message: 'Asistencia actualizada' });
     }
 
     // Crear nuevo registro
     await db.query(
-      'INSERT INTO registro_asistencia (miembro_id, tipo_evento, fecha, presente, nota) VALUES ($1, $2, $3, $4, $5)',
-      [miembro_id, tipo_evento, fecha, presente, nota || null]
+      'INSERT INTO registro_asistencia (miembro_id, tipo_evento, fecha, presente, justificado, nota) VALUES ($1, $2, $3, $4, $5, $6)',
+      [miembro_id, tipo_evento, fecha, presente === true, justificado === true, nota || null]
     );
 
     res.json({ success: true, message: 'Asistencia registrada' });
@@ -68,13 +68,13 @@ router.get('/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
 
     const result = await db.query(`
       SELECT 
-        ra.id, 
+        ra.id,
         ra.miembro_id,
         ra.presente,
+        ra.justificado,
         ra.nota,
         m.nombre,
         m.grupo,
-        m.voz,
         m.instrumento
       FROM registro_asistencia ra
       JOIN miembros m ON ra.miembro_id = m.id
@@ -94,19 +94,19 @@ router.get('/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
 // Agregar nuevo miembro - POST /api/asistencia/miembro/nuevo
 router.post('/miembro/nuevo', verifyToken, async (req, res) => {
   try {
-    const { nombre, grupo, voz, instrumento } = req.body;
+    const { nombre, grupo, instrumento } = req.body;
 
     if (!nombre || !grupo) {
       return res.status(400).json({ error: 'Nombre y grupo requeridos' });
     }
 
-    if (!['coro', 'orquesta'].includes(grupo)) {
+    if (grupo !== 'orquesta') {
       return res.status(400).json({ error: 'Grupo inválido' });
     }
 
     const result = await db.query(
-      'INSERT INTO miembros (nombre, grupo, voz, instrumento) VALUES ($1, $2, $3, $4) RETURNING id, nombre, grupo, voz, instrumento',
-      [nombre, grupo, voz || null, instrumento || null]
+      'INSERT INTO miembros (nombre, grupo, instrumento) VALUES ($1, $2, $3) RETURNING id, nombre, grupo, instrumento',
+      [nombre, grupo, instrumento || null]
     );
 
     res.json({
@@ -125,7 +125,7 @@ router.get('/miembro/:id', verifyToken, async (req, res) => {
     const { id } = req.params;
 
     const result = await db.query(
-      'SELECT id, nombre, grupo, voz, instrumento FROM miembros WHERE id = $1',
+      'SELECT id, nombre, grupo, instrumento FROM miembros WHERE id = $1',
       [id]
     );
 
@@ -144,15 +144,15 @@ router.get('/miembro/:id', verifyToken, async (req, res) => {
 router.put('/miembro/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, voz, instrumento } = req.body;
+    const { nombre, instrumento } = req.body;
 
     if (!nombre) {
       return res.status(400).json({ error: 'Nombre es requerido' });
     }
 
     const result = await db.query(
-      'UPDATE miembros SET nombre = $1, voz = $2, instrumento = $3 WHERE id = $4 RETURNING id, nombre, grupo, voz, instrumento',
-      [nombre, voz || null, instrumento || null, id]
+      'UPDATE miembros SET nombre = $1, instrumento = $2 WHERE id = $3 RETURNING id, nombre, grupo, instrumento',
+      [nombre, instrumento || null, id]
     );
 
     if (result.rows.length === 0) {

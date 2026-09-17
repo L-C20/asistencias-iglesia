@@ -37,7 +37,7 @@
                         </svg>
                     </div>
                     <h1 style="margin: 0; font-size: 28px; color: #1f2937;">Asistencia</h1>
-                    <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 14px;">Orquesta y Coro</p>
+                    <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 14px;">Orquesta</p>
                 </div>
                 
                 <div id="errorMessage" style="background: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 20px; display: none; border-left: 4px solid #ef4444;"></div>
@@ -166,15 +166,6 @@
                     </svg>
                     <span>Inicio</span>
                 </div></li>
-                <li><div class="sidebar-menu-item" onclick="cambiarTab('coro-miembros')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>Coro</span>
-                </div></li>
                 <li><div class="sidebar-menu-item" onclick="cambiarTab('orquesta-miembros')">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 3a6 6 0 0 0-6 6v12"></path>
@@ -227,22 +218,6 @@
                     </div>
 
                     <div class="cards-container">
-                        <button class="card-grupo" onclick="irAAsistencia('coro'); return false;" type="button">
-                            <div class="card-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                </svg>
-                            </div>
-                            <h3>Coro</h3>
-                            <p id="coroCount" class="card-count">0 integrantes</p>
-                            <div class="card-footer">
-                                <span class="card-action">Registrar asistencia →</span>
-                            </div>
-                        </button>
-
                         <button class="card-grupo" onclick="irAAsistencia('orquesta'); return false;" type="button">
                             <div class="card-icon">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -260,50 +235,6 @@
                             <div class="card-footer">
                                 <span class="card-action">Registrar asistencia →</span>
                             </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- CORO MIEMBROS -->
-                <div id="coro-miembros" class="tab-content">
-                    <div class="asistencia-header">
-                        <h2>Integrantes - Coro</h2>
-                    </div>
-
-                    <div class="filtros-miembros">
-                        <div class="filtro-group">
-                            <label>Filtrar por Voz:</label>
-                            <select id="filtroVozCoro" onchange="cargarMiembrosPorFiltro('coro', this.value)">
-                                <option value="">Todos</option>
-                                <option value="Soprano">Soprano</option>
-                                <option value="Contralto">Contralto</option>
-                                <option value="Tenor">Tenor</option>
-                                <option value="Bajo">Bajo</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="listaMiembrosCoro" class="tabla-miembros">
-                        <table class="tabla-datos">
-                            <thead>
-                                <tr>
-                                    <th>Apellido y Nombre</th>
-                                    <th>Voz</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Se llena con JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="tab-footer">
-                        <button class="btn btn-primary" onclick="abrirModalAgregarMiembro('coro')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14M5 12h14"></path>
-                            </svg>
-                            Agregar Miembro
                         </button>
                     </div>
                 </div>
@@ -355,41 +286,11 @@
                     </div>
 
                     <div class="tab-footer">
-                        <button class="btn btn-primary" onclick="abrirModalAgregarMiembro('orquesta')">
+                        <button class="btn btn-primary" onclick="abrirModalAgregarMiembro()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 5v14M5 12h14"></path>
                             </svg>
                             Agregar Miembro
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ASISTENCIA (oculta pero en el DOM) -->
-                <!-- ASISTENCIA CORO -->
-                <div id="asistencia-coro" class="tab-content">
-                    <div class="asistencia-header">
-                        <h2>Registrar Asistencia - Coro</h2>
-                        <button class="btn btn-secondary" onclick="cambiarTab('inicio')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                            Atrás
-                        </button>
-                    </div>
-
-                    <div class="asistencia-lista">
-                        <div id="listaMiembrosAsistenciaCoro" class="lista-miembros"></div>
-                    </div>
-
-                    <div class="tab-footer">
-                        <button class="btn btn-success" type="button" onclick="guardarTodasAsistencias(); return false;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                <polyline points="7 3 7 8 15 8"></polyline>
-                            </svg>
-                            Guardar Asistencias
                         </button>
                     </div>
                 </div>
@@ -436,12 +337,6 @@
                             Reportes
                         </h2>
                         <p>Análisis de asistencia</p>
-                    </div>
-
-                    <!-- Selector de Grupo -->
-                    <div class="grupo-selector">
-                        <button class="grupo-btn active" onclick="cargarReporteGrupo('orquesta')">Orquesta</button>
-                        <button class="grupo-btn" onclick="cargarReporteGrupo('coro')">Coro</button>
                     </div>
 
                     <!-- Vista de Cards -->
@@ -737,7 +632,7 @@
 
     <div id="modalAgregarMiembro" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="cerrarModal()">×</span>
+            <span class="close" onclick="cerrarModalMiembro()">×</span>
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 5v14M5 12h14"></path>
@@ -755,13 +650,6 @@
                     <select id="instrumentoNuevo" class="form-control" style="display: none;"></select>
                 </div>
                 
-                <div class="form-group" id="formVoz">
-                    <label id="labelVoz">Voz:</label>
-                    <select id="vozNueva" class="form-control" style="display: none;"></select>
-                </div>
-                
-                <input type="hidden" id="grupoNuevo">
-                
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button type="submit" class="btn btn-success" style="flex: 1;" id="btnGuardarMiembro">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -769,7 +657,7 @@
                         </svg>
                         <span id="btnGuardarTexto">Agregar</span>
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModal(); return false;">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalMiembro(); return false;">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -777,45 +665,6 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- MODAL NUEVO USUARIO -->
-    <div id="modalNuevoUsuario" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModalUsuario()">×</span>
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14"></path>
-                </svg>
-                <h3 style="margin: 0;" id="modalUsuarioTitulo">Nuevo Usuario</h3>
-            </div>
-            <form id="formNuevoUsuario" onsubmit="guardarNuevoUsuario(event)">
-                <div class="form-group">
-                    <label>Nombre de Usuario:</label>
-                    <input type="text" id="usuarioNuevo" required>
-                </div>
-                <div class="form-group">
-                    <label>Contraseña:</label>
-                    <input type="password" id="passwordNuevo" required>
-                </div>
-                <div class="form-group">
-                    <label>Rol:</label>
-                    <select id="rolNuevo" required>
-                        <option value="">-- Seleccionar rol --</option>
-                        <option value="admin">Administrador</option>
-                        <option value="user">Usuario</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn btn-success" style="flex: 1;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        Guardar
-                    </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cerrarModalUsuario(); return false;">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <script src="js/miembros.js"></script>
     <script src="js/asistencia.js"></script>

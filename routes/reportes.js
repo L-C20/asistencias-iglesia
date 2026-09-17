@@ -58,7 +58,6 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 m.nombre,
                 COALESCE(m.apellido, '') as apellido,
                 COALESCE(m.instrumento, '') as instrumento,
-                COALESCE(m.voz, '') as voz,
                 ra.fecha,
                 CASE
                     WHEN COALESCE(ra.presente::text, '') IN ('true', 't', '1') THEN true
@@ -101,7 +100,6 @@ router.get('/estadisticas/:grupo', verifyToken, async (req, res) => {
                 m.nombre,
                 m.apellido,
                 m.instrumento,
-                m.voz,
                 COUNT(*) as total_eventos,
                 COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as presentes,
                 COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as ausentes,
@@ -113,7 +111,7 @@ router.get('/estadisticas/:grupo', verifyToken, async (req, res) => {
             FROM miembros m
             LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
             WHERE LOWER(m.grupo) = $1
-            GROUP BY m.id, m.nombre, m.apellido, m.instrumento, m.voz
+            GROUP BY m.id, m.nombre, m.apellido, m.instrumento
             ORDER BY m.nombre, m.apellido
         `, [grupo.toLowerCase()]);
         
