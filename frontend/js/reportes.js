@@ -187,13 +187,22 @@ window.aplicarFiltrosDetalle = function() {
         filas = integrantes.filter(m => idsQueCumplen.has(m.id));
     }
 
+    // Búsqueda por nombre o instrumento, sin distinguir mayúsculas ni acentos
+    const busqueda = document.getElementById('filtroBusqueda');
+    const texto = busqueda ? normalizar(busqueda.value) : '';
+    if (texto) {
+        filas = filas.filter(m => normalizar(`${m.nombre} ${m.apellido || ''} ${m.instrumento || ''}`).includes(texto));
+    }
+
     console.log('📅 Semana:', fechasCulto, '| filas:', filas.length, '| registros:', registrosSemana.length);
 
     const tb = document.getElementById('tablaDetalleBody');
     if (!tb) return;
 
     if (filas.length === 0) {
-        const msg = estado.value ? 'Nadie con ese estado esta semana' : 'No hay integrantes cargados';
+        const msg = texto ? 'Ningún integrante coincide con la búsqueda'
+                  : estado.value ? 'Nadie con ese estado esta semana'
+                  : 'No hay integrantes cargados';
         if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
         tb.innerHTML = `<tr><td colspan="10" class="tabla-vacia">${msg}</td></tr>`;
         return;
@@ -206,11 +215,18 @@ window.limpiarFiltrosDetalle = function() {
     console.log('🧹 Limpiar filtros');
 
     const estado = document.getElementById('filtroEstado');
+    const busqueda = document.getElementById('filtroBusqueda');
 
     if (estado) estado.value = '';
+    if (busqueda) busqueda.value = '';
 
     aplicarFiltrosDetalle();
 };
+
+// "Rodríguez" y "rodriguez" deben coincidir
+function normalizar(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+}
 
 // ===== NAVEGACIÓN DE SEMANAS =====
 

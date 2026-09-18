@@ -664,6 +664,7 @@ svg { flex-shrink: 0; }
 }
 
 input[type="text"],
+input[type="search"],
 input[type="password"],
 input[type="email"],
 input[type="date"],
@@ -1155,6 +1156,32 @@ input::placeholder { color: var(--text-light); }
     padding-right: var(--sp-8);
     font-size: var(--fs-sm);
 }
+
+.buscador {
+    position: relative;
+    flex: 1;
+    min-width: 160px;
+    max-width: 260px;
+}
+
+.buscador svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    width: 15px;
+    height: 15px;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    pointer-events: none;
+}
+
+.buscador input {
+    width: 100%;
+    padding: 7px var(--sp-3) 7px 32px;
+    font-size: var(--fs-sm);
+}
+
+.buscador input::-webkit-search-cancel-button { cursor: pointer; }
 
 .link-limpiar {
     background: none;

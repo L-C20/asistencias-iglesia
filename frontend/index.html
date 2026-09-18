@@ -433,6 +433,13 @@
 
                             <div class="seccion-filtros">
                                 <button class="btn btn-secondary btn-sm" onclick="irAEstaSemana()">Hoy</button>
+                                <div class="buscador">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="7"></circle>
+                                        <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+                                    </svg>
+                                    <input type="search" id="filtroBusqueda" placeholder="Buscar integrante" oninput="aplicarFiltrosDetalle()" autocomplete="off">
+                                </div>
                                 <select id="filtroEstado" class="select-estado" onchange="aplicarFiltrosDetalle()">
                                     <option value="">Todos</option>
                                     <option value="true">Presente</option>
