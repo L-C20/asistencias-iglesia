@@ -837,6 +837,43 @@ input::placeholder { color: var(--text-light); }
     color: var(--red-600);
 }
 
+/* Acciones dentro de una fila de sección (lista de integrantes) */
+.miembro-row .celda-acciones {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    width: auto;
+    flex-shrink: 0;
+}
+
+.miembro-row .celda-acciones .btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-2);
+    box-shadow: var(--sh-xs);
+}
+
+.miembro-row .celda-acciones .btn + .btn { margin-left: 0; }
+
+.miembro-row .celda-acciones .btn:hover {
+    background: var(--gray-100);
+    color: var(--text);
+}
+
+.miembro-row .celda-acciones .btn-danger {
+    color: var(--red-600);
+    background: var(--red-50);
+    border-color: #fecdca;
+}
+
+.miembro-row .celda-acciones .btn-danger:hover {
+    color: #fff;
+    background: var(--red-600);
+    border-color: var(--red-600);
+}
+
 .tab-footer {
     display: flex;
     gap: var(--sp-3);
