@@ -4,6 +4,15 @@ const jwt = require('jsonwebtoken');
 const db = require('../database');
 const router = express.Router();
 
+// Compara contra el hash guardado. Versiones anteriores guardaban algunas
+// contraseñas sin cifrar; se aceptan una vez y se cifran al primer login.
+async function passwordCoincide(ingresada, guardada) {
+  if (!guardada) return false;
+  const esHash = /^\$2[aby]\$\d{2}\$/.test(guardada);
+  if (esHash) return bcrypt.compare(ingresada, guardada);
+  return ingresada === guardada;
+}
+
 // Login - POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
@@ -25,10 +34,15 @@ router.post('/login', async (req, res) => {
 
     const user = result.rows[0];
 
-    // Verificar contraseña
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
+    if (!(await passwordCoincide(password, user.password))) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    // Si estaba guardada sin cifrar, se cifra ahora
+    if (!/^\$2[aby]\$/.test(user.password)) {
+      const hash = await bcrypt.hash(password, 10);
+      await db.query('UPDATE usuarios SET password = $1 WHERE id = $2', [hash, user.id]);
+      console.log('🔐 Contraseña migrada a hash para:', user.usuario);
     }
 
     // Generar JWT
@@ -82,4 +96,4 @@ router.get('/verify', verifyToken, (req, res) => {
   });
 });
 
-module.exports = { router, verifyToken };
+module.exports = { router, verifyToken, passwordCoincide };

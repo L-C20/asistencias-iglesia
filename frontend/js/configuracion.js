@@ -161,6 +161,7 @@ function abrirModalEditarUsuario(id, usuario, rol, activo) {
     document.getElementById('usuarioEditarNombre').value = usuario;
     document.getElementById('usuarioEditarRol').value = rol;
     document.getElementById('usuarioEditarActivo').checked = activo;
+    document.getElementById('usuarioEditarPassword').value = '';
 
     modal.classList.add('show');
 }
@@ -219,15 +220,20 @@ async function guardarUsuarioEditado() {
     const usuario = document.getElementById('usuarioEditarNombre').value;
     const rol = document.getElementById('usuarioEditarRol').value;
     const activo = document.getElementById('usuarioEditarActivo').checked;
+    const password = document.getElementById('usuarioEditarPassword').value;
+
+    if (password && password.length < 6) {
+        mostrarToast('La contraseña debe tener al menos 6 caracteres', 'error');
+        return;
+    }
 
     try {
         const token = localStorage.getItem('token');
+        const cabeceras = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
         const response = await fetch(`${API_URL}/usuarios/${id}`, {
             method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+            headers: cabeceras,
             body: JSON.stringify({ usuario, rol, activo })
         });
 
@@ -237,7 +243,21 @@ async function guardarUsuarioEditado() {
             return;
         }
 
-        mostrarToast('Usuario actualizado', 'success');
+        if (password) {
+            const rp = await fetch(`${API_URL}/usuarios/${id}/password`, {
+                method: 'PUT',
+                headers: cabeceras,
+                body: JSON.stringify({ password })
+            });
+            if (!rp.ok) {
+                const error = await rp.json();
+                mostrarToast('Datos guardados, pero la contraseña no: ' + (error.error || 'error'), 'error');
+                cargarUsuarios();
+                return;
+            }
+        }
+
+        mostrarToast(password ? 'Usuario y contraseña actualizados' : 'Usuario actualizado', 'success');
         cerrarModal('modalEditarUsuario');
         cargarUsuarios();
     } catch (error) {

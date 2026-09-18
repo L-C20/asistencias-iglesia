@@ -711,6 +711,12 @@ input:focus, select:focus, textarea:focus {
 
 input::placeholder { color: var(--text-light); }
 
+.ayuda-campo {
+    margin-top: 6px;
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+}
+
 /* Radios de tipo de evento */
 .radio-options { display: flex; flex-direction: column; gap: var(--sp-2); }
 

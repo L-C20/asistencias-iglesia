@@ -1,8 +1,11 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const db = require('../database');
-const { verifyToken } = require('./auth');
+const { verifyToken, passwordCoincide } = require('./auth');
 const crypto = require('crypto');
 const router = express.Router();
+
+const LARGO_MINIMO_PASSWORD = 6;
 
 // Middleware para verificar si es admin
 const verificarAdmin = async (req, res, next) => {
@@ -72,6 +75,10 @@ router.post('/crear', verifyToken, verificarAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
     }
 
+    if (password.length < LARGO_MINIMO_PASSWORD) {
+      return res.status(400).json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` });
+    }
+
     // Validar rol
     if (!['admin', 'operario'].includes(rol)) {
       return res.status(400).json({ error: 'Rol inválido' });
@@ -87,10 +94,10 @@ router.post('/crear', verifyToken, verificarAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Usuario ya existe' });
     }
 
-    // Crear usuario
+    const hash = await bcrypt.hash(password, 10);
     const result = await db.query(
       'INSERT INTO usuarios (usuario, password, rol, activo) VALUES ($1, $2, $3, true) RETURNING id, usuario, rol, activo, fecha_creacion',
-      [usuario, password, rol]
+      [usuario, hash, rol]
     );
 
     console.log('✅ Usuario creado:', usuario);
@@ -196,10 +203,11 @@ router.post('/:id/resetear-password', verifyToken, verificarAdmin, async (req, r
 
     // Generar contraseña aleatoria
     const nuevaPassword = crypto.randomBytes(6).toString('hex');
+    const hash = await bcrypt.hash(nuevaPassword, 10);
 
     const result = await db.query(
       'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING id, usuario',
-      [nuevaPassword, id]
+      [hash, id]
     );
 
     if (result.rows.length === 0) {
@@ -219,6 +227,34 @@ router.post('/:id/resetear-password', verifyToken, verificarAdmin, async (req, r
   }
 });
 
+// PUT /api/usuarios/:id/password - El admin define una contraseña nueva para un usuario
+router.put('/:id/password', verifyToken, verificarAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < LARGO_MINIMO_PASSWORD) {
+      return res.status(400).json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    const result = await db.query(
+      'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING id, usuario',
+      [hash, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    console.log('🔑 Contraseña definida por admin para:', result.rows[0].usuario);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Error en PUT /:id/password:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/usuarios/cambiar-password - Cambiar tu propia contraseña
 router.post('/cambiar-password/actual', verifyToken, async (req, res) => {
   try {
@@ -231,7 +267,10 @@ router.post('/cambiar-password/actual', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Contraseñas requeridas' });
     }
 
-    // Verificar contraseña actual
+    if (passwordNueva.length < LARGO_MINIMO_PASSWORD) {
+      return res.status(400).json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` });
+    }
+
     const usuario = await db.query(
       'SELECT password FROM usuarios WHERE id = $1',
       [usuarioId]
@@ -241,14 +280,14 @@ router.post('/cambiar-password/actual', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    if (usuario.rows[0].password !== passwordActual) {
+    if (!(await passwordCoincide(passwordActual, usuario.rows[0].password))) {
       return res.status(401).json({ error: 'Contraseña actual incorrecta' });
     }
 
-    // Actualizar contraseña
+    const hash = await bcrypt.hash(passwordNueva, 10);
     await db.query(
       'UPDATE usuarios SET password = $1 WHERE id = $2',
-      [passwordNueva, usuarioId]
+      [hash, usuarioId]
     );
 
     console.log('✅ Contraseña actualizada');
@@ -256,51 +295,6 @@ router.post('/cambiar-password/actual', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('❌ Error en cambiar-password:', error.message);
     res.status(500).json({ error: error.message });
-  }
-});
-
-// POST /api/usuarios/setup - Setup inicial (sin auth, solo primer admin)
-router.post('/setup', async (req, res) => {
-  try {
-    const { usuario, nombre_completo } = req.body;
-
-    console.log('⚙️ Setup usuario1 a admin:', usuario);
-
-    const result = await db.query(
-      'UPDATE usuarios SET rol = $1, nombre_completo = $2 WHERE usuario = $3 RETURNING id, usuario, rol, nombre_completo',
-      ['admin', nombre_completo, usuario]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    console.log('✅ Usuario actualizado a admin');
-    res.json({ ok: true, usuario: result.rows[0] });
-  } catch (error) {
-    console.error('❌ Error en setup:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /api/usuarios/reset-admin - Resetear admin a marcelo/Marcelo26
-router.get('/reset-admin', async (req, res) => {
-  try {
-    const bcrypt = require('bcryptjs');
-    console.log('🔐 Reseteando admin...');
-
-    const hashedPassword = await bcrypt.hash('Marcelo26', 10);
-
-    await db.query(
-      'UPDATE usuarios SET usuario = $1, password = $2, nombre_completo = $3, rol = $4 WHERE id = 1',
-      ['marcelo', hashedPassword, 'Marcelo Borgia', 'admin']
-    );
-
-    console.log('✅ Admin reseteado');
-    res.json({ ok: true, mensaje: '✅ Admin actualizado. Usuario: marcelo | Contraseña: Marcelo26' });
-  } catch (error) {
-    console.error('❌ Error:', error.message);
-    res.status(500).json({ ok: false, error: error.message });
   }
 });
 
