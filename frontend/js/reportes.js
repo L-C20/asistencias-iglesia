@@ -194,9 +194,21 @@ window.limpiarFiltrosDetalle = function() {
 };
 
 // ===== NAVEGACIÓN DE SEMANAS =====
+
+// "YYYY-MM-DD" en hora local. toISOString() pasa a UTC y de noche
+// (Argentina es UTC-3) ya cae en el día siguiente.
+window.fechaLocalISO = function(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+};
+
 window.calcularSemana = function(fecha) {
-    // Calcula lunes-domingo de la semana
+    // Calcula lunes-domingo de la semana. Se fija al mediodía para que
+    // ningún cambio de horario mueva el día.
     const d = new Date(fecha);
+    d.setHours(12, 0, 0, 0);
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Lunes
     const lunes = new Date(d.setDate(diff));
@@ -258,11 +270,11 @@ window.obtenerFechasCultoDeSemana = function() {
         // Si es santo_culto, solo días específicos; si es ensayo/bautismo, todos los días
         if (tipoEventoActual === 'santo_culto') {
             if (DIAS_CULTO.includes(diaSemana)) {
-                fechas.push(fecha.toISOString().split('T')[0]);
+                fechas.push(window.fechaLocalISO(fecha));
             }
         } else {
             // Todos los días para ensayo y bautismo
-            fechas.push(fecha.toISOString().split('T')[0]);
+            fechas.push(window.fechaLocalISO(fecha));
         }
     }
 

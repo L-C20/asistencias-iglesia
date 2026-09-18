@@ -332,7 +332,8 @@ async function cargarResumenInicio() {
         set('statPresentismo', r.asistencia_promedio === null ? '—' : `${r.asistencia_promedio}%`);
 
         if (r.ultima_fecha) {
-            const f = new Date(r.ultima_fecha);
+            // "T00:00:00" sin zona fuerza hora local; sin eso se interpreta como UTC
+            const f = new Date(r.ultima_fecha + 'T00:00:00');
             set('statUltima', f.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }));
             set('statUltimaHint', f.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }));
         } else {

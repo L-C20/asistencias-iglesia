@@ -51,7 +51,7 @@ router.get('/resumen/:grupo', verifyToken, async (req, res) => {
             SELECT
                 (SELECT COUNT(*) FROM miembros WHERE grupo = $1 AND activo = true) AS integrantes,
                 COUNT(DISTINCT (ra.fecha, ra.tipo_evento)) AS eventos,
-                MAX(ra.fecha) AS ultima_fecha,
+                TO_CHAR(MAX(ra.fecha), 'YYYY-MM-DD') AS ultima_fecha,
                 COUNT(*) FILTER (WHERE ra.presente) AS presentes,
                 COUNT(*) AS registros
             FROM registro_asistencia ra
@@ -94,7 +94,7 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 m.nombre,
                 COALESCE(m.apellido, '') as apellido,
                 COALESCE(m.instrumento, '') as instrumento,
-                ra.fecha,
+                TO_CHAR(ra.fecha, 'YYYY-MM-DD') as fecha,
                 CASE
                     WHEN COALESCE(ra.presente::text, '') IN ('true', 't', '1') THEN true
                     ELSE false
