@@ -358,7 +358,7 @@ async function guardarTodasAsistencias() {
         console.log(`═══════════════════════════════════════`);
         
         if (guardados > 0) {
-            mostrarToast(`✅ ${guardados} asistencias guardadas correctamente`, 'success');
+            mostrarToast(`${guardados} asistencias guardadas`, 'success');
             
             // Limpiar datos
             console.log('🧹 Limpiando datos de asistencia');

@@ -180,10 +180,14 @@ function abrirModalResetearPassword(id, usuario) {
 }
 
 // ===== CONFIRMAR ELIMINAR USUARIO =====
-function confirmarEliminarUsuario(id, usuario) {
-    if (confirm(`¿Estás seguro de que deseas eliminar a ${usuario}?`)) {
-        eliminarUsuario(id);
-    }
+async function confirmarEliminarUsuario(id, usuario) {
+    const ok = await confirmar({
+        titulo: 'Eliminar usuario',
+        mensaje: `¿Eliminar a ${usuario}?\n\nYa no va a poder entrar a la aplicación. Esta acción no se puede deshacer.`,
+        confirmar: 'Eliminar',
+        peligroso: true
+    });
+    if (ok) eliminarUsuario(id);
 }
 
 // ===== ELIMINAR USUARIO =====
@@ -197,15 +201,15 @@ async function eliminarUsuario(id) {
 
         if (!response.ok) {
             const error = await response.json();
-            alert('Error: ' + error.error);
+            mostrarToast(error.error || 'Ocurrió un error', 'error');
             return;
         }
 
-        alert('Usuario eliminado exitosamente');
+        mostrarToast('Usuario eliminado', 'success');
         cargarUsuarios();
     } catch (error) {
         console.error('❌ Error eliminando usuario:', error);
-        alert('Error al eliminar usuario');
+        mostrarToast('No se pudo eliminar el usuario', 'error');
     }
 }
 
@@ -229,16 +233,16 @@ async function guardarUsuarioEditado() {
 
         if (!response.ok) {
             const error = await response.json();
-            alert('Error: ' + error.error);
+            mostrarToast(error.error || 'Ocurrió un error', 'error');
             return;
         }
 
-        alert('Usuario actualizado exitosamente');
+        mostrarToast('Usuario actualizado', 'success');
         cerrarModal('modalEditarUsuario');
         cargarUsuarios();
     } catch (error) {
         console.error('❌ Error actualizando usuario:', error);
-        alert('Error al actualizar usuario');
+        mostrarToast('No se pudo actualizar el usuario', 'error');
     }
 }
 
@@ -255,17 +259,26 @@ async function resetearPassword() {
 
         if (!response.ok) {
             const error = await response.json();
-            alert('Error: ' + error.error);
+            mostrarToast(error.error || 'Ocurrió un error', 'error');
             return;
         }
 
         const data = await response.json();
-        alert(`Nueva contraseña: ${data.nueva_password}\n\n⚠️ Comparte con el usuario de forma segura`);
         cerrarModal('modalResetearPassword');
         cargarUsuarios();
+        const clave = document.createElement('code');
+        clave.className = 'clave-generada';
+        clave.textContent = data.nueva_password;
+        await confirmar({
+            titulo: 'Contraseña restablecida',
+            mensaje: 'Compartila con el usuario de forma segura. No se vuelve a mostrar.',
+            detalle: clave.outerHTML,
+            confirmar: 'Listo',
+            cancelar: null
+        });
     } catch (error) {
         console.error('❌ Error reseteando password:', error);
-        alert('Error al resetear password');
+        mostrarToast('No se pudo restablecer la contraseña', 'error');
     }
 }
 
@@ -278,12 +291,12 @@ async function cambiarMiContraseña(event) {
     const passwordConfirmar = document.getElementById('passwordConfirmar').value;
 
     if (!passwordActual || !passwordNueva || !passwordConfirmar) {
-        alert('Completa todos los campos');
+        mostrarToast('Completá todos los campos', 'error');
         return;
     }
 
     if (passwordNueva !== passwordConfirmar) {
-        alert('Las contraseñas nuevas no coinciden');
+        mostrarToast('Las contraseñas nuevas no coinciden', 'error');
         return;
     }
 
@@ -300,17 +313,17 @@ async function cambiarMiContraseña(event) {
 
         if (!response.ok) {
             const error = await response.json();
-            alert('Error: ' + error.error);
+            mostrarToast(error.error || 'Ocurrió un error', 'error');
             return;
         }
 
-        alert('Contraseña actualizada exitosamente');
+        mostrarToast('Contraseña actualizada', 'success');
         document.getElementById('passwordActual').value = '';
         document.getElementById('passwordNueva').value = '';
         document.getElementById('passwordConfirmar').value = '';
     } catch (error) {
         console.error('❌ Error cambiando contraseña:', error);
-        alert('Error al cambiar contraseña');
+        mostrarToast('No se pudo cambiar la contraseña', 'error');
     }
 }
 
@@ -336,7 +349,7 @@ async function guardarNuevoUsuario() {
     const rol = document.getElementById('nuevoUsuarioRol').value;
 
     if (!usuario || !password) {
-        alert('Completa todos los campos');
+        mostrarToast('Completá todos los campos', 'error');
         return;
     }
 
@@ -353,16 +366,16 @@ async function guardarNuevoUsuario() {
 
         if (!response.ok) {
             const error = await response.json();
-            alert('Error: ' + error.error);
+            mostrarToast(error.error || 'Ocurrió un error', 'error');
             return;
         }
 
-        alert('Usuario creado exitosamente');
+        mostrarToast('Usuario creado', 'success');
         cerrarModal('modalNuevoUsuario');
         cargarUsuarios();
     } catch (error) {
         console.error('❌ Error creando usuario:', error);
-        alert('Error al crear usuario');
+        mostrarToast('No se pudo crear el usuario', 'error');
     }
 }
 

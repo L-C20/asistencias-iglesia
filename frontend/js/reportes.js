@@ -121,10 +121,12 @@ window.eliminarEvento = async function(fecha) {
     const registros = datosReporte.filter(d => d.fecha && d.fecha.split('T')[0] === fecha).length;
     const [y, m, d] = fecha.split('-');
 
-    const ok = confirm(
-        `¿Eliminar el ${nombres[tipoEventoActual] || tipoEventoActual} del ${d}/${m}/${y}?\n\n` +
-        `Se borrarán ${registros} registros de asistencia. Esta acción no se puede deshacer.`
-    );
+    const ok = await confirmar({
+        titulo: 'Eliminar evento',
+        mensaje: `¿Eliminar el ${nombres[tipoEventoActual] || tipoEventoActual} del ${d}/${m}/${y}?\n\nSe borrarán ${registros} registros de asistencia. Esta acción no se puede deshacer.`,
+        confirmar: 'Eliminar',
+        peligroso: true
+    });
     if (!ok) return;
 
     try {

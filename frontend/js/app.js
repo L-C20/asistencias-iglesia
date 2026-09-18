@@ -137,27 +137,20 @@ async function handleLogin(e) {
 }
 
 // ===== LOGOUT =====
-function logout() {
-    console.log('🚪 [logout] Iniciando logout');
-    
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        console.log('✅ Usuario confirmó logout');
-        
-        // Limpiar localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuario');
-        token = null;
-        
-        console.log('🧹 LocalStorage limpiado');
-        console.log('🔄 Recargando página...');
-        
-        // Recargar página
-        setTimeout(() => {
-            location.reload();
-        }, 300);
-    } else {
-        console.log('❌ Usuario canceló logout');
-    }
+async function logout() {
+    const ok = await confirmar({
+        titulo: 'Cerrar sesión',
+        mensaje: '¿Querés salir de la aplicación?',
+        confirmar: 'Salir'
+    });
+    if (!ok) return;
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('usuarioRol');
+    localStorage.removeItem('usuarioNombre');
+    token = null;
+    location.reload();
 }
 
 // ===== CAMBIAR TAB =====
@@ -262,27 +255,65 @@ function cerrarSidebarAlHacerClick() {
 }
 
 // ===== MOSTRAR TOAST =====
+const ICONOS_TOAST = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+    info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
+};
+
 function mostrarToast(mensaje, tipo = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
-    
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${tipo}`;
-    toast.textContent = mensaje;
-    toast.style.cssText = `
-        background: ${tipo === 'success' ? '#10b981' : tipo === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        animation: slideIn 0.3s ease;
-    `;
-    
+    toast.innerHTML = `<span class="toast-icono">${ICONOS_TOAST[tipo] || ICONOS_TOAST.info}</span><span class="toast-texto"></span>`;
+    toast.querySelector('.toast-texto').textContent = mensaje;
+
+    const cerrar = () => {
+        toast.classList.add('saliendo');
+        setTimeout(() => toast.remove(), 200);
+    };
+    toast.addEventListener('click', cerrar);
     container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+    setTimeout(cerrar, tipo === 'error' ? 5000 : 3500);
+}
+
+// Diálogo de confirmación propio, en lugar del confirm() del navegador.
+// Devuelve una promesa que resuelve true si el usuario confirma.
+// Con cancelar: null se comporta como un aviso con un solo botón.
+function confirmar({ titulo, mensaje, detalle = '', confirmar = 'Confirmar', cancelar = 'Cancelar', peligroso = false }) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('modalConfirmar');
+        if (!modal) { resolve(window.confirm(mensaje)); return; }
+
+        modal.querySelector('.confirmar-titulo').textContent = titulo;
+        modal.querySelector('.confirmar-mensaje').textContent = mensaje;
+        modal.querySelector('.confirmar-detalle').innerHTML = detalle;
+
+        const btnOk = modal.querySelector('.confirmar-ok');
+        const btnNo = modal.querySelector('.confirmar-no');
+        btnOk.textContent = confirmar;
+        btnOk.className = `btn confirmar-ok ${peligroso ? 'btn-danger' : 'btn-primary'}`;
+        btnNo.textContent = cancelar || '';
+        btnNo.hidden = !cancelar;
+
+        const terminar = (valor) => {
+            modal.classList.remove('show');
+            btnOk.onclick = btnNo.onclick = modal.onclick = null;
+            document.removeEventListener('keydown', onKey);
+            resolve(valor);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') terminar(false); };
+
+        btnOk.onclick = () => terminar(true);
+        btnNo.onclick = () => terminar(false);
+        modal.onclick = (e) => { if (e.target === modal) terminar(false); };
+        document.addEventListener('keydown', onKey);
+
+        modal.classList.add('show');
+        btnOk.focus();
+    });
 }
 
 // ===== MOSTRAR ERROR =====

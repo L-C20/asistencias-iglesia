@@ -1601,16 +1601,73 @@ input::placeholder { color: var(--text-light); }
 }
 
 .toast {
-    padding: 10px var(--sp-4);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    max-width: 380px;
+    padding: 10px var(--sp-4) 10px var(--sp-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: var(--r-md);
+    box-shadow: var(--sh-lg);
     font-size: var(--fs-sm);
     font-weight: 500;
-    color: #fff;
-    box-shadow: var(--sh-lg);
-    animation: toastIn .2s ease;
+    color: var(--text);
+    pointer-events: auto;
+    cursor: pointer;
+    animation: toastIn .22s cubic-bezier(.2, .8, .2, 1);
 }
 
-@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.toast.saliendo { animation: toastOut .2s ease forwards; }
+
+.toast-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.toast-icono svg { width: 13px; height: 13px; }
+
+.toast-success .toast-icono { background: var(--green-50); color: var(--green-700); }
+.toast-error   .toast-icono { background: var(--red-50);   color: var(--red-700); }
+.toast-info    .toast-icono { background: var(--brand-50); color: var(--brand-700); }
+
+@keyframes toastIn  { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to   { opacity: 0; transform: translateY(6px); } }
+
+/* Modal de confirmación */
+.modal-confirmar { max-width: 400px; }
+
+.confirmar-titulo { font-size: var(--fs-lg); font-weight: 600; margin-bottom: var(--sp-2); }
+
+.confirmar-mensaje {
+    color: var(--text-2);
+    font-size: var(--fs-base);
+    line-height: 1.55;
+    white-space: pre-line;
+}
+
+.confirmar-detalle:not(:empty) { margin-top: var(--sp-4); }
+
+.confirmar-no[hidden] { display: none; }
+
+/* Contraseña generada: se muestra para copiarla */
+.clave-generada {
+    display: block;
+    padding: var(--sp-3);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: var(--fs-lg);
+    letter-spacing: .04em;
+    text-align: center;
+    background: var(--gray-50);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    user-select: all;
+}
 
 /* ---------- 16. Responsive ---------- */
 @media (max-width: 1024px) {

@@ -211,7 +211,6 @@ async function editarMiembroFunc(miembroId) {
         });
 
         modal.classList.add('show');
-        mostrarToast('Editando integrante', 'info');
         
     } catch (error) {
         console.error('❌ Error al editar:', error);
@@ -298,10 +297,16 @@ async function guardarNuevoMiembro(e) {
 }
 
 // ===== ELIMINAR MIEMBRO CON CONFIRMACIÓN =====
-function eliminarMiembroConfirm(miembroId) {
-    if (confirm('¿Estás seguro de que deseas eliminar este integrante?')) {
-        eliminarMiembro(miembroId);
-    }
+async function eliminarMiembroConfirm(miembroId) {
+    const fila = document.getElementById(`miembro-row-${miembroId}`);
+    const nombre = fila ? fila.querySelector('.miembro-nombre').textContent : 'este integrante';
+    const ok = await confirmar({
+        titulo: 'Eliminar integrante',
+        mensaje: `¿Eliminar a ${nombre}?\n\nSe borra también toda su asistencia registrada. Esta acción no se puede deshacer.`,
+        confirmar: 'Eliminar',
+        peligroso: true
+    });
+    if (ok) eliminarMiembro(miembroId);
 }
 
 // ===== ELIMINAR MIEMBRO =====
