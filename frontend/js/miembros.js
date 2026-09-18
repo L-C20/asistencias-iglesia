@@ -1,9 +1,10 @@
 // CONSTANTES
 const INSTRUMENTOS = [
-  'Violín', 'Viola', 'Violoncello', 'Contrabajo',
-  'Flauta traversa', 'Oboe', 'Clarinete', 'Saxofón',
+  'Violín 1', 'Violín 2', 'Viola', 'Cello',
+  'Flauta', 'Oboe', 'Clarinete',
+  'Sx. Alto', 'Sx. Tenor', 'Sx. Barítono',
   'Trompeta', 'Corno', 'Trombón', 'Eufonio', 'Tuba',
-  'Órgano', 'Acordeón', 'Bajo'
+  'Órgano', 'Bajo', 'Acordeón', 'Bandoneón'
 ];
 
 // Variables globales para editar
@@ -359,6 +360,17 @@ function cerrarModalMiembro() {
 // ===== INICIALIZAR AL CARGAR PÁGINA =====
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM CARGADO - Inicializando...');
+
+    // El filtro se alimenta de la misma lista que el formulario
+    const filtro = document.getElementById('filtroInstrumentoOrquesta');
+    if (filtro) {
+        INSTRUMENTOS.forEach(inst => {
+            const option = document.createElement('option');
+            option.value = inst;
+            option.textContent = inst;
+            filtro.appendChild(option);
+        });
+    }
     setTimeout(() => {
         if (typeof token !== 'undefined' && token) {
             console.log('✅ TOKEN DISPONIBLE - Cargando datos...');
