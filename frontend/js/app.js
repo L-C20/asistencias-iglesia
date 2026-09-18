@@ -188,9 +188,13 @@ function cambiarTab(nombreTab) {
             cargarResumenInicio();
         }
 
-        // Los conteos de reportes también pueden haber cambiado
+        // Los reportes pueden haber cambiado: contadores y, si hay un detalle abierto, sus datos
         if (nombreTab === 'reportes' && typeof cargarReporteGrupo === 'function') {
             cargarReporteGrupo('orquesta');
+            const detalle = document.getElementById('vistaDetalle');
+            if (detalle && detalle.style.display !== 'none' && typeof abrirReporteEvento === 'function') {
+                abrirReporteEvento(tipoEventoActual);
+            }
         }
 
         // Si es un tab de miembros, cargar datos
