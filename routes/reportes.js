@@ -52,7 +52,7 @@ router.get('/resumen/:grupo', verifyToken, async (req, res) => {
                 (SELECT COUNT(*) FROM miembros WHERE grupo = $1 AND activo = true) AS integrantes,
                 COUNT(DISTINCT (ra.fecha, ra.tipo_evento)) AS eventos,
                 TO_CHAR(MAX(ra.fecha), 'YYYY-MM-DD') AS ultima_fecha,
-                COUNT(*) FILTER (WHERE ra.presente) AS presentes,
+                COUNT(*) FILTER (WHERE ra.presente::text = 'true') AS presentes,
                 COUNT(*) AS registros
             FROM registro_asistencia ra
             JOIN miembros m ON m.id = ra.miembro_id

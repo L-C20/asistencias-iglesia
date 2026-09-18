@@ -74,6 +74,21 @@ async function initializeDatabase() {
       await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN justificado BOOLEAN DEFAULT false`);
     } catch (e) { /* ya existe */ }
 
+    // Bases creadas con el schema viejo tienen `presente` como texto y guardaron
+    // 'justified' ahí en vez de en `justificado`. Se migra una sola vez.
+    const tipoPresente = await pool.query(`
+      SELECT data_type FROM information_schema.columns
+      WHERE table_name = 'registro_asistencia' AND column_name = 'presente'
+    `);
+    if (tipoPresente.rows[0] && tipoPresente.rows[0].data_type !== 'boolean') {
+      console.log('Migrando registro_asistencia.presente de texto a boolean...');
+      await pool.query(`UPDATE registro_asistencia SET justificado = true WHERE presente::text = 'justified'`);
+      await pool.query(`ALTER TABLE registro_asistencia ALTER COLUMN presente DROP DEFAULT`);
+      await pool.query(`ALTER TABLE registro_asistencia ALTER COLUMN presente TYPE BOOLEAN USING (presente::text = 'true')`);
+      await pool.query(`ALTER TABLE registro_asistencia ALTER COLUMN presente SET DEFAULT false`);
+      console.log('✓ Migración completada');
+    }
+
     // Crear índices para optimizar búsquedas
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_grupo ON miembros(grupo)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_asistencia_fecha ON registro_asistencia(fecha)`);
