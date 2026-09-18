@@ -16,7 +16,12 @@ window.actualizarHeaderTabla = function() {
         const abr = DIAS_ABREVIADOS[dia.getDay()];
         const ddmm = `${String(dia.getDate()).padStart(2, '0')}/${String(dia.getMonth() + 1).padStart(2, '0')}`;
         const borrar = fechasConDatos.has(fecha)
-            ? `<button type="button" class="col-dia-borrar" title="Eliminar este evento" onclick="eliminarEvento('${fecha}')">&times;</button>`
+            ? `<button type="button" class="col-dia-borrar" title="Eliminar este evento" onclick="eliminarEvento('${fecha}')">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                       <polyline points="3 6 5 6 21 6"></polyline>
+                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                   </svg>
+               </button>`
             : '';
         html += `<th class="col-dia"><span class="col-dia-nombre">${abr}</span><span class="col-dia-fecha">${ddmm}</span>${borrar}</th>`;
     });
