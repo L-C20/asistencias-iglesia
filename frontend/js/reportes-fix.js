@@ -7,6 +7,7 @@ window.actualizarHeaderTabla = function() {
     if (!headEl) return;
 
     const fechasCulto = window.obtenerFechasCultoDeSemana();
+    const fechasConDatos = new Set((window.datosReporte || []).filter(d => d.fecha).map(d => d.fecha.split('T')[0]));
 
     let html = '<tr><th>Nombre y Apellido</th><th>Instrumento</th>';
 
@@ -14,7 +15,10 @@ window.actualizarHeaderTabla = function() {
         const dia = new Date(fecha + 'T00:00:00');
         const abr = DIAS_ABREVIADOS[dia.getDay()];
         const ddmm = `${String(dia.getDate()).padStart(2, '0')}/${String(dia.getMonth() + 1).padStart(2, '0')}`;
-        html += `<th class="col-dia"><span class="col-dia-nombre">${abr}</span><span class="col-dia-fecha">${ddmm}</span></th>`;
+        const borrar = fechasConDatos.has(fecha)
+            ? `<button type="button" class="col-dia-borrar" title="Eliminar este evento" onclick="eliminarEvento('${fecha}')">&times;</button>`
+            : '';
+        html += `<th class="col-dia"><span class="col-dia-nombre">${abr}</span><span class="col-dia-fecha">${ddmm}</span>${borrar}</th>`;
     });
 
     headEl.innerHTML = html + '</tr>';

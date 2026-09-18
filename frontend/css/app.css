@@ -1212,6 +1212,28 @@ input::placeholder { color: var(--text-light); }
     margin-top: 1px;
 }
 
+.col-dia-borrar {
+    display: block;
+    width: 20px;
+    height: 20px;
+    margin: 4px auto 0;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--gray-300);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: color .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.col-dia-borrar:hover {
+    color: var(--red-600);
+    background: var(--red-50);
+    border-color: #fecdca;
+}
+
 .celda-marca { text-align: center; }
 
 .tabla-scrollable tbody td.tabla-vacia {

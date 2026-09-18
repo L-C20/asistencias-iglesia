@@ -123,6 +123,36 @@ window.abrirReporteEvento = function(tipo) {
     });
 };
 
+// ===== ELIMINAR UN EVENTO COMPLETO =====
+window.eliminarEvento = async function(fecha) {
+    const nombres = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo' };
+    const registros = datosReporte.filter(d => d.fecha && d.fecha.split('T')[0] === fecha).length;
+    const [y, m, d] = fecha.split('-');
+
+    const ok = confirm(
+        `¿Eliminar el ${nombres[tipoEventoActual] || tipoEventoActual} del ${d}/${m}/${y}?\n\n` +
+        `Se borrarán ${registros} registros de asistencia. Esta acción no se puede deshacer.`
+    );
+    if (!ok) return;
+
+    try {
+        const token = localStorage.getItem('token');
+        const r = await fetch(`/api/asistencia/evento/${grupoReporte}/${fecha}/${tipoEventoActual}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || `Error HTTP ${r.status}`);
+
+        mostrarToast(`Evento eliminado (${data.eliminados} registros)`, 'success');
+        abrirReporteEvento(tipoEventoActual);
+        cargarReporteGrupo(grupoReporte);
+    } catch (e) {
+        console.error('❌ Error eliminando evento:', e);
+        mostrarError('No se pudo eliminar el evento');
+    }
+};
+
 // ===== VOLVER =====
 window.volverATarjetas = function() {
     console.log('🔙 Volver a tarjetas');

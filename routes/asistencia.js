@@ -61,6 +61,28 @@ router.post('/registrar', verifyToken, async (req, res) => {
   }
 });
 
+// Eliminar un evento completo - DELETE /api/asistencia/evento/:grupo/:fecha/:tipoEvento
+router.delete('/evento/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
+  try {
+    const { grupo, fecha, tipoEvento } = req.params;
+
+    const result = await db.query(`
+      DELETE FROM registro_asistencia ra
+      USING miembros m
+      WHERE ra.miembro_id = m.id
+        AND m.grupo = $1
+        AND ra.fecha = $2
+        AND ra.tipo_evento = $3
+    `, [grupo, fecha, tipoEvento]);
+
+    console.log(`🗑️ Evento eliminado: ${tipoEvento} ${fecha} (${result.rowCount} registros)`);
+    res.json({ success: true, eliminados: result.rowCount });
+  } catch (error) {
+    console.error('Error eliminando evento:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
 // Obtener asistencia de una fecha - GET /api/asistencia/:grupo/:fecha/:tipoEvento
 router.get('/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
   try {
