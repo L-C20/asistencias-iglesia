@@ -96,22 +96,7 @@ window.abrirReporteEvento = function(tipo) {
         }
 
         datosReporte = d;
-
-        const tb = document.getElementById('tablaDetalleBody');
-        if (!tb) {
-            console.error('❌ No existe tablaDetalleBody');
-            return;
-        }
-
-        if (d.length === 0) {
-            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px">Sin datos para este evento</td></tr>';
-            return;
-        }
-
-        // Generar tabla horizontal por cultos
-        const tablaHorizontal = generarTablaHorizontal(d);
-        tb.innerHTML = tablaHorizontal;
-
+        aplicarFiltrosDetalle();
         console.log('✅ Tabla renderizada');
     })
     .catch(e => {
@@ -177,40 +162,44 @@ window.aplicarFiltrosDetalle = function() {
         return;
     }
 
-    // HACER COPIA PROFUNDA PARA NO MODIFICAR DATOS ORIGINALES
-    let datos = JSON.parse(JSON.stringify(datosReporte));
-
-    // Filtrar por fechas de culto de la semana
     const fechasCulto = window.obtenerFechasCultoDeSemana();
-    console.log('📅 Fechas de culto de la semana:', fechasCulto);
 
-    datos = datos.filter(i => {
-        if (!i.fecha) return false;
-        const fechaFormato = i.fecha.split('T')[0]; // Convertir 2026-09-13T00:00:00.000Z -> 2026-09-13
-        return fechasCulto.includes(fechaFormato);
+    // Las filas son todos los integrantes (el LEFT JOIN los trae aunque no
+    // tengan registros); las celdas se llenan con los registros de la semana.
+    const integrantes = [];
+    const vistos = new Set();
+    datosReporte.forEach(d => {
+        if (vistos.has(d.id)) return;
+        vistos.add(d.id);
+        integrantes.push({ id: d.id, nombre: d.nombre, apellido: d.apellido, instrumento: d.instrumento });
     });
 
-    console.log('📅 Filtrados por semana de culto:', datos.length, 'registros');
+    const registrosSemana = datosReporte.filter(i => i.fecha && fechasCulto.includes(i.fecha.split('T')[0]));
 
-    // Filtrar por estado
-    if (estado.value === 'true') {
-        datos = datos.filter(i => i.presente);
-    } else if (estado.value === 'false') {
-        datos = datos.filter(i => !i.presente && !i.justified);
-    } else if (estado.value === 'justified') {
-        datos = datos.filter(i => i.justified);
+    // El filtro por estado sí reduce filas: "mostrame los ausentes"
+    let filas = integrantes;
+    if (estado.value) {
+        const cumple = r =>
+            estado.value === 'true'      ? (r.presente && !r.justified) :
+            estado.value === 'false'     ? (!r.presente && !r.justified) :
+            estado.value === 'justified' ? r.justified : true;
+        const idsQueCumplen = new Set(registrosSemana.filter(cumple).map(r => r.id));
+        filas = integrantes.filter(m => idsQueCumplen.has(m.id));
     }
+
+    console.log('📅 Semana:', fechasCulto, '| filas:', filas.length, '| registros:', registrosSemana.length);
 
     const tb = document.getElementById('tablaDetalleBody');
-    if (tb) {
-        if (datos.length === 0) {
-            tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text-light);">No hay datos para esta semana</td></tr>';
-            return;
-        }
+    if (!tb) return;
 
-        // USAR LA NUEVA TABLA HORIZONTAL
-        tb.innerHTML = window.generarTablaHorizontal(datos);
+    if (filas.length === 0) {
+        const msg = estado.value ? 'Nadie con ese estado esta semana' : 'No hay integrantes cargados';
+        if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
+        tb.innerHTML = `<tr><td colspan="10" class="tabla-vacia">${msg}</td></tr>`;
+        return;
     }
+
+    tb.innerHTML = window.generarTablaHorizontal(filas, registrosSemana);
 };
 
 window.limpiarFiltrosDetalle = function() {

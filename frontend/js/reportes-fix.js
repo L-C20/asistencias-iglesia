@@ -24,28 +24,27 @@ window.actualizarHeaderTabla = function() {
     headEl.innerHTML = html + '</tr>';
 };
 
-window.generarTablaHorizontal = function(datos) {
-    if (!datos || datos.length === 0) {
+// filas: integrantes a listar; registros: asistencias de la semana para llenar las celdas
+window.generarTablaHorizontal = function(filas, registros) {
+    if (!filas || filas.length === 0) {
         return '<tr><td colspan="10" class="tabla-vacia">Sin datos</td></tr>';
     }
 
     window.actualizarHeaderTabla();
 
     const fechasCulto = window.obtenerFechasCultoDeSemana();
-    const miembros = [...new Set(datos.map(d => `${d.nombre}|${d.apellido || ''}|${d.id}|${d.instrumento || '—'}`))];
 
     let html = '';
 
-    miembros.forEach(miembro => {
-        const [nombre, apellido, id, instrumento] = miembro.split('|');
-        const nombreCompleto = `${nombre}${apellido ? ' ' + apellido : ''}`;
+    filas.forEach(miembro => {
+        const nombreCompleto = `${miembro.nombre}${miembro.apellido ? ' ' + miembro.apellido : ''}`;
 
         html += '<tr>';
         html += `<td class="celda-nombre">${nombreCompleto}</td>`;
-        html += `<td class="celda-detalle">${instrumento}</td>`;
+        html += `<td class="celda-detalle">${miembro.instrumento || '—'}</td>`;
 
         fechasCulto.forEach(fecha => {
-            const registro = datos.find(d => d.id == id && d.fecha && d.fecha.split('T')[0] === fecha);
+            const registro = registros.find(d => d.id == miembro.id && d.fecha.split('T')[0] === fecha);
 
             let texto = '—';
             let clase = 'marca-vacia';
