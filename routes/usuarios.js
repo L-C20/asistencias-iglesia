@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
-const { verifyToken, passwordCoincide } = require('./auth');
+const { verifyToken } = require('./auth');
 const crypto = require('crypto');
 const router = express.Router();
 
@@ -251,49 +251,6 @@ router.put('/:id/password', verifyToken, verificarAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('❌ Error en PUT /:id/password:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// POST /api/usuarios/cambiar-password - Cambiar tu propia contraseña
-router.post('/cambiar-password/actual', verifyToken, async (req, res) => {
-  try {
-    const { passwordActual, passwordNueva } = req.body;
-    const usuarioId = req.user.id;
-
-    console.log('🔐 Cambiando contraseña para usuario:', usuarioId);
-
-    if (!passwordActual || !passwordNueva) {
-      return res.status(400).json({ error: 'Contraseñas requeridas' });
-    }
-
-    if (passwordNueva.length < LARGO_MINIMO_PASSWORD) {
-      return res.status(400).json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` });
-    }
-
-    const usuario = await db.query(
-      'SELECT password FROM usuarios WHERE id = $1',
-      [usuarioId]
-    );
-
-    if (usuario.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    if (!(await passwordCoincide(passwordActual, usuario.rows[0].password))) {
-      return res.status(401).json({ error: 'Contraseña actual incorrecta' });
-    }
-
-    const hash = await bcrypt.hash(passwordNueva, 10);
-    await db.query(
-      'UPDATE usuarios SET password = $1 WHERE id = $2',
-      [hash, usuarioId]
-    );
-
-    console.log('✅ Contraseña actualizada');
-    res.json({ mensaje: 'Contraseña actualizada exitosamente' });
-  } catch (error) {
-    console.error('❌ Error en cambiar-password:', error.message);
     res.status(500).json({ error: error.message });
   }
 });

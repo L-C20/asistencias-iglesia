@@ -478,7 +478,7 @@
 
                     <div class="config-container">
                         <!-- SECCIÓN USUARIOS -->
-                        <div class="config-section">
+                        <div class="config-section" id="seccionGestionUsuarios">
                             <div class="section-header">
                                 <h3>Gestión de Usuarios</h3>
                                 <button class="btn btn-primary" onclick="abrirModalNuevoUsuario()">
@@ -504,26 +504,6 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-
-                        <!-- SECCIÓN CAMBIAR CONTRASEÑA -->
-                        <div class="config-section">
-                            <h3>Cambiar Contraseña</h3>
-                            <form id="formCambiarPassword" onsubmit="cambiarMiContraseña(event)">
-                                <div class="form-group">
-                                    <label>Contraseña Actual:</label>
-                                    <input type="password" id="passwordActual" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Nueva Contraseña:</label>
-                                    <input type="password" id="passwordNueva" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Confirmar Contraseña:</label>
-                                    <input type="password" id="passwordConfirmar" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
-                            </form>
                         </div>
                     </div>
                 </div>

@@ -43,15 +43,9 @@ async function obtenerPerfilActual() {
 
 // ===== ACTUALIZAR VISIBILIDAD POR ROL =====
 function actualizarVisibilidadPorRol() {
-    const seccionGestion = document.querySelector('.config-section:nth-child(2)');
-    const seccionPassword = document.querySelector('.config-section:nth-child(3)');
-    
+    const seccionGestion = document.getElementById('seccionGestionUsuarios');
     if (seccionGestion) {
         seccionGestion.style.display = esAdmin ? 'block' : 'none';
-    }
-    
-    if (seccionPassword) {
-        seccionPassword.style.display = 'block'; // Todos pueden cambiar su contraseña
     }
 
     // Mostrar mensaje si no es admin
@@ -299,51 +293,6 @@ async function resetearPassword() {
     } catch (error) {
         console.error('❌ Error reseteando password:', error);
         mostrarToast('No se pudo restablecer la contraseña', 'error');
-    }
-}
-
-// ===== CAMBIAR MI CONTRASEÑA =====
-async function cambiarMiContraseña(event) {
-    event.preventDefault();
-    
-    const passwordActual = document.getElementById('passwordActual').value;
-    const passwordNueva = document.getElementById('passwordNueva').value;
-    const passwordConfirmar = document.getElementById('passwordConfirmar').value;
-
-    if (!passwordActual || !passwordNueva || !passwordConfirmar) {
-        mostrarToast('Completá todos los campos', 'error');
-        return;
-    }
-
-    if (passwordNueva !== passwordConfirmar) {
-        mostrarToast('Las contraseñas nuevas no coinciden', 'error');
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/usuarios/cambiar-password/actual`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ passwordActual, passwordNueva })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            mostrarToast(error.error || 'Ocurrió un error', 'error');
-            return;
-        }
-
-        mostrarToast('Contraseña actualizada', 'success');
-        document.getElementById('passwordActual').value = '';
-        document.getElementById('passwordNueva').value = '';
-        document.getElementById('passwordConfirmar').value = '';
-    } catch (error) {
-        console.error('❌ Error cambiando contraseña:', error);
-        mostrarToast('No se pudo cambiar la contraseña', 'error');
     }
 }
 
