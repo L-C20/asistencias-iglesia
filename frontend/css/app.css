@@ -975,8 +975,10 @@ input::placeholder { color: var(--text-light); }
     color: var(--text);
     letter-spacing: -0.02em;
     line-height: 1.1;
-    margin: var(--sp-2) 0 var(--sp-3);
+    margin: var(--sp-2) 0 0;
 }
+
+.tarjeta-evento .stat-hint { margin-bottom: var(--sp-3); }
 
 .ver-mas {
     font-size: var(--fs-sm);

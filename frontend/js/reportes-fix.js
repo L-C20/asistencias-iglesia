@@ -1,5 +1,6 @@
 // ===== TABLA DE REPORTE: NOMBRE | INSTRUMENTO | una columna por día de culto =====
-const DIAS_ABREVIADOS = { 0: 'Dom', 2: 'Mar', 6: 'Sáb' };
+// Ensayos y bautismos pueden caer cualquier día, no solo en los de culto
+const DIAS_ABREVIADOS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 window.actualizarHeaderTabla = function() {
     const headEl = document.getElementById('tablaDetalleHead');
@@ -11,7 +12,7 @@ window.actualizarHeaderTabla = function() {
 
     fechasCulto.forEach(fecha => {
         const dia = new Date(fecha + 'T00:00:00');
-        const abr = DIAS_ABREVIADOS[dia.getDay()] || '-';
+        const abr = DIAS_ABREVIADOS[dia.getDay()];
         const ddmm = `${String(dia.getDate()).padStart(2, '0')}/${String(dia.getMonth() + 1).padStart(2, '0')}`;
         html += `<th class="col-dia"><span class="col-dia-nombre">${abr}</span><span class="col-dia-fecha">${ddmm}</span></th>`;
     });

@@ -8,10 +8,12 @@ router.get('/conteos/:grupo', verifyToken, async (req, res) => {
     try {
         const { grupo } = req.params;
         
+        // Un evento = una fecha. Cada integrante genera una fila por fecha,
+        // así que COUNT(*) daría "cantidad de personas", no de cultos.
         const result = await db.query(`
             SELECT
                 tipo_evento,
-                COUNT(*) as total
+                COUNT(DISTINCT fecha) as total
             FROM registro_asistencia
             WHERE tipo_evento IN ('santo_culto', 'ensayo', 'bautismo')
             AND miembro_id IN (
