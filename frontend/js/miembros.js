@@ -10,6 +10,19 @@ const INSTRUMENTOS = [
 // Variables globales para editar
 let miembroEnEdicion = null;
 
+// Qué secciones dejó abiertas el usuario; sobrevive a recargas de la lista
+const seccionesAbiertasMiembros = new Set();
+
+function expandirSeccionesMiembros(abrir) {
+    document.querySelectorAll('#listaMiembrosOrquesta .seccion-instrumento').forEach(s => { s.open = abrir; });
+}
+
+// Recarga la lista respetando lo que haya escrito en el buscador
+function recargarMiembros() {
+    const buscador = document.getElementById('buscarMiembro');
+    cargarMiembrosPorFiltro('orquesta', buscador ? buscador.value : '');
+}
+
 // ===== CARGAR MIEMBROS CON FILTRO =====
 async function cargarMiembrosPorFiltro(grupo, filtro = '') {
     try {
@@ -35,79 +48,93 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
             throw new Error(`Error: ${response.status}`);
         }
         
-        let miembros = await response.json();
+        const miembros = await response.json();
         console.log('✅ Miembros recibidos (cantidad):', miembros.length);
-        console.log('📋 Datos de miembros:', JSON.stringify(miembros.slice(0, 2)));
-        
-        // Aplicar filtro
-        if (filtro && filtro !== '') {
-            console.log('🔎 Aplicando filtro:', filtro);
-            miembros = miembros.filter(m => m.instrumento === filtro);
-            console.log('✓ Después de filtrar por instrumento:', miembros.length, 'miembros');
-        }
 
-        const containerId = 'listaMiembrosOrquesta';
-        const container = document.getElementById(containerId);
-        
-        console.log('🎯 Buscando contenedor:', containerId, '- Encontrado:', !!container);
-        
+        const container = document.getElementById('listaMiembrosOrquesta');
         if (!container) {
-            console.error('❌ Contenedor no encontrado:', containerId);
+            console.error('❌ Contenedor listaMiembrosOrquesta no encontrado');
             return;
         }
-        
-        const tbody = container.querySelector('tbody');
-        console.log('📍 Tbody encontrado:', !!tbody);
-        
-        if (!tbody) {
-            console.error('❌ tbody no encontrado en tabla');
-            return;
-        }
-        
-        // Limpiar tbody
-        tbody.innerHTML = '';
-        console.log('🧹 Tbody limpiado');
-        
-        if (!miembros || miembros.length === 0) {
-            console.log('ℹ️ Sin miembros para mostrar');
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-light);">No hay integrantes registrados${filtro ? ' con este filtro' : ''}</td></tr>`;
-            return;
-        }
-        
-        console.log('🎨 Creando', miembros.length, 'filas de tabla');
-        
-        // Crear filas para cada miembro
-        miembros.forEach((miembro, index) => {
-            const instrumento = miembro.instrumento
-                ? miembro.instrumento
-                : '<span class="sin-asignar">Sin asignar</span>';
 
-            console.log(`  Fila ${index + 1}: ${miembro.nombre} - ${miembro.instrumento || 'sin instrumento'}`);
-            
-            const tr = document.createElement('tr');
-            tr.className = 'tabla-row';
-            tr.id = `miembro-row-${miembro.id}`;
-            tr.innerHTML = `
-                <td class="celda-nombre">${miembro.nombre || 'Sin nombre'}</td>
-                <td class="celda-detalle">${instrumento}</td>
-                <td class="celda-acciones">
-                    <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}); return false;" title="Editar">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                        </svg>
-                    </button>
-                    <button class="btn btn-sm btn-danger" type="button" onclick="eliminarMiembroConfirm(${miembro.id}); return false;" title="Eliminar">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+        // Búsqueda por nombre o instrumento, sin distinguir mayúsculas ni acentos
+        const texto = normalizar(filtro);
+        const visibles = texto
+            ? miembros.filter(m => normalizar(`${m.nombre} ${m.instrumento || ''}`).includes(texto))
+            : miembros;
+
+        container.innerHTML = '';
+
+        if (visibles.length === 0) {
+            container.innerHTML = `<p class="lista-vacia">${texto ? 'Ningún integrante coincide con la búsqueda' : 'No hay integrantes registrados'}</p>`;
+            return;
+        }
+
+        // Agrupar por instrumento en el orden de la orquesta
+        const porInstrumento = {};
+        visibles.forEach(m => {
+            const clave = m.instrumento || 'Sin instrumento';
+            (porInstrumento[clave] = porInstrumento[clave] || []).push(m);
         });
-        
-        console.log('✨ Tabla cargada exitosamente');
+        const orden = [
+            ...INSTRUMENTOS.filter(i => porInstrumento[i]),
+            ...Object.keys(porInstrumento).filter(k => !INSTRUMENTOS.includes(k))
+        ];
+
+        orden.forEach(instrumento => {
+            const seccion = document.createElement('details');
+            seccion.className = 'seccion-instrumento';
+            seccion.dataset.instrumento = instrumento;
+            // Con búsqueda activa se abren las secciones que coinciden
+            seccion.open = !!texto || seccionesAbiertasMiembros.has(instrumento);
+            seccion.addEventListener('toggle', () => {
+                if (seccion.open) seccionesAbiertasMiembros.add(instrumento);
+                else seccionesAbiertasMiembros.delete(instrumento);
+            });
+
+            const cabecera = document.createElement('summary');
+            cabecera.className = 'seccion-cabecera';
+            cabecera.innerHTML = `
+                <svg class="seccion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                <span class="seccion-nombre">${instrumento}</span>
+                <span class="seccion-contador">${porInstrumento[instrumento].length}</span>
+            `;
+
+            const cuerpo = document.createElement('div');
+            cuerpo.className = 'seccion-cuerpo';
+
+            porInstrumento[instrumento].forEach(miembro => {
+                const fila = document.createElement('div');
+                fila.className = 'miembro-row';
+                fila.id = `miembro-row-${miembro.id}`;
+                fila.innerHTML = `
+                    <div class="miembro-info">
+                        <div class="miembro-nombre">${miembro.nombre || 'Sin nombre'}</div>
+                    </div>
+                    <div class="celda-acciones">
+                        <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}); return false;" title="Editar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn btn-sm btn-danger" type="button" onclick="eliminarMiembroConfirm(${miembro.id}); return false;" title="Eliminar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                cuerpo.appendChild(fila);
+            });
+
+            seccion.append(cabecera, cuerpo);
+            container.appendChild(seccion);
+        });
+
+        console.log('✨ Lista cargada:', visibles.length, 'integrantes en', orden.length, 'secciones');
         
     } catch (error) {
         console.error('❌ Error en cargarMiembrosPorFiltro:', error);
@@ -231,7 +258,7 @@ async function guardarNuevoMiembro(e) {
             if (response.ok) {
                 cerrarModalMiembro();
                 mostrarToast('Integrante actualizado correctamente', 'success');
-                cargarMiembrosPorFiltro('orquesta', '');
+                recargarMiembros();
                 cargarConteosMiembros();
             } else {
                 mostrarError(data.error || 'Error al actualizar');
@@ -258,7 +285,7 @@ async function guardarNuevoMiembro(e) {
             if (response.ok) {
                 cerrarModalMiembro();
                 mostrarToast('Integrante agregado correctamente', 'success');
-                cargarMiembrosPorFiltro('orquesta', '');
+                recargarMiembros();
                 cargarConteosMiembros();
             } else {
                 mostrarError(data.error || 'Error al agregar integrante');
@@ -287,7 +314,7 @@ async function eliminarMiembro(miembroId) {
 
         if (response.ok) {
             mostrarToast('Integrante eliminado correctamente', 'success');
-            cargarMiembrosPorFiltro('orquesta', '');
+            recargarMiembros();
             cargarConteosMiembros();
         } else {
             mostrarError('Error al eliminar integrante');
@@ -361,20 +388,10 @@ function cerrarModalMiembro() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM CARGADO - Inicializando...');
 
-    // El filtro se alimenta de la misma lista que el formulario
-    const filtro = document.getElementById('filtroInstrumentoOrquesta');
-    if (filtro) {
-        INSTRUMENTOS.forEach(inst => {
-            const option = document.createElement('option');
-            option.value = inst;
-            option.textContent = inst;
-            filtro.appendChild(option);
-        });
-    }
     setTimeout(() => {
         if (typeof token !== 'undefined' && token) {
             console.log('✅ TOKEN DISPONIBLE - Cargando datos...');
-            cargarMiembrosPorFiltro('orquesta', '');
+            recargarMiembros();
             cargarConteosMiembros();
         } else {
             console.warn('⚠️ TOKEN NO DISPONIBLE AÚN');

@@ -301,28 +301,21 @@
                     </div>
 
                     <div class="filtros-miembros">
-                        <div class="filtro-group">
-                            <label>Filtrar por Instrumento:</label>
-                            <select id="filtroInstrumentoOrquesta" onchange="cargarMiembrosPorFiltro('orquesta', this.value)">
-                                <option value="">Todos</option>
-                            </select>
+                        <div class="buscador">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+                            </svg>
+                            <input type="search" id="buscarMiembro" placeholder="Buscar integrante" oninput="cargarMiembrosPorFiltro('orquesta', this.value)" autocomplete="off">
+                        </div>
+                        <div class="lista-acciones">
+                            <button type="button" class="link-limpiar" onclick="expandirSeccionesMiembros(true)">Expandir todo</button>
+                            <span class="lista-acciones-sep">·</span>
+                            <button type="button" class="link-limpiar" onclick="expandirSeccionesMiembros(false)">Colapsar todo</button>
                         </div>
                     </div>
 
-                    <div id="listaMiembrosOrquesta" class="tabla-miembros">
-                        <table class="tabla-datos">
-                            <thead>
-                                <tr>
-                                    <th>Apellido y Nombre</th>
-                                    <th>Instrumento</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Se llena con JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+                    <div id="listaMiembrosOrquesta" class="lista-miembros"></div>
 
                     <div class="tab-footer">
                         <button class="btn btn-primary" onclick="abrirModalAgregarMiembro()">

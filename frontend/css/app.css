@@ -635,10 +635,13 @@ svg { flex-shrink: 0; }
 .filtros-miembros {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
-    gap: var(--sp-4);
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
     margin-bottom: var(--sp-4);
 }
+
+.filtros-miembros .lista-acciones { margin-bottom: 0; }
 
 .filtro-group { display: flex; flex-direction: column; gap: 6px; min-width: 200px; }
 
