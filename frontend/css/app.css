@@ -448,6 +448,22 @@ svg { flex-shrink: 0; }
 
 .asistencia-header h2 { font-size: var(--fs-xl); }
 
+.sobretitulo {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 2px;
+}
+
+.subtitulo-fecha {
+    font-size: var(--fs-base);
+    color: var(--brand-700);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
 /* ---------- 6. Botones ---------- */
 .btn {
     display: inline-flex;

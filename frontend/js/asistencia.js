@@ -116,20 +116,65 @@ async function cargarMiembrosParaAsistencia(grupo) {
         
         miembrosActuales = await response.json();
         console.log('✅ Miembros cargados:', miembrosActuales.length);
-        
-        // Cargar registros existentes
+
+        // Cada evento arranca limpio: lo guardado en la base, y encima el borrador local si lo hay
+        asistenciasParaGuardar = {};
         await cargarRegistrosExistentes(grupo);
-        
-        // Renderizar lista de miembros
+        const borrador = leerBorrador();
+        if (borrador) {
+            Object.assign(asistenciasParaGuardar, borrador);
+            mostrarToast('Se recuperó lo que habías marcado sin guardar', 'info');
+        }
+
+        mostrarEncabezadoEvento();
         renderizarListaAsistencia(grupo);
-        
-        // Cambiar a pestaña de asistencia
-        console.log('🎯 Cambiando a tab: asistencia-' + grupo);
         cambiarTab('asistencia-' + grupo);
         
     } catch (error) {
         console.error('❌ Error:', error);
         mostrarError('Error al cargar miembros');
+    }
+}
+
+// ===== BORRADOR LOCAL =====
+// Lo marcado se guarda en el teléfono por evento y fecha, para retomar
+// aunque se cierre la app sin tocar Guardar.
+function claveBorrador() {
+    return `borrador-asistencia:${tipoEventoAsistencia}:${fechaEventoActual}`;
+}
+
+function guardarBorrador() {
+    try {
+        const marcados = Object.fromEntries(
+            Object.entries(asistenciasParaGuardar).filter(([, a]) => a.presente === true || a.presente === false)
+        );
+        if (Object.keys(marcados).length) localStorage.setItem(claveBorrador(), JSON.stringify(marcados));
+        else localStorage.removeItem(claveBorrador());
+    } catch (e) { /* sin almacenamiento disponible: se sigue sin borrador */ }
+}
+
+function leerBorrador() {
+    try {
+        const raw = localStorage.getItem(claveBorrador());
+        const datos = raw ? JSON.parse(raw) : null;
+        return datos && Object.keys(datos).length ? datos : null;
+    } catch (e) { return null; }
+}
+
+function borrarBorrador() {
+    try { localStorage.removeItem(claveBorrador()); } catch (e) { /* nada */ }
+}
+
+// ===== ENCABEZADO: QUÉ EVENTO Y QUÉ DÍA SE ESTÁ REGISTRANDO =====
+function mostrarEncabezadoEvento() {
+    const nombres = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo' };
+    const titulo = document.getElementById('tituloAsistencia');
+    const sub = document.getElementById('fechaAsistencia');
+    if (titulo) titulo.textContent = nombres[tipoEventoAsistencia] || 'Asistencia';
+    if (sub && fechaEventoActual) {
+        const f = new Date(fechaEventoActual + 'T00:00:00');
+        const texto = f.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        sub.textContent = texto.charAt(0).toUpperCase() + texto.slice(1);
     }
 }
 
@@ -298,6 +343,8 @@ function cambiarAsistencia(checkbox) {
     const seccion = checkbox.closest('.seccion-instrumento');
     if (seccion) actualizarContadorSeccion(seccion);
 
+    guardarBorrador();
+
     console.log('✏️ Asistencia actualizada:', { miembroId, presente, justificado });
 }
 
@@ -339,6 +386,7 @@ async function guardarTodasAsistencias() {
         if (!response.ok) throw new Error(data.error || `Error HTTP ${response.status}`);
 
         mostrarToast(`${data.guardados} asistencias guardadas`, 'success');
+        borrarBorrador();
         limpiarAsistencia();
         cambiarTab('inicio');
     } catch (error) {
