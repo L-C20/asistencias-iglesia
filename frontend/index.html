@@ -451,18 +451,16 @@
                         </div>
 
                         <!-- Tabla -->
+                        <div class="lista-acciones">
+                            <button type="button" class="link-limpiar" onclick="expandirSeccionesReporte(true)">Expandir todo</button>
+                            <span class="lista-acciones-sep">·</span>
+                            <button type="button" class="link-limpiar" onclick="expandirSeccionesReporte(false)">Colapsar todo</button>
+                        </div>
                         <div class="tabla-scrollable">
-                            <table>
-                                <thead id="tablaDetalleHead">
-                                    <tr>
-                                        <th>Nombre y Apellido</th>
-                                        <th>Domingo 13</th>
-                                        <th>Martes 8</th>
-                                        <th>Sábado 12</th>
-                                    </tr>
-                                </thead>
+                            <table id="tablaDetalle">
+                                <thead id="tablaDetalleHead"></thead>
                                 <tbody id="tablaDetalleBody">
-                                    <tr><td colspan="6">Cargando...</td></tr>
+                                    <tr><td colspan="6" class="tabla-vacia">Cargando...</td></tr>
                                 </tbody>
                             </table>
                         </div>

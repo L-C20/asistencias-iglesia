@@ -1271,6 +1271,92 @@ input::placeholder { color: var(--text-light); }
     color: var(--text-3);
 }
 
+/* Secciones por instrumento dentro de la tabla del reporte */
+.seccion-rep-cabecera {
+    cursor: pointer;
+    user-select: none;
+    background: var(--gray-50);
+}
+
+.seccion-rep-cabecera:hover { background: var(--gray-100); }
+
+.tabla-scrollable .seccion-rep-cabecera td {
+    padding: 10px var(--sp-3);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.seccion-rep-titulo {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    white-space: nowrap;
+}
+
+.seccion-rep-titulo .seccion-chevron {
+    width: 16px;
+    height: 16px;
+    color: var(--text-light);
+    transition: transform .18s ease;
+}
+
+.seccion-rep.abierta .seccion-chevron { transform: rotate(90deg); }
+
+.seccion-rep-n {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-3);
+    padding: 1px var(--sp-2);
+    border-radius: var(--r-full);
+    background: var(--gray-100);
+}
+
+/* Las filas de integrantes solo se ven con la sección abierta */
+.seccion-rep .miembro-fila { display: none; }
+.seccion-rep.abierta .miembro-fila { display: table-row; }
+
+/* Subtotales P / A / AJ / sin marcar */
+.celda-sub {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.sub {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    padding: 1px 5px;
+    margin: 0 1px;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.sub-p   { background: var(--green-50); color: var(--green-700); }
+.sub-a   { background: var(--red-50);   color: var(--red-700); }
+.sub-aj  { background: var(--amber-50); color: var(--amber-700); }
+.sub-sin { background: var(--gray-100); color: var(--text-3); font-weight: 500; }
+
+/* Totales del evento, siempre visibles al pie */
+.tabla-scrollable tfoot td {
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+    border-top: 2px solid var(--border-strong);
+    padding: 10px var(--sp-3);
+    font-weight: 600;
+}
+
+.fila-total .seccion-rep-titulo { padding-left: 24px; }
+
+/* Con secciones colapsadas la tabla es corta; cuando se expanden, que
+   scrollee adentro para que cabecera y totales queden fijos */
+@media (min-width: 861px) {
+    .tabla-scrollable { max-height: calc(100vh - 300px); overflow: auto; }
+}
+
 /* Marcas P / A / AJ dentro del reporte */
 .marca {
     display: inline-flex;

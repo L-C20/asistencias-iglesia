@@ -88,10 +88,7 @@ window.abrirReporteEvento = function(tipo) {
 
         if (!d || !Array.isArray(d)) {
             console.error('❌ Datos inválidos:', d);
-            const tb = document.getElementById('tablaDetalleBody');
-            if (tb) {
-                tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px">Error al cargar datos</td></tr>';
-            }
+            mostrarMensajeTabla('Error al cargar datos');
             return;
         }
 
@@ -101,12 +98,22 @@ window.abrirReporteEvento = function(tipo) {
     })
     .catch(e => {
         console.error('❌ Error evento:', e);
-        const tb = document.getElementById('tablaDetalleBody');
-        if (tb) {
-            tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:red">Error: ' + e.message + '</td></tr>';
-        }
+        mostrarMensajeTabla('Error: ' + e.message);
     });
 };
+
+// Reemplaza el cuerpo de la tabla (todo salvo la cabecera)
+function pintarTabla(html) {
+    const tabla = document.getElementById('tablaDetalle');
+    if (!tabla) return;
+    tabla.querySelectorAll('tbody, tfoot').forEach(e => e.remove());
+    tabla.insertAdjacentHTML('beforeend', html);
+}
+
+function mostrarMensajeTabla(msg) {
+    if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
+    pintarTabla(`<tbody><tr><td colspan="10" class="tabla-vacia">${msg}</td></tr></tbody>`);
+}
 
 // ===== ELIMINAR UN EVENTO COMPLETO =====
 window.eliminarEvento = async function(fecha) {
@@ -196,19 +203,21 @@ window.aplicarFiltrosDetalle = function() {
 
     console.log('📅 Semana:', fechasCulto, '| filas:', filas.length, '| registros:', registrosSemana.length);
 
-    const tb = document.getElementById('tablaDetalleBody');
-    if (!tb) return;
-
     if (filas.length === 0) {
-        const msg = texto ? 'Ningún integrante coincide con la búsqueda'
-                  : estado.value ? 'Nadie con ese estado esta semana'
-                  : 'No hay integrantes cargados';
-        if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
-        tb.innerHTML = `<tr><td colspan="10" class="tabla-vacia">${msg}</td></tr>`;
+        mostrarMensajeTabla(
+            texto ? 'Ningún integrante coincide con la búsqueda'
+            : estado.value ? 'Nadie con ese estado esta semana'
+            : 'No hay integrantes cargados'
+        );
         return;
     }
 
-    tb.innerHTML = window.generarTablaHorizontal(filas, registrosSemana);
+    pintarTabla(window.generarTablaHorizontal({
+        filas,
+        registros: registrosSemana,
+        integrantes,
+        busqueda: !!texto
+    }));
 };
 
 window.limpiarFiltrosDetalle = function() {
