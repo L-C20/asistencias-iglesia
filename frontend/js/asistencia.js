@@ -178,19 +178,57 @@ function renderizarListaAsistencia(grupo) {
     }
     
     container.innerHTML = '';
-    
+
     if (miembrosActuales.length === 0) {
-        container.innerHTML = '<p style="text-align: center; padding: 20px;">No hay integrantes en este grupo</p>';
+        container.innerHTML = '<p class="lista-vacia">No hay integrantes en este grupo</p>';
         return;
     }
-    
-    miembrosActuales.forEach(miembro => {
+
+    // Agrupar por instrumento, en el orden de la orquesta
+    const porInstrumento = {};
+    miembrosActuales.forEach(m => {
+        const clave = m.instrumento || 'Sin instrumento';
+        (porInstrumento[clave] = porInstrumento[clave] || []).push(m);
+    });
+    const orden = [
+        ...INSTRUMENTOS.filter(i => porInstrumento[i]),
+        ...Object.keys(porInstrumento).filter(k => !INSTRUMENTOS.includes(k))
+    ];
+
+    orden.forEach(instrumento => {
+        const seccion = document.createElement('details');
+        seccion.className = 'seccion-instrumento';
+
+        const cabecera = document.createElement('summary');
+        cabecera.className = 'seccion-cabecera';
+        cabecera.innerHTML = `
+            <svg class="seccion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <span class="seccion-nombre">${instrumento}</span>
+            <span class="seccion-contador"><b>0</b> / ${porInstrumento[instrumento].length}</span>
+        `;
+
+        const cuerpo = document.createElement('div');
+        cuerpo.className = 'seccion-cuerpo';
+
+        porInstrumento[instrumento].forEach(miembro => cuerpo.appendChild(crearFilaMiembro(miembro)));
+
+        seccion.append(cabecera, cuerpo);
+        container.appendChild(seccion);
+        actualizarContadorSeccion(seccion);
+    });
+
+    console.log('✅ Lista renderizada con', miembrosActuales.length, 'miembros en', orden.length, 'secciones');
+}
+
+function crearFilaMiembro(miembro) {
         const registro = asistenciasParaGuardar[miembro.id] || { presente: null, justificado: false, nota: '' };
-        
+
         const miembroDiv = document.createElement('div');
         miembroDiv.className = 'miembro-row';
         miembroDiv.id = `asistencia-${miembro.id}`;
-        
+
         const esPresente = registro.presente === true && !registro.justificado;
         const esAusente = registro.presente === false && !registro.justificado;
         const esJustificado = !!registro.justificado;
@@ -198,7 +236,6 @@ function renderizarListaAsistencia(grupo) {
         miembroDiv.innerHTML = `
             <div class="miembro-info">
                 <div class="miembro-nombre">${miembro.nombre}</div>
-                <div class="miembro-detalle">${miembro.instrumento || 'Sin asignar'}</div>
             </div>
             <div class="miembro-switches">
                 <label class="toggle-switch presente ${esPresente ? 'on' : ''}">
@@ -221,11 +258,21 @@ function renderizarListaAsistencia(grupo) {
                 </label>
             </div>
         `;
-        
-        container.appendChild(miembroDiv);
-    });
-    
-    console.log('✅ Lista renderizada con', miembrosActuales.length, 'miembros');
+
+        return miembroDiv;
+}
+
+// Cuántos integrantes de la sección ya tienen algo marcado
+function actualizarContadorSeccion(seccion) {
+    const filas = seccion.querySelectorAll('.miembro-row');
+    const marcados = [...filas].filter(f => f.querySelector('input:checked')).length;
+    const contador = seccion.querySelector('.seccion-contador b');
+    if (contador) contador.textContent = marcados;
+    seccion.classList.toggle('completa', filas.length > 0 && marcados === filas.length);
+}
+
+function expandirTodo(abrir) {
+    document.querySelectorAll('.seccion-instrumento').forEach(s => { s.open = abrir; });
 }
 
 // ===== CAMBIAR ASISTENCIA =====
@@ -247,6 +294,9 @@ function cambiarAsistencia(checkbox) {
         const toggle = input.closest('.toggle-switch');
         if (toggle) toggle.classList.toggle('on', input.checked);
     });
+
+    const seccion = checkbox.closest('.seccion-instrumento');
+    if (seccion) actualizarContadorSeccion(seccion);
 
     console.log('✏️ Asistencia actualizada:', { miembroId, presente, justificado });
 }

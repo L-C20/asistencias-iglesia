@@ -842,7 +842,29 @@ input::placeholder { color: var(--text-light); }
 /* ---------- 11. Lista de asistencia (P / A / AJ) ---------- */
 .asistencia-lista { margin-bottom: var(--sp-5); }
 
+.lista-acciones {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+}
+
+.lista-acciones-sep { color: var(--gray-300); }
+
+.lista-vacia {
+    text-align: center;
+    padding: var(--sp-8);
+    color: var(--text-3);
+}
+
 .lista-miembros {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+/* Una sección por instrumento */
+.seccion-instrumento {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
@@ -850,12 +872,62 @@ input::placeholder { color: var(--text-light); }
     overflow: hidden;
 }
 
+.seccion-cabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    transition: background .12s ease;
+}
+
+.seccion-cabecera::-webkit-details-marker { display: none; }
+.seccion-cabecera:hover { background: var(--gray-50); }
+
+.seccion-chevron {
+    width: 16px;
+    height: 16px;
+    color: var(--text-light);
+    transition: transform .18s ease;
+}
+
+.seccion-instrumento[open] > .seccion-cabecera { border-bottom: 1px solid var(--border); }
+.seccion-instrumento[open] > .seccion-cabecera .seccion-chevron { transform: rotate(90deg); }
+
+.seccion-nombre {
+    flex: 1;
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.seccion-contador {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-3);
+    padding: 2px var(--sp-2);
+    border-radius: var(--r-full);
+    background: var(--gray-100);
+    white-space: nowrap;
+}
+
+.seccion-contador b { color: var(--text); font-weight: 600; }
+
+.seccion-instrumento.completa .seccion-contador {
+    background: var(--green-50);
+    color: var(--green-700);
+}
+
+.seccion-instrumento.completa .seccion-contador b { color: var(--green-700); }
+
 .miembro-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--sp-4);
-    padding: var(--sp-4);
+    padding: var(--sp-3) var(--sp-4);
     border-bottom: 1px solid var(--border);
 }
 
