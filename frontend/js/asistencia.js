@@ -302,84 +302,54 @@ function cambiarAsistencia(checkbox) {
 }
 
 // ===== GUARDAR TODAS LAS ASISTENCIAS =====
+let guardandoAsistencias = false;
+
 async function guardarTodasAsistencias() {
+    if (guardandoAsistencias) return;
+
+    const registros = Object.entries(asistenciasParaGuardar)
+        .filter(([, a]) => a.presente === true || a.presente === false)
+        .map(([miembroId, a]) => ({
+            miembro_id: parseInt(miembroId),
+            presente: a.presente,
+            justificado: a.justificado || false,
+            nota: a.nota || null
+        }));
+
+    if (registros.length === 0) {
+        mostrarError('Marcá al menos una asistencia');
+        return;
+    }
+
+    const boton = document.querySelector('#asistencia-orquesta .tab-footer .btn');
+    const textoOriginal = boton ? boton.innerHTML : '';
+    guardandoAsistencias = true;
+    if (boton) {
+        boton.disabled = true;
+        boton.innerHTML = '<span class="spinner"></span> Guardando…';
+    }
+
     try {
-        console.log('═══════════════════════════════════════');
-        console.log('💾 [guardarTodasAsistencias] Iniciando');
-        console.log('   Grupo:', grupoActual);
-        console.log('   Tipo evento:', tipoEventoAsistencia);
-        console.log('   Fecha:', fechaEventoActual);
-        console.log('   Total registros:', Object.keys(asistenciasParaGuardar).length);
-        console.log('═══════════════════════════════════════');
-        
-        let guardados = 0;
-        let errores = 0;
-        
-        for (const [miembroId, asistencia] of Object.entries(asistenciasParaGuardar)) {
-            try {
-                // Solo guardar si tiene un valor definido
-                if (asistencia.presente === null || asistencia.presente === undefined) {
-                    console.log(`⏭️  Saltando miembro ${miembroId} - sin asistencia`);
-                    continue;
-                }
-                
-                const response = await fetch(`${API_URL}/asistencia/registrar`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        miembro_id: parseInt(miembroId),
-                        tipo_evento: tipoEventoAsistencia,
-                        fecha: fechaEventoActual,
-                        presente: asistencia.presente,
-                        justificado: asistencia.justificado || false,
-                        nota: asistencia.nota || null
-                    })
-                });
-                
-                if (response.ok) {
-                    guardados++;
-                    console.log(`  ✅ Miembro ${miembroId} guardado`);
-                } else {
-                    errores++;
-                    const errorData = await response.json();
-                    console.error(`  ❌ Error guardando miembro ${miembroId}:`, errorData);
-                }
-            } catch (error) {
-                errores++;
-                console.error(`  ❌ Error con miembro ${miembroId}:`, error);
-            }
-        }
-        
-        console.log(`═══════════════════════════════════════`);
-        console.log(`✅ Proceso completado: ${guardados} guardados, ${errores} errores`);
-        console.log(`═══════════════════════════════════════`);
-        
-        if (guardados > 0) {
-            mostrarToast(`${guardados} asistencias guardadas`, 'success');
-            
-            // Limpiar datos
-            console.log('🧹 Limpiando datos de asistencia');
-            limpiarAsistencia();
-            
-            // Pequeño delay y volver a inicio
-            setTimeout(() => {
-                console.log('🏠 Volviendo a Inicio');
-                cambiarTab('inicio');
-            }, 500);
-        } else if (errores > 0) {
-            console.error('❌ Hubo errores al guardar');
-            mostrarError('Error al guardar asistencias');
-        } else {
-            console.warn('⚠️ No se marcó ninguna asistencia');
-            mostrarError('Marca al menos una asistencia');
-        }
-        
+        const response = await fetch(`${API_URL}/asistencia/registrar-lote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ tipo_evento: tipoEventoAsistencia, fecha: fechaEventoActual, registros })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `Error HTTP ${response.status}`);
+
+        mostrarToast(`${data.guardados} asistencias guardadas`, 'success');
+        limpiarAsistencia();
+        cambiarTab('inicio');
     } catch (error) {
-        console.error('❌ Error crítico guardando:', error);
-        mostrarError('Error al guardar asistencias');
+        console.error('❌ Error guardando asistencias:', error);
+        mostrarError('No se pudieron guardar las asistencias. Intentá de nuevo.');
+    } finally {
+        guardandoAsistencias = false;
+        if (boton) {
+            boton.disabled = false;
+            boton.innerHTML = textoOriginal;
+        }
     }
 }
 

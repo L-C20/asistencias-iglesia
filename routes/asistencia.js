@@ -61,6 +61,50 @@ router.post('/registrar', verifyToken, async (req, res) => {
   }
 });
 
+// Registrar toda la asistencia de un evento de una vez - POST /api/asistencia/registrar-lote
+// Body: { tipo_evento, fecha, registros: [{ miembro_id, presente, justificado, nota }] }
+router.post('/registrar-lote', verifyToken, async (req, res) => {
+  const { tipo_evento, fecha, registros } = req.body;
+
+  if (!tipo_evento || !fecha || !Array.isArray(registros) || registros.length === 0) {
+    return res.status(400).json({ error: 'Datos incompletos' });
+  }
+
+  const client = await db.pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Se reemplazan los registros de esos integrantes para esa fecha y evento
+    const ids = registros.map(r => Number(r.miembro_id));
+    await client.query(
+      'DELETE FROM registro_asistencia WHERE tipo_evento = $1 AND fecha = $2 AND miembro_id = ANY($3::int[])',
+      [tipo_evento, fecha, ids]
+    );
+
+    const valores = [];
+    const params = [];
+    registros.forEach((r, i) => {
+      const b = i * 6;
+      valores.push(`($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5}, $${b + 6})`);
+      params.push(Number(r.miembro_id), tipo_evento, fecha, r.presente === true, r.justificado === true, r.nota || null);
+    });
+    await client.query(
+      `INSERT INTO registro_asistencia (miembro_id, tipo_evento, fecha, presente, justificado, nota) VALUES ${valores.join(', ')}`,
+      params
+    );
+
+    await client.query('COMMIT');
+    console.log(`💾 Lote guardado: ${tipo_evento} ${fecha} (${registros.length} registros)`);
+    res.json({ success: true, guardados: registros.length });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error guardando lote de asistencia:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  } finally {
+    client.release();
+  }
+});
+
 // Eliminar un evento completo - DELETE /api/asistencia/evento/:grupo/:fecha/:tipoEvento
 router.delete('/evento/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
   try {

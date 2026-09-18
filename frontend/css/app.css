@@ -467,6 +467,12 @@ svg { flex-shrink: 0; }
 
 .btn:active { transform: translateY(1px); }
 
+.btn:disabled {
+    opacity: .7;
+    cursor: default;
+    transform: none;
+}
+
 .btn svg { width: 16px; height: 16px; }
 
 .btn-primary {
