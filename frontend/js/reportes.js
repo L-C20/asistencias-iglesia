@@ -286,6 +286,16 @@ window.irAEstaSemana = function() {
     actualizarVisibleSemana();
 }
 
+// "Esta semana", "Semana pasada", "Semana próxima" o, más lejos, "Semana seleccionada"
+function etiquetaSemana(semana) {
+    const lunesActual = window.calcularSemana(new Date()).lunes;
+    const diferenciaSemanas = Math.round((semana.lunes - lunesActual) / (7 * 24 * 60 * 60 * 1000));
+    if (diferenciaSemanas === 0) return 'Esta semana';
+    if (diferenciaSemanas === -1) return 'Semana pasada';
+    if (diferenciaSemanas === 1) return 'Semana próxima';
+    return 'Semana seleccionada';
+}
+
 window.actualizarVisibleSemana = function() {
     const semana = window.calcularSemana(semanaMostrada);
     const rango = window.formatearRangoSemana(semana);
@@ -293,7 +303,7 @@ window.actualizarVisibleSemana = function() {
     const labelEl = document.getElementById('labelSemana');
     const fechasEl = document.getElementById('fechasSemana');
 
-    if (labelEl) labelEl.textContent = 'Semana seleccionada';
+    if (labelEl) labelEl.textContent = etiquetaSemana(semana);
     if (fechasEl) fechasEl.textContent = rango;
 
     console.log('📅 Semana actualizada:', rango);
