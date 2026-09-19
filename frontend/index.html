@@ -624,21 +624,21 @@
                     <label>Tipo de Evento:</label>
                     <div class="radio-options">
                         <label class="radio-option">
-                            <input type="radio" name="tipoEvento" value="santo_culto" checked>
+                            <input type="radio" name="tipoEvento" value="santo_culto" checked onchange="renderOpcionesFecha()">
                             <span class="radio-label">
                                 <span class="radio-circle"></span>
                                 <span class="radio-text">Santo Culto</span>
                             </span>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="tipoEvento" value="ensayo">
+                            <input type="radio" name="tipoEvento" value="ensayo" onchange="renderOpcionesFecha()">
                             <span class="radio-label">
                                 <span class="radio-circle"></span>
                                 <span class="radio-text">Ensayo</span>
                             </span>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="tipoEvento" value="bautismo">
+                            <input type="radio" name="tipoEvento" value="bautismo" onchange="renderOpcionesFecha()">
                             <span class="radio-label">
                                 <span class="radio-circle"></span>
                                 <span class="radio-text">Bautismo</span>
@@ -646,10 +646,11 @@
                         </label>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label>Fecha del Evento:</label>
-                    <input type="date" id="fechaEventoModal" class="form-control" required>
+                    <label>Fecha:</label>
+                    <div class="chips-fecha" id="opcionesFecha"></div>
+                    <input type="date" id="fechaEventoModal" class="form-control" hidden>
                 </div>
                 
                 <div style="display: flex; gap: 12px; margin-top: 30px;">

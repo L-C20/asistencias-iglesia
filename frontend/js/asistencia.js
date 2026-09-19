@@ -8,71 +8,111 @@ var fechaEventoActual = null;
 console.log('🚀 asistencia-v12.js iniciando');
 
 // ===== IR A ASISTENCIA =====
-function irAAsistencia(grupo) {
-    console.log('═══════════════════════════════════════');
-    console.log('🔄 [irAAsistencia] Iniciando - Grupo:', grupo);
-    console.log('═══════════════════════════════════════');
-    
-    // Verificar que grupo sea válido
+async function irAAsistencia(grupo) {
     if (grupo !== 'orquesta') {
-        console.error('❌ Grupo inválido:', grupo);
         mostrarError('Grupo inválido');
         return;
     }
-
     grupoActual = grupo;
-    console.log('✅ grupoActual establecido:', grupoActual);
-    
-    // Buscar modal - ID correcto: modalConfigurarEvento
+
     const modal = document.getElementById('modalConfigurarEvento');
-    console.log('🔍 Buscando modal con ID "modalConfigurarEvento":', modal ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO');
-    
-    if (modal) {
-        // Verificar si tiene la clase 'show'
-        const tieneShow = modal.classList.contains('show');
-        console.log('   - Modal tiene clase "show":', tieneShow);
-        
-        modal.classList.add('show');
-        console.log('✅ Modal abierto - clase "show" agregada');
-        console.log('✅ Display:', window.getComputedStyle(modal).display);
-        
-        // Reset del formulario
-        const form = document.getElementById('formConfigurarEvento');
-        if (form) {
-            form.reset();
-            console.log('✅ Formulario limpiado');
-        }
-        
-        console.log('═══════════════════════════════════════');
-        console.log('✅ [irAAsistencia] COMPLETADO');
-        console.log('═══════════════════════════════════════');
-    } else {
-        console.error('═══════════════════════════════════════');
-        console.error('❌ [irAAsistencia] ERROR CRÍTICO');
-        console.error('   Modal "modalConfigurarEvento" no encontrado en el DOM');
-        console.error('═══════════════════════════════════════');
+    if (!modal) {
         mostrarError('Error: Modal no encontrado');
+        return;
     }
+
+    document.getElementById('formConfigurarEvento').reset();
+    modal.classList.add('show');
+
+    // Qué fechas ya tienen asistencia cargada, para marcarlas en los botones
+    fechasConDatos = {};
+    try {
+        const r = await fetch(`${API_URL}/reportes/fechas/${grupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (r.ok) fechasConDatos = await r.json();
+    } catch (e) { /* sin esto los botones igual funcionan */ }
+    renderOpcionesFecha();
+}
+
+// ===== OPCIONES DE FECHA: BOTONES CON LOS ÚLTIMOS DÍAS =====
+let fechasConDatos = {};
+const DIAS_CULTO_ASISTENCIA = [0, 2, 6]; // domingo, martes, sábado
+const ABREV_DIA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+function fechaISOLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Para culto: los últimos 3 días de culto (hoy incluido si lo es). Para el resto: hoy y ayer.
+function fechasSugeridas(tipo) {
+    const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
+    const lista = [];
+    if (tipo === 'santo_culto') {
+        for (let i = 0; i < 14 && lista.length < 3; i++) {
+            const d = new Date(hoy); d.setDate(hoy.getDate() - i);
+            if (DIAS_CULTO_ASISTENCIA.includes(d.getDay())) lista.push(d);
+        }
+    } else {
+        for (let i = 0; i < 2; i++) {
+            const d = new Date(hoy); d.setDate(hoy.getDate() - i);
+            lista.push(d);
+        }
+    }
+    return lista;
+}
+
+function renderOpcionesFecha() {
+    const cont = document.getElementById('opcionesFecha');
+    const inputFecha = document.getElementById('fechaEventoModal');
+    if (!cont || !inputFecha) return;
+
+    const tipo = document.querySelector('input[name="tipoEvento"]:checked')?.value || 'santo_culto';
+    const hoyISO = fechaISOLocal(new Date());
+    const cargadas = new Set(fechasConDatos[tipo] || []);
+
+    cont.innerHTML = '';
+    inputFecha.hidden = true;
+    inputFecha.value = '';
+
+    fechasSugeridas(tipo).forEach((d, i) => {
+        const iso = fechaISOLocal(d);
+        const ddmm = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const etiqueta = (iso === hoyISO ? 'Hoy · ' : '') + `${ABREV_DIA[d.getDay()]} ${ddmm}`;
+        const tieneDatos = cargadas.has(iso);
+
+        const chip = document.createElement('label');
+        chip.className = 'chip-fecha' + (tieneDatos ? ' con-datos' : '');
+        chip.innerHTML = `
+            <input type="radio" name="fechaChip" value="${iso}" ${i === 0 ? 'checked' : ''}>
+            <span>${etiqueta}</span>
+            ${tieneDatos ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+        `;
+        chip.title = tieneDatos ? 'Ya tiene asistencia cargada' : '';
+        chip.querySelector('input').addEventListener('change', () => { inputFecha.hidden = true; inputFecha.value = ''; });
+        cont.appendChild(chip);
+    });
+
+    const otra = document.createElement('label');
+    otra.className = 'chip-fecha chip-otra';
+    otra.innerHTML = '<input type="radio" name="fechaChip" value=""><span>Otra fecha…</span>';
+    otra.querySelector('input').addEventListener('change', () => { inputFecha.hidden = false; inputFecha.focus(); });
+    cont.appendChild(otra);
+
+    // Resaltado del elegido (respaldo para navegadores sin :has())
+    const marcarActivo = () => cont.querySelectorAll('.chip-fecha').forEach(c => c.classList.toggle('activo', c.querySelector('input').checked));
+    cont.querySelectorAll('input').forEach(i => i.addEventListener('change', marcarActivo));
+    marcarActivo();
 }
 
 // ===== GUARDAR CONFIGURACIÓN DEL EVENTO =====
 function guardarConfiguracionEvento(e) {
     e.preventDefault();
-    console.log('💾 [guardarConfiguracionEvento] Iniciando');
-    
-    // IDs correctos del HTML
-    const tipoEventoRadios = document.querySelectorAll('input[name="tipoEvento"]:checked');
-    const tipoEvento = tipoEventoRadios.length > 0 ? tipoEventoRadios[0].value : null;
-    
-    const fecha = document.getElementById('fechaEventoModal')?.value;
-    
-    console.log('  - Tipo Evento:', tipoEvento);
-    console.log('  - Fecha:', fecha);
-    console.log('  - Grupo:', grupoActual);
-    
+
+    const tipoEvento = document.querySelector('input[name="tipoEvento"]:checked')?.value;
+    const chip = document.querySelector('input[name="fechaChip"]:checked');
+    const fecha = chip && chip.value ? chip.value : document.getElementById('fechaEventoModal')?.value;
+
     if (!tipoEvento || !fecha) {
-        console.error('❌ Datos incompletos');
-        mostrarError('Selecciona tipo de evento y fecha');
+        mostrarError('Elegí una fecha');
         return;
     }
     

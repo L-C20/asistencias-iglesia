@@ -775,6 +775,46 @@ input::placeholder { color: var(--text-light); }
 
 .radio-text { font-size: var(--fs-base); font-weight: 500; color: var(--text); }
 
+/* Botones de fecha rápida */
+.chips-fecha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+}
+
+.chip-fecha {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px var(--sp-3);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-2);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-full);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .12s ease, background .12s ease, color .12s ease;
+}
+
+.chip-fecha input { position: absolute; opacity: 0; pointer-events: none; }
+
+.chip-fecha:hover { background: var(--gray-50); }
+
+.chip-fecha.activo,
+.chip-fecha:has(input:checked) {
+    background: var(--brand-50);
+    border-color: var(--brand-600);
+    color: var(--brand-700);
+    font-weight: 600;
+}
+
+.chip-fecha svg { width: 13px; height: 13px; color: var(--green-600); }
+
+.chip-fecha.chip-otra { color: var(--text-3); border-style: dashed; }
+
 /* ---------- 10. Tablas ---------- */
 .tabla-miembros,
 .tabla-scrollable {

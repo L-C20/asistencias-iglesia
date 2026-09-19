@@ -42,6 +42,25 @@ router.get('/conteos/:grupo', verifyToken, async (req, res) => {
     }
 });
 
+// ===== FECHAS QUE YA TIENEN ASISTENCIA, POR TIPO DE EVENTO =====
+router.get('/fechas/:grupo', verifyToken, async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT DISTINCT ra.tipo_evento, TO_CHAR(ra.fecha, 'YYYY-MM-DD') AS fecha
+            FROM registro_asistencia ra
+            JOIN miembros m ON m.id = ra.miembro_id
+            WHERE m.grupo = $1
+        `, [req.params.grupo]);
+
+        const porTipo = {};
+        result.rows.forEach(r => (porTipo[r.tipo_evento] = porTipo[r.tipo_evento] || []).push(r.fecha));
+        res.json(porTipo);
+    } catch (error) {
+        console.error('❌ Error en fechas:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ===== RESUMEN PARA LA PANTALLA DE INICIO =====
 router.get('/resumen/:grupo', verifyToken, async (req, res) => {
     try {
