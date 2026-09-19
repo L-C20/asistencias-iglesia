@@ -62,7 +62,9 @@ window.abrirReporteEvento = function(tipo) {
     
     const tit = document.getElementById('detalleEventoTitulo');
     if (tit) tit.textContent = nombres[tipo] || tipo;
-    
+
+    mostrarSemanaEnCabecera();
+
     // Cargar datos
     const token = localStorage.getItem('token');
     if (!token) {
@@ -296,17 +298,17 @@ function etiquetaSemana(semana) {
     return 'Semana seleccionada';
 }
 
-window.actualizarVisibleSemana = function() {
+// Etiqueta y rango de fechas de la semana mostrada (se usa al abrir y al navegar)
+function mostrarSemanaEnCabecera() {
     const semana = window.calcularSemana(semanaMostrada);
-    const rango = window.formatearRangoSemana(semana);
-
     const labelEl = document.getElementById('labelSemana');
     const fechasEl = document.getElementById('fechasSemana');
-
     if (labelEl) labelEl.textContent = etiquetaSemana(semana);
-    if (fechasEl) fechasEl.textContent = rango;
+    if (fechasEl) fechasEl.textContent = window.formatearRangoSemana(semana);
+}
 
-    console.log('📅 Semana actualizada:', rango);
+window.actualizarVisibleSemana = function() {
+    mostrarSemanaEnCabecera();
     console.log('📅 Nueva semana:', semanaMostrada);
 
     // ACTUALIZAR HEADER Y FILTRO
