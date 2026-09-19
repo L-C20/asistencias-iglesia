@@ -70,9 +70,18 @@ function renderOpcionesFecha() {
     const hoyISO = fechaISOLocal(new Date());
     const cargadas = new Set(fechasConDatos[tipo] || []);
 
+    const bloqueOtra = document.getElementById('bloqueOtraFecha');
+    const ocultarOtra = () => { if (bloqueOtra) bloqueOtra.hidden = true; inputFecha.value = ''; };
+    // Aparece ya cargada con hoy: en el teléfono un calendario vacío se ve como un recuadro en blanco
+    const mostrarOtra = () => {
+        if (bloqueOtra) bloqueOtra.hidden = false;
+        if (!inputFecha.value) inputFecha.value = hoyISO;
+        inputFecha.focus();
+        try { if (inputFecha.showPicker) inputFecha.showPicker(); } catch (e) { /* el navegador decide */ }
+    };
+
     cont.innerHTML = '';
-    inputFecha.hidden = true;
-    inputFecha.value = '';
+    ocultarOtra();
     let hayLeyenda = false;
 
     const sugeridas = fechasSugeridas(tipo);
@@ -94,14 +103,14 @@ function renderOpcionesFecha() {
             ${tieneBorrador ? '<i class="chip-punto" aria-hidden="true"></i>' : ''}
         `;
         chip.title = [tieneDatos && 'Ya tiene asistencia guardada', tieneBorrador && 'Tenés asistencias sin guardar'].filter(Boolean).join(' · ');
-        chip.querySelector('input').addEventListener('change', () => { inputFecha.hidden = true; inputFecha.value = ''; });
+        chip.querySelector('input').addEventListener('change', ocultarOtra);
         cont.appendChild(chip);
     });
 
     const otra = document.createElement('label');
     otra.className = 'chip-fecha chip-otra';
     otra.innerHTML = '<input type="radio" name="fechaChip" value=""><span>Otra fecha…</span>';
-    otra.querySelector('input').addEventListener('change', () => { inputFecha.hidden = false; inputFecha.focus(); });
+    otra.querySelector('input').addEventListener('change', mostrarOtra);
     cont.appendChild(otra);
 
     const leyenda = document.getElementById('leyendaFechas');
