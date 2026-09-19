@@ -285,40 +285,33 @@ function cambiarTab(nombreTab) {
         }
         
         // Cerrar sidebar en móvil
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar && window.innerWidth < 768) {
-            sidebar.classList.remove('active');
-            console.log('📱 Sidebar cerrado en móvil');
-        }
+        cerrarSidebar();
     } else {
         console.error('❌ Tab no encontrado:', nombreTab);
     }
 }
 
-// ===== TOGGLE SIDEBAR (MENÚ HAMBURGUESA) =====
+// ===== MENÚ LATERAL EN MÓVIL =====
+// Se abre con la hamburguesa y se cierra tocando fuera, con Escape o al elegir una opción
 function toggleSidebar() {
-    console.log('🍔 Toggle Sidebar');
     const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('active');
-        console.log('✅ Sidebar toggled');
-    } else {
-        console.error('❌ Sidebar no encontrado');
-    }
+    if (!sidebar) return;
+    const abierto = sidebar.classList.toggle('active');
+    document.body.classList.toggle('menu-abierto', abierto);
+}
+
+function cerrarSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.classList.remove('active');
+    document.body.classList.remove('menu-abierto');
 }
 
 // ===== CERRAR SIDEBAR AL HACER CLICK EN UN ITEM =====
 function cerrarSidebarAlHacerClick() {
-    const sidebarItems = document.querySelectorAll('.sidebar-menu-item');
-    sidebarItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar && window.innerWidth < 768) {
-                sidebar.classList.remove('active');
-                console.log('✅ Sidebar cerrado después de click');
-            }
-        });
+    document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+        item.addEventListener('click', cerrarSidebar);
     });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarSidebar(); });
 }
 
 // ===== MOSTRAR TOAST =====

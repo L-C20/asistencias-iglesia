@@ -334,6 +334,8 @@ svg { flex-shrink: 0; }
     border-color: #fecdca;
 }
 
+.sidebar-backdrop { display: none; }
+
 .sidebar-toggle {
     display: none;
     position: fixed;
@@ -1867,6 +1869,20 @@ input::placeholder { color: var(--text-light); }
     }
 
     .sidebar.active { transform: translateX(0); }
+
+    .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 65;
+        background: rgba(16, 24, 40, .45);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .22s ease, visibility .22s ease;
+    }
+
+    body.menu-abierto .sidebar-backdrop { opacity: 1; visibility: visible; }
+    body.menu-abierto { overflow: hidden; }
 
     .navbar {
         padding: 0 var(--sp-4) 0 60px;
