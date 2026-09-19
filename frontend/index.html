@@ -151,7 +151,7 @@
                     </div>
 
                     <div class="resumen-grid">
-                        <div class="stat-card">
+                        <button class="stat-card stat-card-link" type="button" onclick="cambiarTab('orquesta-miembros')" title="Ver integrantes">
                             <div class="stat-label">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -162,7 +162,8 @@
                             </div>
                             <div class="stat-value" id="statIntegrantes">—</div>
                             <div class="stat-hint">activos en la orquesta</div>
-                        </div>
+                            <span class="stat-link">Ver integrantes →</span>
+                        </button>
 
                         <button class="stat-card stat-card-link" type="button" onclick="cambiarTab('reportes')" title="Ver reportes">
                             <div class="stat-label">
