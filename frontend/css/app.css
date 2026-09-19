@@ -862,19 +862,6 @@ input::placeholder { color: var(--text-light); }
     box-shadow: 0 0 0 2px var(--amber-50);
 }
 
-.chip-estado {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding-left: 6px;
-    border-left: 1px solid rgba(220, 104, 3, .3);
-    font-style: normal;
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    color: var(--amber-700);
-    white-space: nowrap;
-}
-
 .chip-fecha.chip-otra { color: var(--text-3); border-style: dashed; }
 
 .leyenda-fechas {
