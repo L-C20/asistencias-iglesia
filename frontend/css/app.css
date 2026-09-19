@@ -585,6 +585,32 @@ svg { flex-shrink: 0; }
     margin-top: var(--sp-1);
 }
 
+/* Tarjeta de resumen que lleva a otra pantalla */
+.stat-card-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.stat-card-link:hover {
+    border-color: var(--brand-500);
+    box-shadow: var(--sh-md);
+    transform: translateY(-2px);
+}
+
+.stat-card-link:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--brand-100); }
+
+.stat-link {
+    display: inline-block;
+    margin-top: var(--sp-3);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--brand-600);
+}
+
 .cards-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
