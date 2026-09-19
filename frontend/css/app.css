@@ -813,7 +813,31 @@ input::placeholder { color: var(--text-light); }
 
 .chip-fecha svg { width: 13px; height: 13px; color: var(--green-600); }
 
+/* Punto ámbar: hay marcas guardadas solo en este dispositivo */
+.chip-punto {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber-600);
+    box-shadow: 0 0 0 2px var(--amber-50);
+}
+
 .chip-fecha.chip-otra { color: var(--text-3); border-style: dashed; }
+
+.leyenda-fechas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2) var(--sp-4);
+    margin-top: calc(-1 * var(--sp-1));
+    margin-bottom: var(--sp-3);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+}
+
+.leyenda-fechas span { display: inline-flex; align-items: center; gap: 5px; }
+.leyenda-fechas svg { width: 12px; height: 12px; color: var(--green-600); }
+.leyenda-fechas .chip-punto { width: 7px; height: 7px; }
 
 /* ---------- 10. Tablas ---------- */
 .tabla-miembros,
@@ -948,8 +972,28 @@ input::placeholder { color: var(--text-light); }
     margin-top: var(--sp-5);
 }
 
+/* Barra de guardar que acompaña el scroll en la toma de asistencia */
+.barra-guardar {
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 0;
+    padding: var(--sp-3) 0;
+    background: linear-gradient(to top, var(--bg) 60%, rgba(249, 250, 251, 0));
+}
+
+.barra-guardar .btn { box-shadow: var(--sh-md); }
+
+.barra-guardar-info {
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+}
+
 /* ---------- 11. Lista de asistencia (P / A / AJ) ---------- */
-.asistencia-lista { margin-bottom: var(--sp-5); }
+.asistencia-lista { margin-bottom: var(--sp-2); }
 
 .lista-acciones {
     display: flex;
@@ -1827,6 +1871,9 @@ input::placeholder { color: var(--text-light); }
 
     .tab-footer { flex-direction: column; }
     .tab-footer .btn { width: 100%; }
+
+    .barra-guardar { flex-direction: row; justify-content: space-between; }
+    .barra-guardar .btn { width: auto; flex: 1; }
 
     .modal-content { padding: var(--sp-5); }
 

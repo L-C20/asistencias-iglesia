@@ -353,7 +353,8 @@
                         <div id="listaMiembrosAsistenciaOrquesta" class="lista-miembros"></div>
                     </div>
 
-                    <div class="tab-footer">
+                    <div class="tab-footer barra-guardar">
+                        <span class="barra-guardar-info" id="resumenMarcados"></span>
                         <button class="btn btn-success" type="button" onclick="guardarTodasAsistencias(); return false;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -651,6 +652,10 @@
                     <label>Fecha:</label>
                     <div class="chips-fecha" id="opcionesFecha"></div>
                     <input type="date" id="fechaEventoModal" class="form-control" hidden>
+                    <p class="leyenda-fechas" id="leyendaFechas" hidden>
+                        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Asistencia guardada</span>
+                        <span><i class="chip-punto" aria-hidden="true"></i> Marcas sin guardar</span>
+                    </p>
                 </div>
                 
                 <div style="display: flex; gap: 12px; margin-top: 30px;">

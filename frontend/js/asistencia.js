@@ -73,6 +73,7 @@ function renderOpcionesFecha() {
     cont.innerHTML = '';
     inputFecha.hidden = true;
     inputFecha.value = '';
+    let hayLeyenda = false;
 
     const sugeridas = fechasSugeridas(tipo);
     sugeridas.forEach((d, i) => {
@@ -81,15 +82,18 @@ function renderOpcionesFecha() {
         const ddmm = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
         const etiqueta = (iso === hoyISO ? 'Hoy · ' : '') + `${ABREV_DIA[d.getDay()]} ${ddmm}`;
         const tieneDatos = cargadas.has(iso);
+        const tieneBorrador = hayBorrador(tipo, iso);
+        hayLeyenda = hayLeyenda || tieneDatos || tieneBorrador;
 
         const chip = document.createElement('label');
-        chip.className = 'chip-fecha' + (tieneDatos ? ' con-datos' : '');
+        chip.className = 'chip-fecha' + (tieneDatos ? ' con-datos' : '') + (tieneBorrador ? ' con-borrador' : '');
         chip.innerHTML = `
             <input type="radio" name="fechaChip" value="${iso}" ${esMasReciente ? 'checked' : ''}>
             <span>${etiqueta}</span>
             ${tieneDatos ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+            ${tieneBorrador ? '<i class="chip-punto" aria-hidden="true"></i>' : ''}
         `;
-        chip.title = tieneDatos ? 'Ya tiene asistencia cargada' : '';
+        chip.title = [tieneDatos && 'Ya tiene asistencia guardada', tieneBorrador && 'Tenés marcas sin guardar'].filter(Boolean).join(' · ');
         chip.querySelector('input').addEventListener('change', () => { inputFecha.hidden = true; inputFecha.value = ''; });
         cont.appendChild(chip);
     });
@@ -99,6 +103,9 @@ function renderOpcionesFecha() {
     otra.innerHTML = '<input type="radio" name="fechaChip" value=""><span>Otra fecha…</span>';
     otra.querySelector('input').addEventListener('change', () => { inputFecha.hidden = false; inputFecha.focus(); });
     cont.appendChild(otra);
+
+    const leyenda = document.getElementById('leyendaFechas');
+    if (leyenda) leyenda.hidden = !hayLeyenda;
 
     // Resaltado del elegido (respaldo para navegadores sin :has())
     const marcarActivo = () => cont.querySelectorAll('.chip-fecha').forEach(c => c.classList.toggle('activo', c.querySelector('input').checked));
@@ -182,8 +189,12 @@ async function cargarMiembrosParaAsistencia(grupo) {
 // ===== BORRADOR LOCAL =====
 // Lo marcado se guarda en el teléfono por evento y fecha, para retomar
 // aunque se cierre la app sin tocar Guardar.
-function claveBorrador() {
-    return `borrador-asistencia:${tipoEventoAsistencia}:${fechaEventoActual}`;
+function claveBorrador(tipo = tipoEventoAsistencia, fecha = fechaEventoActual) {
+    return `borrador-asistencia:${tipo}:${fecha}`;
+}
+
+function hayBorrador(tipo, fecha) {
+    try { return !!localStorage.getItem(claveBorrador(tipo, fecha)); } catch (e) { return false; }
 }
 
 function guardarBorrador() {
@@ -357,6 +368,16 @@ function actualizarContadorSeccion(seccion) {
     const contador = seccion.querySelector('.seccion-contador b');
     if (contador) contador.textContent = marcados;
     seccion.classList.toggle('completa', filas.length > 0 && marcados === filas.length);
+    actualizarResumenMarcados();
+}
+
+// Texto de la barra fija de guardar: cuántos van marcados del total
+function actualizarResumenMarcados() {
+    const resumen = document.getElementById('resumenMarcados');
+    if (!resumen) return;
+    const total = miembrosActuales.length;
+    const marcados = document.querySelectorAll('#listaMiembrosAsistenciaOrquesta .miembro-row input:checked').length;
+    resumen.textContent = total ? `${marcados} de ${total} marcados` : '';
 }
 
 function expandirTodo(abrir) {
