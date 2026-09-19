@@ -114,6 +114,18 @@ function cerrarSesionLocal() {
     usuarioNombre = null;
 }
 
+// Ojito de los campos de contraseña: muestra u oculta lo escrito
+function alternarClave(boton) {
+    const input = boton.parentElement.querySelector('input');
+    if (!input) return;
+    const mostrar = input.type === 'password';
+    input.type = mostrar ? 'text' : 'password';
+    boton.classList.toggle('visible', mostrar);
+    boton.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    boton.title = boton.getAttribute('aria-label');
+    input.focus();
+}
+
 // ===== MANEJAR LOGIN =====
 // Único manejador: el form lo llama con onsubmit="handleLogin(event)"
 let ingresando = false;
