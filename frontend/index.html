@@ -40,7 +40,7 @@
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="form-group">
                         <label>Usuario</label>
-                        <input type="text" id="usuario" placeholder="Ingresa tu usuario" autocomplete="username" required>
+                        <input type="text" id="usuario" placeholder="Ingresa tu usuario" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
                     </div>
                     
                     <div class="form-group">
@@ -67,77 +67,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        async function handleLogin(event) {
-            event.preventDefault();
-            const usuario = document.getElementById('usuario').value.trim();
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('errorMessage');
-            const btnLogin = document.getElementById('btnLogin');
-            const btnText = document.getElementById('btnText');
-            const loading = document.getElementById('loading');
-
-            console.log('🔐 Login intento:', usuario);
-
-            if (!usuario || !password) {
-                errorDiv.textContent = 'Por favor completa todos los campos';
-                errorDiv.style.display = 'block';
-                console.error('❌ Campos vacíos');
-                return;
-            }
-
-            btnLogin.disabled = true;
-            btnText.style.display = 'none';
-            loading.style.display = 'inline';
-
-            try {
-                const url = `/api/auth/login`;
-                console.log('📡 POST:', url);
-                console.log('👤 Usuario:', usuario);
-                console.log('🔑 Password enviado:', password.length, 'caracteres');
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usuario, password })
-                });
-
-                console.log('📨 Response status:', response.status);
-
-                const data = await response.json();
-                console.log('📦 Response data:', data);
-
-                if (response.ok && data.token) {
-                    console.log('✅ Login exitoso!');
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('usuario', usuario);
-                    window.location.href = '/';
-                } else {
-                    console.error('❌ Login fallido:', data.error);
-                    errorDiv.textContent = data.error || 'Error al iniciar sesión';
-                    errorDiv.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('❌ Error de conexión:', error);
-                errorDiv.textContent = 'Error de conexión: ' + error.message;
-                errorDiv.style.display = 'block';
-            } finally {
-                btnLogin.disabled = false;
-                btnText.style.display = 'inline';
-                loading.style.display = 'none';
-            }
-        }
-
-        document.getElementById('password').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-        });
-
-        window.addEventListener('load', () => {
-            console.log('🌐 Página de login cargada');
-            document.getElementById('usuario').focus();
-        });
-    </script>
 
     <!-- DASHBOARD PAGE -->
     <div id="dashboardPage" class="dashboard-page" style="display: none;">

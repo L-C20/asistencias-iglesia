@@ -27,6 +27,7 @@ function initApp() {
     // Si hay token, mostrar dashboard
     if (storedToken) {
         token = storedToken;
+        verificarSesion();
         usuarioRol = localStorage.getItem('usuarioRol');
         usuarioNombre = localStorage.getItem('usuarioNombre');
 
@@ -85,54 +86,104 @@ function initApp() {
         loginPage.style.display = 'flex';
         dashboardPage.style.display = 'none';
         console.log('🔐 Sin sesión - Mostrando login');
-    }
-    
-    // Eventos del login
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
+        const campoUsuario = document.getElementById('usuario');
+        if (campoUsuario && !campoUsuario.value) campoUsuario.focus();
     }
 }
 
+// Si el token guardado venció o dejó de ser válido, se vuelve al login
+// en lugar de quedar en un panel que no carga nada.
+async function verificarSesion() {
+    try {
+        const response = await fetch(`${API_URL}/auth/verify`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+            console.warn('⚠️ Sesión vencida - Volviendo al login');
+            cerrarSesionLocal();
+            initApp();
+            mostrarToast('Tu sesión venció. Ingresá de nuevo.', 'info');
+        }
+    } catch (e) { /* sin conexión: se deja seguir con lo que hay */ }
+}
+
+function cerrarSesionLocal() {
+    ['token', 'usuario', 'usuarioRol', 'usuarioNombre'].forEach(k => localStorage.removeItem(k));
+    token = null;
+    usuarioRol = null;
+    usuarioNombre = null;
+}
+
 // ===== MANEJAR LOGIN =====
+// Único manejador: el form lo llama con onsubmit="handleLogin(event)"
+let ingresando = false;
+
+function mostrarErrorLogin(mensaje) {
+    const caja = document.getElementById('errorMessage');
+    if (!caja) return mostrarError(mensaje);
+    caja.textContent = mensaje;
+    caja.style.display = mensaje ? 'block' : 'none';
+}
+
 async function handleLogin(e) {
-    e.preventDefault();
-    
-    const usuario = document.getElementById('usuario').value;
+    if (e) e.preventDefault();
+    if (ingresando) return;
+
+    // El teclado del teléfono suele agregar espacios o mayúsculas
+    const usuario = document.getElementById('usuario').value.trim();
     const password = document.getElementById('password').value;
-    
+    const btnLogin = document.getElementById('btnLogin');
+    const btnText = document.getElementById('btnText');
+    const loading = document.getElementById('loading');
+
+    mostrarErrorLogin('');
+
+    if (!usuario || !password) {
+        mostrarErrorLogin('Completá usuario y contraseña');
+        return;
+    }
+
     console.log('🔐 Intentando login como:', usuario);
-    
+    ingresando = true;
+    if (btnLogin) btnLogin.disabled = true;
+    if (btnText) btnText.style.display = 'none';
+    if (loading) loading.style.display = 'inline-flex';
+
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario, password })
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
+
+        let data = {};
+        try { data = await response.json(); } catch (_) { /* respuesta sin JSON */ }
+
+        if (response.ok && data.token) {
             token = data.token;
             localStorage.setItem('token', token);
-            localStorage.setItem('usuario', usuario);
+            localStorage.setItem('usuario', data.user?.usuario || usuario);
             localStorage.setItem('usuarioRol', data.rol || 'operario');
             localStorage.setItem('usuarioNombre', data.nombre_completo || usuario);
 
             console.log('✅ Login exitoso - Rol:', data.rol);
+            document.getElementById('password').value = '';
             mostrarToast('Bienvenido ' + (data.nombre_completo || usuario), 'success');
-            
-            // Reinicializar app
-            setTimeout(() => {
-                initApp();
-            }, 500);
+            initApp();
+        } else if (response.status === 401) {
+            mostrarErrorLogin('Usuario o contraseña incorrectos');
         } else {
-            console.error('❌ Login fallido:', data.error);
-            mostrarError(data.error || 'Usuario o contraseña incorrectos');
+            console.error('❌ Login fallido:', response.status, data.error);
+            mostrarErrorLogin(data.error || `No se pudo ingresar (error ${response.status})`);
         }
     } catch (error) {
         console.error('❌ Error en login:', error);
-        mostrarError('Error al conectar con el servidor');
+        mostrarErrorLogin('No hay conexión con el servidor. Revisá tu internet e intentá de nuevo.');
+    } finally {
+        ingresando = false;
+        if (btnLogin) btnLogin.disabled = false;
+        if (btnText) btnText.style.display = 'inline';
+        if (loading) loading.style.display = 'none';
     }
 }
 

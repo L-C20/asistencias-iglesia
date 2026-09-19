@@ -16,15 +16,21 @@ async function passwordCoincide(ingresada, guardada) {
 // Login - POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
-    const { usuario, password } = req.body;
+    const usuario = String(req.body.usuario || '').trim();
+    const { password } = req.body;
 
     if (!usuario || !password) {
       return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
     }
 
-    // Buscar usuario en BD
+    // Buscar usuario en BD. Desde el teléfono suelen llegar mayúsculas o
+    // espacios de más, así que se compara sin distinguirlos.
     const result = await db.query(
-      'SELECT id, usuario, password, rol, nombre_completo FROM usuarios WHERE usuario = $1 AND activo = true',
+      `SELECT id, usuario, password, rol, nombre_completo
+       FROM usuarios
+       WHERE LOWER(TRIM(usuario)) = LOWER($1) AND activo = true
+       ORDER BY (usuario = $1) DESC
+       LIMIT 1`,
       [usuario]
     );
 
