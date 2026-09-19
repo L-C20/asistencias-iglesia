@@ -836,6 +836,12 @@ input::placeholder { color: var(--text-light); }
 
 .chip-fecha:hover { background: var(--gray-50); }
 
+/* Fecha con asistencias sin guardar en este dispositivo (el elegido sigue en azul) */
+.chip-fecha.con-borrador {
+    background: var(--amber-50);
+    border-color: var(--amber-600);
+}
+
 .chip-fecha.activo,
 .chip-fecha:has(input:checked) {
     background: var(--brand-50);
@@ -846,7 +852,7 @@ input::placeholder { color: var(--text-light); }
 
 .chip-fecha svg { width: 13px; height: 13px; color: var(--green-600); }
 
-/* Punto ámbar: hay marcas guardadas solo en este dispositivo */
+/* Ámbar: hay asistencias marcadas solo en este dispositivo, sin guardar */
 .chip-punto {
     display: inline-block;
     width: 8px;
@@ -854,6 +860,19 @@ input::placeholder { color: var(--text-light); }
     border-radius: 50%;
     background: var(--amber-600);
     box-shadow: 0 0 0 2px var(--amber-50);
+}
+
+.chip-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding-left: 6px;
+    border-left: 1px solid rgba(220, 104, 3, .3);
+    font-style: normal;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--amber-700);
+    white-space: nowrap;
 }
 
 .chip-fecha.chip-otra { color: var(--text-3); border-style: dashed; }

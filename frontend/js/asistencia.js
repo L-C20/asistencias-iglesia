@@ -91,9 +91,9 @@ function renderOpcionesFecha() {
             <input type="radio" name="fechaChip" value="${iso}" ${esMasReciente ? 'checked' : ''}>
             <span>${etiqueta}</span>
             ${tieneDatos ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-            ${tieneBorrador ? '<i class="chip-punto" aria-hidden="true"></i>' : ''}
+            ${tieneBorrador ? '<em class="chip-estado"><i class="chip-punto" aria-hidden="true"></i>sin guardar</em>' : ''}
         `;
-        chip.title = [tieneDatos && 'Ya tiene asistencia guardada', tieneBorrador && 'Tenés marcas sin guardar'].filter(Boolean).join(' · ');
+        chip.title = [tieneDatos && 'Ya tiene asistencia guardada', tieneBorrador && 'Tenés asistencias sin guardar'].filter(Boolean).join(' · ');
         chip.querySelector('input').addEventListener('change', () => { inputFecha.hidden = true; inputFecha.value = ''; });
         cont.appendChild(chip);
     });
