@@ -15,7 +15,7 @@ window.actualizarHeaderTabla = function() {
     const fechasCulto = window.obtenerFechasCultoDeSemana();
     const fechasConDatos = new Set((window.datosReporte || []).filter(d => d.fecha).map(d => d.fecha.split('T')[0]));
 
-    let html = '<tr><th>Nombre y Apellido</th><th>Instrumento</th>';
+    let html = `<tr><th>Nombre y Apellido</th><th>${grupoInfo(grupoReporte).categoria}</th>`;
 
     fechasCulto.forEach(fecha => {
         const dia = new Date(fecha + 'T00:00:00');
@@ -72,22 +72,9 @@ window.generarTablaHorizontal = function({ filas, registros, integrantes, busque
     const fechasCulto = window.obtenerFechasCultoDeSemana();
     const nColumnas = 2 + fechasCulto.length;
 
-    // Agrupar filas visibles y el universo de integrantes por instrumento
-    const agrupar = lista => {
-        const g = {};
-        lista.forEach(m => {
-            const k = m.instrumento || 'Sin instrumento';
-            (g[k] = g[k] || []).push(m);
-        });
-        return g;
-    };
-    const visiblesPorInst = agrupar(filas);
-    const todosPorInst = agrupar(integrantes);
-
-    const orden = [
-        ...INSTRUMENTOS.filter(i => visiblesPorInst[i]),
-        ...Object.keys(visiblesPorInst).filter(k => !INSTRUMENTOS.includes(k))
-    ];
+    // Agrupar filas visibles y el universo de integrantes por sección (instrumento o cuerda)
+    const { grupos: visiblesPorInst, orden } = agruparPorSeccion(grupoReporte, filas);
+    const todosPorInst = agruparPorSeccion(grupoReporte, integrantes).grupos;
 
     let html = '';
 
@@ -116,7 +103,7 @@ window.generarTablaHorizontal = function({ filas, registros, integrantes, busque
             const nombreCompleto = `${miembro.nombre}${miembro.apellido ? ' ' + miembro.apellido : ''}`;
             html += '<tr class="miembro-fila">';
             html += `<td class="celda-nombre">${nombreCompleto}</td>`;
-            html += `<td class="celda-detalle">${miembro.instrumento || '—'}</td>`;
+            html += `<td class="celda-detalle">${miembro.seccion || '—'}</td>`;
             fechasCulto.forEach(fecha => {
                 const registro = registros.find(d => d.id == miembro.id && d.fecha.split('T')[0] === fecha);
                 const estado = estadoDe(registro);

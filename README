@@ -1,113 +1,97 @@
 # Sistema de Asistencia - Orquesta y Coro
 
-Sistema simple de registro de asistencia para orquesta y coro de la iglesia.
+Registro de asistencia para la orquesta y/o el coro de una iglesia. Cada iglesia
+corre su propia copia (su URL y su base de datos) y se configura con variables
+de entorno: nombre y qué grupos tiene.
 
 ## Características
 
-- ✅ Registro de asistencia en tiempo real
-- ✅ Dos pestañas separadas (Coro / Orquesta)
-- ✅ Dos tipos de eventos (Santo Culto / Ensayo)
-- ✅ 4 usuarios con credenciales simples
-- ✅ Reportes con gráficos
-- ✅ Exportar a Excel
-- ✅ Base de datos PostgreSQL
+- Asistencia por integrante (Presente / Ausente / Ausente justificado), agrupada
+  por instrumento (orquesta) o por cuerda (coro)
+- Tres tipos de evento: Santo Culto, Ensayo, Bautismo
+- Fechas sugeridas con botones; borrador local si se interrumpe la carga
+- Reportes semanales con subtotales por sección y totales
+- Usuarios con roles admin / operario, contraseñas cifradas
+- PostgreSQL
 
-## Instalación Local
+## Configuración por iglesia
 
-### Requisitos
-- Node.js 18+
-- PostgreSQL 12+
+| Variable         | Qué hace                                                        | Default        |
+|------------------|-----------------------------------------------------------------|----------------|
+| `IGLESIA_NOMBRE` | Nombre que se muestra en el login y el menú                     | según grupos   |
+| `GRUPOS`         | Grupos habilitados, separados por coma: `orquesta`, `coro`      | `orquesta`     |
+| `ADMIN_USUARIO`  | Usuario administrador que se crea en una base vacía             | `admin`        |
+| `ADMIN_PASSWORD` | Contraseña de ese administrador (cambiarla al entrar)           | `admin1234`    |
+| `DATABASE_URL`   | Conexión a PostgreSQL                                           | —              |
+| `JWT_SECRET`     | Secreto para firmar las sesiones (distinto en cada instalación) | —              |
 
-### Pasos
+Con un solo grupo la aplicación no muestra selectores; con dos aparece la
+botonera Orquesta | Coro en Integrantes y Reportes, y una tarjeta por grupo en
+Inicio para registrar asistencia por separado.
 
-1. **Clonar o descargar el proyecto**
-```bash
-cd asistencia-iglesia
-```
+## Instalar para otra iglesia (Railway)
 
-2. **Instalar dependencias**
+1. En Railway: **New Project → Deploy from GitHub repo**, elegir este repositorio.
+2. Agregar un servicio **PostgreSQL** al proyecto.
+3. En el servicio de la app, pestaña **Variables**:
+   - `DATABASE_URL` → referencia a la base del paso 2 (`${{Postgres.DATABASE_URL}}`)
+   - `JWT_SECRET` → una cadena larga y aleatoria, distinta a la de otras iglesias
+   - `NODE_ENV` → `production`
+   - `IGLESIA_NOMBRE` → por ejemplo `Iglesia Central`
+   - `GRUPOS` → `orquesta,coro` (o solo `orquesta`)
+   - `ADMIN_PASSWORD` → contraseña inicial del usuario `admin`
+4. **Settings → Networking → Generate Domain** para obtener la URL.
+5. Entrar con `admin` y la contraseña elegida, cambiarla desde Configuración y
+   crear los demás usuarios. Cargar los integrantes desde Orquesta / Coro.
+
+Cada push a `main` redespliega todas las instalaciones conectadas al repo.
+
+## Instalación local
+
+Requisitos: Node.js 18+, PostgreSQL 12+.
+
 ```bash
 npm install
 ```
 
-3. **Configurar variables de entorno (.env)**
+`.env`:
 ```
 DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/asistencia_iglesia
 PORT=3000
-JWT_SECRET=tu_secreto_super_seguro_aqui_2024
-USERS=usuario1:sigme,usuario2:sigme,usuario3:sigme,usuario4:sigme
+JWT_SECRET=un_secreto_largo
 NODE_ENV=development
+GRUPOS=orquesta,coro
+IGLESIA_NOMBRE=Prueba
 ```
 
-4. **Crear base de datos PostgreSQL**
-```sql
-CREATE DATABASE asistencia_iglesia;
-```
-
-5. **Ejecutar servidor**
 ```bash
 npm start
 ```
 
-El servidor estará disponible en `http://localhost:3000`
-
-## Usuarios por defecto
-
-| Usuario | Contraseña |
-|---------|-----------|
-| usuario1 | sigme |
-| usuario2 | sigme |
-| usuario3 | sigme |
-| usuario4 | sigme |
-
-## Despliegue en Render
-
-1. Crear repositorio en GitHub
-2. Conectar a Render
-3. Configurar variables de entorno en Render
-4. Render detectará `package.json` automáticamente
-5. Desplegar
-
-## Despliegue en Railway
-
-1. Conectar GitHub a Railway
-2. Crear servicio PostgreSQL
-3. Configurar `DATABASE_URL` con la BD
-4. Desplegar
-
 ## Estructura
 
 ```
-asistencia-iglesia/
-├── server.js           # Servidor principal
-├── database.js         # Conexión y setup BD
-├── package.json        # Dependencias
-├── .env               # Variables de entorno
+├── server.js            # Servidor Express
+├── config.js            # Nombre y grupos de esta instalación (desde el entorno)
+├── database.js          # Tablas, migraciones y usuario inicial
 ├── routes/
-│   ├── auth.js        # Login y JWT
-│   ├── asistencia.js  # CRUD de asistencias
-│   └── reportes.js    # Reportes y Excel
-└── frontend/          # HTML/CSS/JS (próximo paso)
+│   ├── auth.js          # Login y JWT
+│   ├── asistencia.js    # Integrantes y registro de asistencia
+│   ├── reportes.js      # Conteos, resumen y detalle por evento
+│   └── usuarios.js      # Gestión de usuarios (admin)
+└── frontend/
+    ├── index.html
+    ├── css/app.css
+    └── js/              # grupos.js, app.js, miembros.js, asistencia.js, reportes*.js, configuracion.js
 ```
 
-## Endpoints API
+## Endpoints principales
 
-### Autenticación
-- `POST /api/auth/login` - Login de usuarios
-- `GET /api/auth/verify` - Verificar token
-
-### Asistencia
-- `GET /api/asistencia/miembros/:grupo` - Listar miembros
-- `POST /api/asistencia/registrar` - Registrar asistencia
-- `GET /api/asistencia/:grupo/:fecha/:tipoEvento` - Obtener asistencia
-- `POST /api/asistencia/miembro/nuevo` - Agregar miembro
-
-### Reportes
-- `GET /api/reportes/estadisticas/:grupo` - Estadísticas por mes
-- `GET /api/reportes/por-miembro/:grupo/:mes` - Asistencia por miembro
-- `GET /api/reportes/exportar/:grupo/:fechaInicio/:fechaFin` - Descargar Excel
-- `GET /api/reportes/general` - Estadísticas generales
-
-## Licencia
-
-ISC
+- `GET  /api/config` — nombre y grupos de la instalación (público)
+- `POST /api/auth/login`, `GET /api/auth/verify`
+- `GET  /api/asistencia/miembros/:grupo`, `POST /api/asistencia/miembro/nuevo`,
+  `PUT|DELETE /api/asistencia/miembro/:id`
+- `POST /api/asistencia/registrar-lote` — guarda toda la asistencia de un evento
+- `GET  /api/asistencia/:grupo/:fecha/:tipoEvento`, `DELETE /api/asistencia/evento/:grupo/:fecha/:tipoEvento`
+- `GET  /api/reportes/conteos/:grupo`, `/fechas/:grupo`, `/resumen/:grupo|todos`, `/evento/:grupo?tipo_evento=`
+- `GET|POST|PUT|DELETE /api/usuarios/...` — solo admin

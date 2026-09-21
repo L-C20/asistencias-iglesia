@@ -8,6 +8,9 @@ var API_URL = window.location.origin === 'http://localhost:3000'
 
 console.log('🔧 app.js inicializando - API_URL:', API_URL);
 
+// Nombre de la iglesia y grupos; se pide una sola vez al cargar la página
+const configLista = cargarConfigApp();
+
 // ===== INICIALIZAR APLICACIÓN =====
 function initApp() {
     console.log('📱 initApp() llamado');
@@ -47,41 +50,24 @@ function initApp() {
         }
 
         // Ocultar Configuración si NO es admin
-        const configTab = document.querySelector('[onclick*="configuracion"]');
+        const configTab = document.querySelector('.sidebar-menu-item[data-tab="configuracion"]');
         if (configTab && usuarioRol !== 'admin') {
             configTab.style.display = 'none';
         }
 
         console.log('✅ Sesión iniciada - Rol:', usuarioRol, '- Cargando datos iniciales');
-        
+
         // Activar tab Inicio
         cambiarTab('inicio');
-        
-        // Cargar datos iniciales con delay
-        setTimeout(() => {
-            if (typeof cargarConteosMiembros === 'function') {
-                console.log('📊 Llamando cargarConteosMiembros()');
-                cargarConteosMiembros();
-            } else {
-                console.warn('⚠️ cargarConteosMiembros no está definida');
-            }
 
-            if (typeof cargarResumenInicio === 'function') {
-                cargarResumenInicio();
-            }
-            
-            if (typeof cargarReporteGrupo === 'function') {
-                console.log('📈 Llamando cargarReporteGrupo("orquesta")');
-                cargarReporteGrupo('orquesta');
-            } else {
-                console.warn('⚠️ cargarReporteGrupo no está definida');
-            }
-
-            if (typeof cargarMiembrosPorFiltro === 'function') {
-                console.log('👥 Llamando cargarMiembrosPorFiltro');
-                cargarMiembrosPorFiltro('orquesta', '');
-            }
-        }, 800);
+        // Datos iniciales, una vez que se sabe qué grupos tiene esta iglesia
+        configLista.then(() => {
+            const primerGrupo = APP_CONFIG.grupos[0].id;
+            cargarConteosMiembros();
+            cargarResumenInicio();
+            cargarReporteGrupo(primerGrupo);
+            mostrarGrupoMiembros(primerGrupo);
+        });
     } else {
         loginPage.style.display = 'flex';
         dashboardPage.style.display = 'none';
@@ -217,7 +203,7 @@ async function logout() {
 }
 
 // ===== CAMBIAR TAB =====
-function cambiarTab(nombreTab) {
+function cambiarTab(nombreTab, grupo) {
     console.log('📑 Cambiando a tab:', nombreTab);
     
     // Ocultar todos los tabs
@@ -232,50 +218,42 @@ function cambiarTab(nombreTab) {
         item.classList.remove('active');
     });
     
-    // Agregar clase active al item correspondiente
-    const menuItemToActivate = document.querySelector(`.sidebar-menu-item[onclick*="'${nombreTab}'"]`);
+    // Resaltar el ítem del menú (en Integrantes, el del grupo que se está viendo)
+    const grupoMenu = nombreTab === 'miembros' ? (grupo || grupoMiembros) : null;
+    const menuItemToActivate = grupoMenu
+        ? document.querySelector(`.sidebar-menu-item[data-tab="miembros"][data-grupo="${grupoMenu}"]`)
+        : document.querySelector(`.sidebar-menu-item[data-tab="${nombreTab}"]`);
 
     if (menuItemToActivate) {
         menuItemToActivate.classList.add('active');
-        console.log('✅ Menú actualizado:', nombreTab);
     }
-    
+
     // Mostrar tab seleccionado
     const tab = document.getElementById(nombreTab);
     if (tab) {
         tab.style.display = 'block';
         console.log('✅ Tab mostrado:', nombreTab);
-        
+
         // Al volver a Inicio, refrescar el resumen (puede venir de guardar asistencias)
         if (nombreTab === 'inicio' && typeof cargarResumenInicio === 'function') {
             cargarResumenInicio();
+            cargarConteosMiembros();
         }
 
         // Los reportes pueden haber cambiado: contadores y, si hay un detalle abierto, sus datos
         if (nombreTab === 'reportes' && typeof cargarReporteGrupo === 'function') {
-            cargarReporteGrupo('orquesta');
+            cargarReporteGrupo(grupoReporte);
             const detalle = document.getElementById('vistaDetalle');
             if (detalle && detalle.style.display !== 'none' && typeof abrirReporteEvento === 'function') {
                 abrirReporteEvento(tipoEventoActual);
             }
         }
 
-        // Si es un tab de miembros, cargar datos
-        if (nombreTab === 'orquesta-miembros') {
-            console.log('👥 Cargando miembros de orquesta');
-            if (typeof cargarMiembrosPorFiltro === 'function') {
-                cargarMiembrosPorFiltro('orquesta', '');
-            }
+        // Integrantes del grupo pedido (o del que ya se estaba viendo)
+        if (nombreTab === 'miembros' && typeof mostrarGrupoMiembros === 'function') {
+            mostrarGrupoMiembros(grupo || grupoMiembros);
         }
 
-        // Si es asistencia, cargar datos
-        if (nombreTab.startsWith('asistencia-')) {
-            console.log('📋 Preparando asistencia de orquesta');
-            if (typeof grupoActual !== 'undefined') {
-                grupoActual = 'orquesta';
-            }
-        }
-        
         // Si es configuración, cargar usuarios
         if (nombreTab === 'configuracion') {
             console.log('⚙️ Cargando configuración');
@@ -307,11 +285,17 @@ function cerrarSidebar() {
 }
 
 // ===== CERRAR SIDEBAR AL HACER CLICK EN UN ITEM =====
+// Se puede llamar más de una vez (el menú se rearma con la configuración) sin duplicar listeners
 function cerrarSidebarAlHacerClick() {
     document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+        if (item.dataset.cierraMenu) return;
+        item.dataset.cierraMenu = '1';
         item.addEventListener('click', cerrarSidebar);
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarSidebar(); });
+    if (!document.body.dataset.escapeMenu) {
+        document.body.dataset.escapeMenu = '1';
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarSidebar(); });
+    }
 }
 
 // ===== MOSTRAR TOAST =====
@@ -399,26 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('⚠️ logoutBtn no encontrado');
     }
     
-    // Verificar que funciones existan
-    setTimeout(() => {
-        console.log('🔍 Verificando funciones globales:');
-        console.log('  - irAAsistencia:', typeof irAAsistencia === 'function' ? '✅' : '❌');
-        console.log('  - cambiarTab:', typeof cambiarTab === 'function' ? '✅' : '❌');
-        console.log('  - cargarMiembrosPorFiltro:', typeof cargarMiembrosPorFiltro === 'function' ? '✅' : '❌');
-        console.log('  - abrirModalAgregarMiembro:', typeof abrirModalAgregarMiembro === 'function' ? '✅' : '❌');
-        console.log('  - guardarNuevoMiembro:', typeof guardarNuevoMiembro === 'function' ? '✅' : '❌');
-        console.log('  - cargarReporteGrupo:', typeof cargarReporteGrupo === 'function' ? '✅' : '❌');
-        console.log('  - toggleSidebar:', typeof toggleSidebar === 'function' ? '✅' : '❌');
-        console.log('  - logout:', typeof logout === 'function' ? '✅' : '❌');
-    }, 500);
-    
     initApp();
-    
-    // Inicializar sidebar
-    setTimeout(() => {
-        cerrarSidebarAlHacerClick();
-        console.log('✅ Sidebar inicializado');
-    }, 300);
+    cerrarSidebarAlHacerClick();
 });
 
-console.log('✅ app-v10.js CARGADO');
+console.log('✅ app.js CARGADO');

@@ -62,20 +62,21 @@ router.get('/fechas/:grupo', verifyToken, async (req, res) => {
 });
 
 // ===== RESUMEN PARA LA PANTALLA DE INICIO =====
+// :grupo puede ser "todos" para sumar orquesta y coro
 router.get('/resumen/:grupo', verifyToken, async (req, res) => {
     try {
         const { grupo } = req.params;
 
         const result = await db.query(`
             SELECT
-                (SELECT COUNT(*) FROM miembros WHERE grupo = $1 AND activo = true) AS integrantes,
+                (SELECT COUNT(*) FROM miembros WHERE ($1 = 'todos' OR grupo = $1) AND activo = true) AS integrantes,
                 COUNT(DISTINCT (ra.fecha, ra.tipo_evento)) AS eventos,
                 TO_CHAR(MAX(ra.fecha), 'YYYY-MM-DD') AS ultima_fecha,
                 COUNT(*) FILTER (WHERE ra.presente::text = 'true') AS presentes,
                 COUNT(*) AS registros
             FROM registro_asistencia ra
             JOIN miembros m ON m.id = ra.miembro_id
-            WHERE m.grupo = $1
+            WHERE ($1 = 'todos' OR m.grupo = $1)
         `, [grupo]);
 
         const r = result.rows[0];
@@ -112,7 +113,7 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 m.id,
                 m.nombre,
                 COALESCE(m.apellido, '') as apellido,
-                COALESCE(m.instrumento, '') as instrumento,
+                COALESCE(CASE WHEN m.grupo = 'coro' THEN m.voz ELSE m.instrumento END, '') as seccion,
                 TO_CHAR(ra.fecha, 'YYYY-MM-DD') as fecha,
                 CASE
                     WHEN COALESCE(ra.presente::text, '') IN ('true', 't', '1') THEN true
@@ -208,34 +209,6 @@ router.get('/miembro/:miembro_id', verifyToken, async (req, res) => {
     }
 });
 
-// ===== RESUMEN POR GRUPO =====
-router.get('/resumen/:grupo', verifyToken, async (req, res) => {
-    try {
-        const { grupo } = req.params;
-
-        const result = await db.query(`
-            SELECT
-                COUNT(DISTINCT m.id) as total_miembros,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as total_presentes,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as total_ausentes,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'justified' THEN 1 END) as total_justificados,
-                COUNT(DISTINCT ra.fecha) as total_eventos,
-                ROUND(
-                    COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) * 100.0 /
-                    NULLIF(COUNT(ra.id), 0), 2
-                ) as porcentaje_general
-            FROM miembros m
-            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
-            WHERE LOWER(m.grupo) = $1
-        `, [grupo.toLowerCase()]);
-
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('❌ Error en resumen:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
 // ===== DEBUG: Ver miembros y asistencia =====
 router.get('/debug/:grupo', verifyToken, async (req, res) => {
     try {
@@ -259,18 +232,6 @@ router.get('/debug/:grupo', verifyToken, async (req, res) => {
         res.json(result.rows);
     } catch (error) {
         console.error('❌ Error en debug:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ===== RESET: Limpiar asistencia =====
-router.post('/reset-asistencia', verifyToken, async (req, res) => {
-    try {
-        console.log('🧹 Limpiando registro_asistencia...');
-        await db.query('TRUNCATE TABLE registro_asistencia RESTART IDENTITY CASCADE');
-        res.json({ ok: true, mensaje: '✓ Datos de asistencia eliminados. Recarga desde Asistencia.' });
-    } catch (error) {
-        console.error('❌ Error en reset:', error);
         res.status(500).json({ error: error.message });
     }
 });

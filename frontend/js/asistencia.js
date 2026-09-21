@@ -9,7 +9,7 @@ console.log('🚀 asistencia-v12.js iniciando');
 
 // ===== IR A ASISTENCIA =====
 async function irAAsistencia(grupo) {
-    if (grupo !== 'orquesta') {
+    if (!APP_CONFIG.grupos.some(g => g.id === grupo)) {
         mostrarError('Grupo inválido');
         return;
     }
@@ -70,6 +70,14 @@ function renderOpcionesFecha() {
     const hoyISO = fechaISOLocal(new Date());
     const cargadas = new Set(fechasConDatos[tipo] || []);
 
+    // Con más de un grupo, el modal dice para cuál se está registrando
+    const subtituloModal = document.querySelector('#modalConfigurarEvento .modal-subtitle');
+    if (subtituloModal) {
+        subtituloModal.textContent = hayVariosGrupos()
+            ? `${grupoInfo(grupoActual).nombre} · Selecciona el tipo de evento y la fecha`
+            : 'Selecciona el tipo de evento y la fecha';
+    }
+
     const bloqueOtra = document.getElementById('bloqueOtraFecha');
     const ocultarOtra = () => { if (bloqueOtra) bloqueOtra.hidden = true; inputFecha.value = ''; };
     // Aparece ya cargada con hoy: en el teléfono un calendario vacío se ve como un recuadro en blanco
@@ -91,7 +99,7 @@ function renderOpcionesFecha() {
         const ddmm = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
         const etiqueta = (iso === hoyISO ? 'Hoy · ' : '') + `${ABREV_DIA[d.getDay()]} ${ddmm}`;
         const tieneDatos = cargadas.has(iso);
-        const tieneBorrador = hayBorrador(tipo, iso);
+        const tieneBorrador = hayBorrador(grupoActual, tipo, iso);
         hayLeyenda = hayLeyenda || tieneDatos || tieneBorrador;
 
         const chip = document.createElement('label');
@@ -187,7 +195,7 @@ async function cargarMiembrosParaAsistencia(grupo) {
 
         mostrarEncabezadoEvento();
         renderizarListaAsistencia(grupo);
-        cambiarTab('asistencia-' + grupo);
+        cambiarTab('asistencia');
         
     } catch (error) {
         console.error('❌ Error:', error);
@@ -198,12 +206,26 @@ async function cargarMiembrosParaAsistencia(grupo) {
 // ===== BORRADOR LOCAL =====
 // Lo marcado se guarda en el teléfono por evento y fecha, para retomar
 // aunque se cierre la app sin tocar Guardar.
-function claveBorrador(tipo = tipoEventoAsistencia, fecha = fechaEventoActual) {
-    return `borrador-asistencia:${tipo}:${fecha}`;
+function claveBorrador(grupo = grupoActual, tipo = tipoEventoAsistencia, fecha = fechaEventoActual) {
+    return `borrador-asistencia:${grupo}:${tipo}:${fecha}`;
 }
 
-function hayBorrador(tipo, fecha) {
-    try { return !!localStorage.getItem(claveBorrador(tipo, fecha)); } catch (e) { return false; }
+// Antes de existir el coro la clave no llevaba grupo; se sigue leyendo para la orquesta
+function claveBorradorVieja(grupo, tipo, fecha) {
+    return grupo === 'orquesta' ? `borrador-asistencia:${tipo}:${fecha}` : null;
+}
+
+function leerBorradorDe(grupo, tipo, fecha) {
+    try {
+        const raw = localStorage.getItem(claveBorrador(grupo, tipo, fecha))
+            || (claveBorradorVieja(grupo, tipo, fecha) && localStorage.getItem(claveBorradorVieja(grupo, tipo, fecha)));
+        const datos = raw ? JSON.parse(raw) : null;
+        return datos && Object.keys(datos).length ? datos : null;
+    } catch (e) { return null; }
+}
+
+function hayBorrador(grupo, tipo, fecha) {
+    return !!leerBorradorDe(grupo, tipo, fecha);
 }
 
 function guardarBorrador() {
@@ -212,27 +234,29 @@ function guardarBorrador() {
             Object.entries(asistenciasParaGuardar).filter(([, a]) => a.presente === true || a.presente === false)
         );
         if (Object.keys(marcados).length) localStorage.setItem(claveBorrador(), JSON.stringify(marcados));
-        else localStorage.removeItem(claveBorrador());
+        else borrarBorrador();
     } catch (e) { /* sin almacenamiento disponible: se sigue sin borrador */ }
 }
 
 function leerBorrador() {
-    try {
-        const raw = localStorage.getItem(claveBorrador());
-        const datos = raw ? JSON.parse(raw) : null;
-        return datos && Object.keys(datos).length ? datos : null;
-    } catch (e) { return null; }
+    return leerBorradorDe(grupoActual, tipoEventoAsistencia, fechaEventoActual);
 }
 
 function borrarBorrador() {
-    try { localStorage.removeItem(claveBorrador()); } catch (e) { /* nada */ }
+    try {
+        localStorage.removeItem(claveBorrador());
+        const vieja = claveBorradorVieja(grupoActual, tipoEventoAsistencia, fechaEventoActual);
+        if (vieja) localStorage.removeItem(vieja);
+    } catch (e) { /* nada */ }
 }
 
 // ===== ENCABEZADO: QUÉ EVENTO Y QUÉ DÍA SE ESTÁ REGISTRANDO =====
 function mostrarEncabezadoEvento() {
     const nombres = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo' };
+    const sobre = document.getElementById('sobretituloAsistencia');
     const titulo = document.getElementById('tituloAsistencia');
     const sub = document.getElementById('fechaAsistencia');
+    if (sobre) sobre.textContent = `Registrando asistencia · ${grupoInfo(grupoActual).nombre}`;
     if (titulo) titulo.textContent = nombres[tipoEventoAsistencia] || 'Asistencia';
     if (sub && fechaEventoActual) {
         const f = new Date(fechaEventoActual + 'T00:00:00');
@@ -274,17 +298,12 @@ async function cargarRegistrosExistentes(grupo) {
 function renderizarListaAsistencia(grupo) {
     console.log('🎨 [renderizarListaAsistencia] Grupo:', grupo);
     
-    const containerId = 'listaMiembrosAsistenciaOrquesta';
-    const container = document.getElementById(containerId);
-    
-    console.log('🔍 Contenedor ID:', containerId);
-    console.log('   Encontrado:', container ? '✅' : '❌');
-    
+    const container = document.getElementById('listaMiembrosAsistencia');
     if (!container) {
-        console.error('❌ Contenedor no encontrado:', containerId);
+        console.error('❌ Contenedor listaMiembrosAsistencia no encontrado');
         return;
     }
-    
+
     container.innerHTML = '';
 
     if (miembrosActuales.length === 0) {
@@ -292,16 +311,8 @@ function renderizarListaAsistencia(grupo) {
         return;
     }
 
-    // Agrupar por instrumento, en el orden de la orquesta
-    const porInstrumento = {};
-    miembrosActuales.forEach(m => {
-        const clave = m.instrumento || 'Sin instrumento';
-        (porInstrumento[clave] = porInstrumento[clave] || []).push(m);
-    });
-    const orden = [
-        ...INSTRUMENTOS.filter(i => porInstrumento[i]),
-        ...Object.keys(porInstrumento).filter(k => !INSTRUMENTOS.includes(k))
-    ];
+    // Agrupar por sección (instrumento o cuerda), en el orden del grupo
+    const { grupos: porInstrumento, orden } = agruparPorSeccion(grupo, miembrosActuales);
 
     orden.forEach(instrumento => {
         const seccion = document.createElement('details');
@@ -385,12 +396,12 @@ function actualizarResumenMarcados() {
     const resumen = document.getElementById('resumenMarcados');
     if (!resumen) return;
     const total = miembrosActuales.length;
-    const marcados = document.querySelectorAll('#listaMiembrosAsistenciaOrquesta .miembro-row input:checked').length;
+    const marcados = document.querySelectorAll('#listaMiembrosAsistencia .miembro-row input:checked').length;
     resumen.textContent = total ? `${marcados} de ${total} marcados` : '';
 }
 
 function expandirTodo(abrir) {
-    document.querySelectorAll('.seccion-instrumento').forEach(s => { s.open = abrir; });
+    document.querySelectorAll('#listaMiembrosAsistencia .seccion-instrumento').forEach(s => { s.open = abrir; });
 }
 
 // ===== CAMBIAR ASISTENCIA =====
@@ -441,7 +452,7 @@ async function guardarTodasAsistencias() {
         return;
     }
 
-    const boton = document.querySelector('#asistencia-orquesta .tab-footer .btn');
+    const boton = document.querySelector('#asistencia .tab-footer .btn');
     const textoOriginal = boton ? boton.innerHTML : '';
     guardandoAsistencias = true;
     if (boton) {

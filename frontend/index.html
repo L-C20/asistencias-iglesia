@@ -14,6 +14,7 @@
         };
     </script>
     <!-- REPORTES.JS CARGADO EN EL HEAD PARA QUE LAS FUNCIONES ESTÉN DISPONIBLES INMEDIATAMENTE -->
+    <script src="js/grupos.js"></script>
     <script src="js/reportes.js"></script>
     <script src="js/reportes-fix.js"></script>
 </head>
@@ -32,7 +33,7 @@
                         </svg>
                     </div>
                     <h1>Asistencia</h1>
-                    <p>Orquesta</p>
+                    <p id="loginIglesia">&nbsp;</p>
                 </div>
 
                 <div id="errorMessage" class="alerta-error"></div>
@@ -85,29 +86,23 @@
                         </svg>
                     </div>
                     <div class="marca-texto">
-                        <h2>Orquesta</h2>
+                        <h2 id="marcaNombre">&nbsp;</h2>
                         <p>Control de asistencia</p>
                     </div>
                 </div>
             </div>
 
             <ul class="sidebar-menu">
-                <li><div class="sidebar-menu-item" onclick="cambiarTab('inicio')">
+                <li><div class="sidebar-menu-item" data-tab="inicio" onclick="cambiarTab('inicio')">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
                     <span>Inicio</span>
                 </div></li>
-                <li><div class="sidebar-menu-item" onclick="cambiarTab('orquesta-miembros')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 3a6 6 0 0 0-6 6v12"></path>
-                        <path d="M6 9a4 4 0 0 0 4 4"></path>
-                        <circle cx="9" cy="3" r="1.5"></circle>
-                    </svg>
-                    <span>Orquesta</span>
-                </div></li>
-                <li><div class="sidebar-menu-item" onclick="cambiarTab('reportes')">
+                <!-- Un ítem por grupo (Orquesta, Coro); los arma app.js según la configuración -->
+                <li id="menuGruposFin" hidden></li>
+                <li><div class="sidebar-menu-item" data-tab="reportes" onclick="cambiarTab('reportes')">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                         <line x1="9" y1="9" x2="9" y2="15"></line>
@@ -115,7 +110,7 @@
                     </svg>
                     <span>Reportes</span>
                 </div></li>
-                <li><div class="sidebar-menu-item" onclick="cambiarTab('configuracion')">
+                <li><div class="sidebar-menu-item" data-tab="configuracion" onclick="cambiarTab('configuracion')">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M12 1v6m0 6v6"></path>
@@ -149,11 +144,11 @@
                 <div id="inicio" class="tab-content active">
                     <div class="inicio-header">
                         <h2>Bienvenido</h2>
-                        <p>Resumen de la actividad de la orquesta</p>
+                        <p id="inicioSubtitulo">Resumen de la actividad</p>
                     </div>
 
                     <div class="resumen-grid">
-                        <button class="stat-card stat-card-link" type="button" onclick="cambiarTab('orquesta-miembros')" title="Ver integrantes">
+                        <button class="stat-card stat-card-link" type="button" onclick="cambiarTab('miembros')" title="Ver integrantes">
                             <div class="stat-label">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -163,7 +158,7 @@
                                 Integrantes
                             </div>
                             <div class="stat-value" id="statIntegrantes">—</div>
-                            <div class="stat-hint">activos en la orquesta</div>
+                            <div class="stat-hint" id="statIntegrantesHint">activos</div>
                             <span class="stat-link">Ver integrantes →</span>
                         </button>
 
@@ -208,32 +203,15 @@
                         </div>
                     </div>
 
-                    <div class="cards-container">
-                        <button class="card-grupo" onclick="irAAsistencia('orquesta'); return false;" type="button">
-                            <div class="card-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M18 3a6 6 0 0 0-6 6v12"></path>
-                                    <path d="M6 9a4 4 0 0 0 4 4"></path>
-                                    <circle cx="9" cy="3" r="1.5"></circle>
-                                    <path d="M20 12a2 2 0 0 0-2 2"></path>
-                                    <path d="M6 21v-2a2 2 0 0 1 2-2"></path>
-                                    <path d="M18 21v-4a2 2 0 0 1 2-2"></path>
-                                    <circle cx="12" cy="2.5" r="1.5"></circle>
-                                </svg>
-                            </div>
-                            <h3>Orquesta</h3>
-                            <p id="orquestaCount" class="card-count">0 integrantes</p>
-                            <div class="card-footer">
-                                <span class="card-action">Registrar asistencia →</span>
-                            </div>
-                        </button>
-                    </div>
+                    <!-- Una tarjeta por grupo para registrar asistencia; las arma app.js -->
+                    <div class="cards-container" id="tarjetasGrupos"></div>
                 </div>
 
-                <!-- ORQUESTA MIEMBROS -->
-                <div id="orquesta-miembros" class="tab-content">
+                <!-- INTEGRANTES (de un grupo a la vez) -->
+                <div id="miembros" class="tab-content">
                     <div class="asistencia-header">
-                        <h2>Integrantes - Orquesta</h2>
+                        <h2 id="tituloMiembros">Integrantes</h2>
+                        <div class="selector-grupo" id="selectorGrupoMiembros" hidden></div>
                     </div>
 
                     <div class="filtros-miembros">
@@ -242,7 +220,7 @@
                                 <circle cx="11" cy="11" r="7"></circle>
                                 <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
                             </svg>
-                            <input type="search" id="buscarMiembro" placeholder="Buscar integrante" oninput="cargarMiembrosPorFiltro('orquesta', this.value)" autocomplete="off">
+                            <input type="search" id="buscarMiembro" placeholder="Buscar integrante" oninput="recargarMiembros()" autocomplete="off">
                         </div>
                         <div class="lista-acciones">
                             <button type="button" class="link-limpiar" onclick="expandirSeccionesMiembros(true)">Expandir todo</button>
@@ -251,7 +229,7 @@
                         </div>
                     </div>
 
-                    <div id="listaMiembrosOrquesta" class="lista-miembros"></div>
+                    <div id="listaMiembros" class="lista-miembros"></div>
 
                     <div class="tab-footer">
                         <button class="btn btn-primary" onclick="abrirModalAgregarMiembro()">
@@ -263,11 +241,11 @@
                     </div>
                 </div>
 
-                <!-- ASISTENCIA ORQUESTA -->
-                <div id="asistencia-orquesta" class="tab-content">
+                <!-- ASISTENCIA (del grupo elegido en Inicio) -->
+                <div id="asistencia" class="tab-content">
                     <div class="asistencia-header">
                         <div>
-                            <p class="sobretitulo">Registrando asistencia</p>
+                            <p class="sobretitulo" id="sobretituloAsistencia">Registrando asistencia</p>
                             <h2 id="tituloAsistencia">Asistencia</h2>
                             <p class="subtitulo-fecha" id="fechaAsistencia"></p>
                         </div>
@@ -286,7 +264,7 @@
                             <span class="lista-acciones-sep">·</span>
                             <button type="button" class="link-limpiar" onclick="expandirTodo(false)">Colapsar todo</button>
                         </div>
-                        <div id="listaMiembrosAsistenciaOrquesta" class="lista-miembros"></div>
+                        <div id="listaMiembrosAsistencia" class="lista-miembros"></div>
                     </div>
 
                     <div class="tab-footer barra-guardar">
@@ -314,8 +292,10 @@
                             </svg>
                             Reportes
                         </h2>
-                        <p>Análisis de asistencia</p>
+                        <p id="reportesSubtitulo">Análisis de asistencia</p>
                     </div>
+
+                    <div class="selector-grupo selector-grupo-reportes" id="selectorGrupoReportes" hidden></div>
 
                     <!-- Vista de Cards -->
                     <div id="vistaTarjetas" style="display: block;">
@@ -631,9 +611,9 @@
                     <input type="text" id="nombreNuevo" required>
                 </div>
                 
-                <div class="form-group" id="formInstrumento">
-                    <label id="labelInstrumento">Instrumento:</label>
-                    <select id="instrumentoNuevo" class="form-control" style="display: none;"></select>
+                <div class="form-group">
+                    <label id="labelSeccion" for="seccionNuevo">Instrumento:</label>
+                    <select id="seccionNuevo" class="form-control"></select>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">

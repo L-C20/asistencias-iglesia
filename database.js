@@ -113,35 +113,18 @@ async function seedDatabase() {
       return;
     }
 
-    // Insertar usuarios (contraseña encriptada con bcryptjs)
+    // Instalación nueva: un administrador para entrar y crear el resto de
+    // los usuarios desde Configuración. La clave sale de ADMIN_PASSWORD.
     const bcrypt = require('bcryptjs');
-    const hashedPassword = await bcrypt.hash('sigme', 10);
+    const usuario = process.env.ADMIN_USUARIO || 'admin';
+    const clave = process.env.ADMIN_PASSWORD || 'admin1234';
+    const hashedPassword = await bcrypt.hash(clave, 10);
 
-    const usuarios = [
-      ['usuario1', hashedPassword],
-      ['usuario2', hashedPassword],
-      ['usuario3', hashedPassword],
-      ['usuario4', hashedPassword]
-    ];
-
-    for (const [usuario, password] of usuarios) {
-      await pool.query(
-        'INSERT INTO usuarios (usuario, password, rol) VALUES ($1, $2, $3)',
-        [usuario, password, 'operario']
-      );
-    }
-    console.log('✓ 4 usuarios creados (usuario1 a usuario4, contraseña: sigme)');
-
-    // Insertar miembros de ejemplo
-    const miembros = ['Juan García', 'María López', 'Pedro Rodríguez'];
-
-    for (const nombre of miembros) {
-      await pool.query(
-        'INSERT INTO miembros (nombre, grupo) VALUES ($1, $2)',
-        [nombre, 'orquesta']
-      );
-    }
-    console.log('✓ 3 miembros de ejemplo creados');
+    await pool.query(
+      'INSERT INTO usuarios (usuario, password, rol, nombre_completo) VALUES ($1, $2, $3, $4)',
+      [usuario, hashedPassword, 'admin', 'Administrador']
+    );
+    console.log(`✓ Usuario administrador creado: ${usuario} (cambiá la contraseña al entrar)`);
 
   } catch (error) {
     console.error('Error en seed:', error.message);

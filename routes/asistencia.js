@@ -1,19 +1,23 @@
 const express = require('express');
 const db = require('../database');
 const { verifyToken } = require('./auth');
+const { grupoValido, columnaSeccion } = require('../config');
 const router = express.Router();
+
+// La "sección" de un integrante es su instrumento (orquesta) o su cuerda (coro)
+const SECCION_SQL = "CASE WHEN m.grupo = 'coro' THEN m.voz ELSE m.instrumento END AS seccion";
 
 // Obtener miembros por grupo - GET /api/asistencia/miembros/:grupo
 router.get('/miembros/:grupo', verifyToken, async (req, res) => {
   try {
     const { grupo } = req.params;
 
-    if (grupo !== 'orquesta') {
+    if (!grupoValido(grupo)) {
       return res.status(400).json({ error: 'Grupo inválido' });
     }
 
     const result = await db.query(
-      'SELECT id, nombre, grupo, instrumento FROM miembros WHERE grupo = $1 AND activo = true ORDER BY nombre',
+      `SELECT m.id, m.nombre, m.grupo, ${SECCION_SQL} FROM miembros m WHERE m.grupo = $1 AND m.activo = true ORDER BY m.nombre`,
       [grupo]
     );
 
@@ -141,7 +145,7 @@ router.get('/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
         ra.nota,
         m.nombre,
         m.grupo,
-        m.instrumento
+        ${SECCION_SQL}
       FROM registro_asistencia ra
       JOIN miembros m ON ra.miembro_id = m.id
       WHERE m.grupo = $1 
@@ -160,19 +164,21 @@ router.get('/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res) => {
 // Agregar nuevo miembro - POST /api/asistencia/miembro/nuevo
 router.post('/miembro/nuevo', verifyToken, async (req, res) => {
   try {
-    const { nombre, grupo, instrumento } = req.body;
+    const { nombre, grupo } = req.body;
+    // `seccion` es el nombre nuevo; `instrumento` se acepta por compatibilidad
+    const seccion = req.body.seccion || req.body.instrumento || null;
 
     if (!nombre || !grupo) {
       return res.status(400).json({ error: 'Nombre y grupo requeridos' });
     }
 
-    if (grupo !== 'orquesta') {
+    if (!grupoValido(grupo)) {
       return res.status(400).json({ error: 'Grupo inválido' });
     }
 
     const result = await db.query(
-      'INSERT INTO miembros (nombre, grupo, instrumento) VALUES ($1, $2, $3) RETURNING id, nombre, grupo, instrumento',
-      [nombre, grupo, instrumento || null]
+      `INSERT INTO miembros (nombre, grupo, ${columnaSeccion(grupo)}) VALUES ($1, $2, $3) RETURNING id, nombre, grupo, $3::text AS seccion`,
+      [nombre, grupo, seccion]
     );
 
     res.json({
@@ -191,7 +197,7 @@ router.get('/miembro/:id', verifyToken, async (req, res) => {
     const { id } = req.params;
 
     const result = await db.query(
-      'SELECT id, nombre, grupo, instrumento FROM miembros WHERE id = $1',
+      `SELECT m.id, m.nombre, m.grupo, ${SECCION_SQL} FROM miembros m WHERE m.id = $1`,
       [id]
     );
 
@@ -210,15 +216,22 @@ router.get('/miembro/:id', verifyToken, async (req, res) => {
 router.put('/miembro/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, instrumento } = req.body;
+    const { nombre } = req.body;
+    const seccion = req.body.seccion || req.body.instrumento || null;
 
     if (!nombre) {
       return res.status(400).json({ error: 'Nombre es requerido' });
     }
 
+    // La columna depende del grupo al que pertenece el integrante
+    const actual = await db.query('SELECT grupo FROM miembros WHERE id = $1', [id]);
+    if (actual.rows.length === 0) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
     const result = await db.query(
-      'UPDATE miembros SET nombre = $1, instrumento = $2 WHERE id = $3 RETURNING id, nombre, grupo, instrumento',
-      [nombre, instrumento || null, id]
+      `UPDATE miembros SET nombre = $1, ${columnaSeccion(actual.rows[0].grupo)} = $2 WHERE id = $3 RETURNING id, nombre, grupo, $2::text AS seccion`,
+      [nombre, seccion, id]
     );
 
     if (result.rows.length === 0) {

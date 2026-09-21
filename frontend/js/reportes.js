@@ -14,6 +14,15 @@ window.cargarReporteGrupo = function(grupo) {
 
     grupoReporte = grupo;
 
+    // Con más de un grupo: botonera Orquesta | Coro y subtítulo con el elegido
+    renderSelectorGrupo('selectorGrupoReportes', grupoReporte, g => {
+        cargarReporteGrupo(g);
+        const detalle = document.getElementById('vistaDetalle');
+        if (detalle && detalle.style.display !== 'none') abrirReporteEvento(tipoEventoActual);
+    });
+    const sub = document.getElementById('reportesSubtitulo');
+    if (sub) sub.textContent = hayVariosGrupos() ? `Análisis de asistencia · ${grupoInfo(grupoReporte).nombre}` : 'Análisis de asistencia';
+
     const token = localStorage.getItem('token');
     if (!token) {
         console.error('❌ Sin token');
@@ -182,7 +191,7 @@ window.aplicarFiltrosDetalle = function() {
     datosReporte.forEach(d => {
         if (vistos.has(d.id)) return;
         vistos.add(d.id);
-        integrantes.push({ id: d.id, nombre: d.nombre, apellido: d.apellido, instrumento: d.instrumento });
+        integrantes.push({ id: d.id, nombre: d.nombre, apellido: d.apellido, seccion: d.seccion });
     });
 
     const registrosSemana = datosReporte.filter(i => i.fecha && fechasCulto.includes(i.fecha.split('T')[0]));
@@ -198,11 +207,11 @@ window.aplicarFiltrosDetalle = function() {
         filas = integrantes.filter(m => idsQueCumplen.has(m.id));
     }
 
-    // Búsqueda por nombre o instrumento, sin distinguir mayúsculas ni acentos
+    // Búsqueda por nombre o sección, sin distinguir mayúsculas ni acentos
     const busqueda = document.getElementById('filtroBusqueda');
     const texto = busqueda ? normalizar(busqueda.value) : '';
     if (texto) {
-        filas = filas.filter(m => normalizar(`${m.nombre} ${m.apellido || ''} ${m.instrumento || ''}`).includes(texto));
+        filas = filas.filter(m => normalizar(`${m.nombre} ${m.apellido || ''} ${m.seccion || ''}`).includes(texto));
     }
 
     console.log('📅 Semana:', fechasCulto, '| filas:', filas.length, '| registros:', registrosSemana.length);

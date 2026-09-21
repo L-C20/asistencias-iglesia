@@ -9,6 +9,7 @@ const asistenciaRouter = require('./routes/asistencia');
 const reportesRouter = require('./routes/reportes');
 const usuariosRouter = require('./routes/usuarios');
 const { initializeDatabase, seedDatabase } = require('./database');
+const { config } = require('./config');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'frontend')));
+
+// Configuración de esta instalación (pública: el login ya muestra el nombre)
+app.get('/api/config', (req, res) => res.json(config));
 
 // Rutas API
 app.use('/api/auth', authRouter);
@@ -52,6 +56,7 @@ async function start() {
       console.log(`✓ Servidor ejecutándose en puerto ${PORT}`);
       console.log(`✓ URL: http://localhost:${PORT}`);
       console.log(`✓ Ambiente: ${process.env.NODE_ENV}`);
+      console.log(`✓ Iglesia: ${config.nombre} · grupos: ${config.grupos.map(g => g.id).join(', ')}`);
     });
   } catch (error) {
     console.error('Error iniciando servidor:', error);

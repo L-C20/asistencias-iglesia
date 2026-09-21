@@ -1,11 +1,5 @@
-// CONSTANTES
-const INSTRUMENTOS = [
-  'Violín 1', 'Violín 2', 'Viola', 'Cello',
-  'Flauta', 'Oboe', 'Clarinete',
-  'Sx. Alto', 'Sx. Tenor', 'Sx. Barítono',
-  'Trompeta', 'Corno', 'Trombón', 'Eufonio', 'Tuba',
-  'Órgano', 'Bajo', 'Acordeón', 'Bandoneón'
-];
+// Grupo que se está viendo en la pestaña Integrantes (orquesta o coro)
+var grupoMiembros = 'orquesta';
 
 // Variables globales para editar
 let miembroEnEdicion = null;
@@ -14,13 +8,32 @@ let miembroEnEdicion = null;
 const seccionesAbiertasMiembros = new Set();
 
 function expandirSeccionesMiembros(abrir) {
-    document.querySelectorAll('#listaMiembrosOrquesta .seccion-instrumento').forEach(s => { s.open = abrir; });
+    document.querySelectorAll('#listaMiembros .seccion-instrumento').forEach(s => { s.open = abrir; });
+}
+
+// Cambia el grupo de la pestaña Integrantes y arma su cabecera
+function mostrarGrupoMiembros(grupo) {
+    grupoMiembros = grupoInfo(grupo).id;
+    const titulo = document.getElementById('tituloMiembros');
+    if (titulo) titulo.textContent = `Integrantes - ${grupoInfo(grupoMiembros).nombre}`;
+    renderSelectorGrupo('selectorGrupoMiembros', grupoMiembros, g => {
+        seccionesAbiertasMiembros.clear();
+        mostrarGrupoMiembros(g);
+    });
+    // Si la pestaña está a la vista, el menú resalta el grupo elegido
+    const pestana = document.getElementById('miembros');
+    if (pestana && pestana.style.display !== 'none') {
+        document.querySelectorAll('.sidebar-menu-item[data-tab="miembros"]').forEach(i => {
+            i.classList.toggle('active', i.dataset.grupo === grupoMiembros);
+        });
+    }
+    recargarMiembros();
 }
 
 // Recarga la lista respetando lo que haya escrito en el buscador
 function recargarMiembros() {
     const buscador = document.getElementById('buscarMiembro');
-    cargarMiembrosPorFiltro('orquesta', buscador ? buscador.value : '');
+    cargarMiembrosPorFiltro(grupoMiembros, buscador ? buscador.value : '');
 }
 
 // ===== CARGAR MIEMBROS CON FILTRO =====
@@ -51,16 +64,16 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
         const miembros = await response.json();
         console.log('✅ Miembros recibidos (cantidad):', miembros.length);
 
-        const container = document.getElementById('listaMiembrosOrquesta');
+        const container = document.getElementById('listaMiembros');
         if (!container) {
-            console.error('❌ Contenedor listaMiembrosOrquesta no encontrado');
+            console.error('❌ Contenedor listaMiembros no encontrado');
             return;
         }
 
-        // Búsqueda por nombre o instrumento, sin distinguir mayúsculas ni acentos
+        // Búsqueda por nombre o sección, sin distinguir mayúsculas ni acentos
         const texto = normalizar(filtro);
         const visibles = texto
-            ? miembros.filter(m => normalizar(`${m.nombre} ${m.instrumento || ''}`).includes(texto))
+            ? miembros.filter(m => normalizar(`${m.nombre} ${m.seccion || ''}`).includes(texto))
             : miembros;
 
         container.innerHTML = '';
@@ -70,16 +83,8 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
             return;
         }
 
-        // Agrupar por instrumento en el orden de la orquesta
-        const porInstrumento = {};
-        visibles.forEach(m => {
-            const clave = m.instrumento || 'Sin instrumento';
-            (porInstrumento[clave] = porInstrumento[clave] || []).push(m);
-        });
-        const orden = [
-            ...INSTRUMENTOS.filter(i => porInstrumento[i]),
-            ...Object.keys(porInstrumento).filter(k => !INSTRUMENTOS.includes(k))
-        ];
+        // Agrupar por sección (instrumento o cuerda) en el orden del grupo
+        const { grupos: porInstrumento, orden } = agruparPorSeccion(grupo, visibles);
 
         orden.forEach(instrumento => {
             const seccion = document.createElement('details');
@@ -142,6 +147,31 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
     }
 }
 
+// Etiqueta y opciones del select según el grupo: instrumentos o cuerdas
+function armarSelectSeccion(grupo, seleccionada = '') {
+    const info = grupoInfo(grupo);
+    const label = document.getElementById('labelSeccion');
+    if (label) label.textContent = `${info.categoria}:`;
+
+    const select = document.getElementById('seccionNuevo');
+    select.innerHTML = `<option value="">-- Seleccionar ${info.categoria.toLowerCase()} --</option>`;
+    info.secciones.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s;
+        option.textContent = s;
+        if (s === seleccionada) option.selected = true;
+        select.appendChild(option);
+    });
+    // Una sección que ya no está en la lista se conserva para no perderla al editar
+    if (seleccionada && !info.secciones.includes(seleccionada)) {
+        const option = document.createElement('option');
+        option.value = seleccionada;
+        option.textContent = seleccionada;
+        option.selected = true;
+        select.appendChild(option);
+    }
+}
+
 // ===== ABRIR MODAL AGREGAR MIEMBRO =====
 function abrirModalAgregarMiembro() {
     const modal = document.getElementById('modalAgregarMiembro');
@@ -150,21 +180,11 @@ function abrirModalAgregarMiembro() {
     miembroEnEdicion = null;
 
     // Actualizar título y botón
-    document.getElementById('modalTitulo').textContent = 'Agregar Nuevo Miembro';
+    document.getElementById('modalTitulo').textContent = `Agregar integrante · ${grupoInfo(grupoMiembros).nombre}`;
     document.getElementById('btnGuardarTexto').textContent = 'Agregar';
 
     document.getElementById('nombreNuevo').value = '';
-
-    const selectInstrumento = document.getElementById('instrumentoNuevo');
-    selectInstrumento.innerHTML = '<option value="">-- Seleccionar instrumento --</option>';
-    selectInstrumento.style.display = 'block';
-
-    INSTRUMENTOS.forEach(inst => {
-        const option = document.createElement('option');
-        option.value = inst;
-        option.textContent = inst;
-        selectInstrumento.appendChild(option);
-    });
+    armarSelectSeccion(grupoMiembros);
 
     modal.classList.add('show');
 }
@@ -197,18 +217,7 @@ async function editarMiembroFunc(miembroId) {
         if (!modal) return;
 
         document.getElementById('nombreNuevo').value = miembro.nombre;
-
-        const selectInstrumento = document.getElementById('instrumentoNuevo');
-        selectInstrumento.innerHTML = '<option value="">-- Seleccionar instrumento --</option>';
-        selectInstrumento.style.display = 'block';
-
-        INSTRUMENTOS.forEach(inst => {
-            const option = document.createElement('option');
-            option.value = inst;
-            option.textContent = inst;
-            if (inst === miembro.instrumento) option.selected = true;
-            selectInstrumento.appendChild(option);
-        });
+        armarSelectSeccion(miembro.grupo, miembro.seccion || '');
 
         modal.classList.add('show');
         
@@ -222,16 +231,17 @@ async function editarMiembroFunc(miembroId) {
 async function guardarNuevoMiembro(e) {
     e.preventDefault();
     
-    const nombre = document.getElementById('nombreNuevo').value;
-    const instrumento = document.getElementById('instrumentoNuevo').value;
+    const nombre = document.getElementById('nombreNuevo').value.trim();
+    const seccion = document.getElementById('seccionNuevo').value;
+    const categoria = grupoInfo(miembroEnEdicion ? miembroEnEdicion.grupo : grupoMiembros).categoria.toLowerCase();
 
     if (!nombre) {
         mostrarError('El nombre es requerido');
         return;
     }
 
-    if (!instrumento) {
-        mostrarError('Debe seleccionar un instrumento');
+    if (!seccion) {
+        mostrarError(`Elegí ${categoria === 'cuerda' ? 'la cuerda' : 'el instrumento'}`);
         return;
     }
 
@@ -246,10 +256,7 @@ async function guardarNuevoMiembro(e) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    nombre: nombre,
-                    instrumento: instrumento
-                })
+                body: JSON.stringify({ nombre, seccion })
             });
 
             const data = await response.json();
@@ -272,11 +279,7 @@ async function guardarNuevoMiembro(e) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    nombre: nombre,
-                    grupo: 'orquesta',
-                    instrumento: instrumento
-                })
+                body: JSON.stringify({ nombre, grupo: grupoMiembros, seccion })
             });
 
             const data = await response.json();
@@ -332,22 +335,26 @@ async function eliminarMiembro(miembroId) {
 
 // ===== CARGAR CONTEOS =====
 async function cargarConteosMiembros() {
-    try {
-        const respOrquesta = await fetch(`${API_URL}/asistencia/miembros/orquesta`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const miembrosOrquesta = await respOrquesta.json();
-        const orquestaCount = document.getElementById('orquestaCount');
-        if (orquestaCount) orquestaCount.textContent = `${miembrosOrquesta.length} integrantes`;
-    } catch (error) {
-        console.error('Error cargando conteos:', error);
-    }
+    // Cantidad de integrantes en la tarjeta de cada grupo
+    await Promise.all(APP_CONFIG.grupos.map(async g => {
+        try {
+            const r = await fetch(`${API_URL}/asistencia/miembros/${g.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const miembros = await r.json();
+            const el = document.getElementById(`conteo-${g.id}`);
+            if (el) el.textContent = `${miembros.length} integrantes`;
+        } catch (error) {
+            console.error('Error cargando conteo de', g.id, error);
+        }
+    }));
 }
 
 // ===== RESUMEN DE INICIO =====
 async function cargarResumenInicio() {
     try {
-        const response = await fetch(`${API_URL}/reportes/resumen/orquesta`, {
+        const alcance = hayVariosGrupos() ? 'todos' : APP_CONFIG.grupos[0].id;
+        const response = await fetch(`${API_URL}/reportes/resumen/${alcance}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -389,19 +396,4 @@ function cerrarModalMiembro() {
     miembroEnEdicion = null;
 }
 
-// ===== INICIALIZAR AL CARGAR PÁGINA =====
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM CARGADO - Inicializando...');
-
-    setTimeout(() => {
-        if (typeof token !== 'undefined' && token) {
-            console.log('✅ TOKEN DISPONIBLE - Cargando datos...');
-            recargarMiembros();
-            cargarConteosMiembros();
-        } else {
-            console.warn('⚠️ TOKEN NO DISPONIBLE AÚN');
-        }
-    }, 1000);
-});
-
-console.log('✅ miembros-v7.js CARGADO');
+console.log('✅ miembros.js CARGADO');
