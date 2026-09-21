@@ -679,6 +679,45 @@ svg { flex-shrink: 0; }
     color: var(--brand-600);
 }
 
+/* Versículo al pie del Inicio: centrado, serif, discreto */
+.versiculo {
+    max-width: 560px;
+    margin: var(--sp-10) auto var(--sp-4);
+    padding-top: var(--sp-6);
+    text-align: center;
+    position: relative;
+}
+
+.versiculo::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 40px;
+    height: 1px;
+    background: var(--gray-300);
+    transform: translateX(-50%);
+}
+
+.versiculo blockquote { margin: 0; }
+
+.versiculo p {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text-2);
+}
+
+.versiculo figcaption {
+    margin-top: var(--sp-3);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-light);
+}
+
 /* Columnas del ancho de la tarjeta, pegadas a la izquierda: con dos grupos
    quedan una al lado de la otra sin hueco en el medio */
 .cards-container {
@@ -2041,8 +2080,12 @@ input::placeholder { color: var(--text-light); }
         height: 56px;
     }
 
-    .navbar h1 { font-size: var(--fs-base); }
+    .navbar h1 { font-size: var(--fs-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .usuario-info { font-size: var(--fs-xs); }
+    /* En el teléfono, si hay selector de iglesia, del usuario queda solo el avatar */
+    .navbar-derecha { gap: var(--sp-2); flex-shrink: 0; }
+    .selector-iglesia { max-width: 150px; padding-right: var(--sp-6); }
+    .selector-iglesia:not([hidden]) + .usuario-info span:not(.avatar) { display: none; }
 
     .container { padding: var(--sp-4); }
 
