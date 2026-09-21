@@ -114,7 +114,7 @@ function renderizarTablaUsuarios(usuarios) {
         return;
     }
 
-    const ETIQUETA_ROL = { superadmin: 'Super admin', admin: 'Admin', operario: 'Operario' };
+    const ETIQUETA_ROL = { superadmin: 'Super admin', admin: 'Admin', operario: 'Monitor' };
 
     tbody.innerHTML = usuarios.map(usuario => `
         <tr>

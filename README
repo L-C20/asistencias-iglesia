@@ -15,14 +15,14 @@ integrantes, la asistencia y los reportes de la suya.
 - Tres tipos de evento: Santo Culto, Ensayo, Bautismo
 - Fechas sugeridas con botones; borrador local si se interrumpe la carga
 - Reportes semanales con subtotales por sección y totales
-- Usuarios con roles superadmin / admin / operario, contraseñas cifradas
+- Usuarios con roles superadmin / admin / monitor, contraseñas cifradas
 - PostgreSQL
 
 ## Roles
 
 | Rol          | Puede                                                                 |
 |--------------|-----------------------------------------------------------------------|
-| `operario`   | Registrar asistencia, ver integrantes y reportes de su iglesia        |
+| `operario` (Monitor) | Registrar asistencia, ver integrantes y reportes de su iglesia        |
 | `admin`      | Lo anterior + integrantes y usuarios de su iglesia                    |
 | `superadmin` | Lo anterior + crear y editar iglesias, y cambiar de iglesia activa    |
 
