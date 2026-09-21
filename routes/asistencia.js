@@ -40,9 +40,10 @@ router.get('/miembros/:grupo', verifyToken, async (req, res) => {
 });
 
 // Registrar toda la asistencia de un evento de una vez - POST /api/asistencia/registrar-lote
-// Body: { tipo_evento, fecha, registros: [{ miembro_id, presente, justificado, nota }] }
+// Body: { grupo, tipo_evento, fecha, descripcion, registros: [{ miembro_id, presente, justificado, nota }] }
 router.post('/registrar-lote', verifyToken, async (req, res) => {
-  const { tipo_evento, fecha, registros } = req.body;
+  const { grupo, tipo_evento, fecha, registros } = req.body;
+  const descripcion = String(req.body.descripcion || '').trim().slice(0, 200);
 
   if (!tipo_evento || !fecha || !Array.isArray(registros) || registros.length === 0) {
     return res.status(400).json({ error: 'Datos incompletos' });
@@ -82,6 +83,23 @@ router.post('/registrar-lote', verifyToken, async (req, res) => {
       params
     );
 
+    // Nota del evento: se guarda si hay texto; si quedó vacía, se borra
+    if (grupo) {
+      if (descripcion) {
+        await client.query(
+          `INSERT INTO eventos (iglesia_id, grupo, tipo_evento, fecha, descripcion)
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (iglesia_id, grupo, tipo_evento, fecha) DO UPDATE SET descripcion = EXCLUDED.descripcion`,
+          [req.user.iglesia_id, grupo, tipo_evento, fecha, descripcion]
+        );
+      } else {
+        await client.query(
+          'DELETE FROM eventos WHERE iglesia_id = $1 AND grupo = $2 AND tipo_evento = $3 AND fecha = $4',
+          [req.user.iglesia_id, grupo, tipo_evento, fecha]
+        );
+      }
+    }
+
     await client.query('COMMIT');
     console.log(`💾 Lote guardado: ${tipo_evento} ${fecha} (${registros.length} registros)`);
     res.json({ success: true, guardados: registros.length });
@@ -108,6 +126,11 @@ router.delete('/evento/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res)
         AND ra.fecha = $3
         AND ra.tipo_evento = $4
     `, [req.user.iglesia_id, grupo, fecha, tipoEvento]);
+
+    await db.query(
+      'DELETE FROM eventos WHERE iglesia_id = $1 AND grupo = $2 AND tipo_evento = $3 AND fecha = $4',
+      [req.user.iglesia_id, grupo, tipoEvento, fecha]
+    );
 
     console.log(`🗑️ Evento eliminado: ${tipoEvento} ${fecha} (${result.rowCount} registros)`);
     res.json({ success: true, eliminados: result.rowCount });

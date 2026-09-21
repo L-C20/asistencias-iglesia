@@ -96,6 +96,19 @@ async function initializeDatabase() {
 
     await migrarAIglesias();
 
+    // Nota opcional de cada evento ("Santa Cena", "Visita del pastor"...)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS eventos (
+        id SERIAL PRIMARY KEY,
+        iglesia_id INTEGER NOT NULL REFERENCES iglesias(id),
+        grupo VARCHAR(20) NOT NULL,
+        tipo_evento VARCHAR(50) NOT NULL,
+        fecha DATE NOT NULL,
+        descripcion VARCHAR(200),
+        UNIQUE (iglesia_id, grupo, tipo_evento, fecha)
+      )
+    `);
+
     console.log('✓ Base de datos inicializada correctamente');
   } catch (error) {
     console.error('Error inicializando BD:', error.message);

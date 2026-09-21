@@ -29,7 +29,9 @@ window.actualizarHeaderTabla = function() {
                    </svg>
                </button>`
             : '';
-        html += `<th class="col-dia"><span class="col-dia-nombre">${abr}</span><span class="col-dia-fecha">${ddmm}</span>${borrar}</th>`;
+        const nota = ((window.descripcionesReporte || {})[tipoEventoActual] || {})[fecha];
+        const notaHtml = nota ? `<span class="col-dia-nota" title="${escaparHtml(nota)}">${escaparHtml(nota)}</span>` : '';
+        html += `<th class="col-dia ${nota ? 'con-nota' : ''}"><span class="col-dia-nombre">${abr}</span><span class="col-dia-fecha">${ddmm}</span>${notaHtml}${borrar}</th>`;
     });
 
     headEl.innerHTML = html + '</tr>';

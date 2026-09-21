@@ -44,7 +44,17 @@ router.get('/fechas/:grupo', verifyToken, async (req, res) => {
 
         const porTipo = {};
         result.rows.forEach(r => (porTipo[r.tipo_evento] = porTipo[r.tipo_evento] || []).push(r.fecha));
-        res.json(porTipo);
+
+        // Notas de los eventos ("Santa Cena"...), por tipo y fecha
+        const notas = await db.query(`
+            SELECT tipo_evento, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, descripcion
+            FROM eventos
+            WHERE iglesia_id = $1 AND grupo = $2 AND descripcion IS NOT NULL
+        `, [req.user.iglesia_id, req.params.grupo]);
+        const descripciones = {};
+        notas.rows.forEach(r => ((descripciones[r.tipo_evento] = descripciones[r.tipo_evento] || {})[r.fecha] = r.descripcion));
+
+        res.json({ ...porTipo, descripciones });
     } catch (error) {
         console.error('❌ Error en fechas:', error.message);
         res.status(500).json({ error: error.message });

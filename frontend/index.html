@@ -252,6 +252,7 @@
                             <p class="sobretitulo" id="sobretituloAsistencia">Registrando asistencia</p>
                             <h2 id="tituloAsistencia">Asistencia</h2>
                             <p class="subtitulo-fecha" id="fechaAsistencia"></p>
+                            <p class="nota-evento" id="descripcionAsistencia" hidden></p>
                         </div>
                         <button class="btn btn-secondary" onclick="cambiarTab('inicio')">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -677,7 +678,13 @@
                         <span><i class="chip-punto" aria-hidden="true"></i> Asistencias sin guardar</span>
                     </p>
                 </div>
-                
+
+                <div class="form-group">
+                    <label for="descripcionEventoModal">Evento <span class="opcional">(opcional)</span></label>
+                    <input type="text" id="descripcionEventoModal" class="form-control" maxlength="200" placeholder="Ej.: Santa Cena, visita del pastor…" autocomplete="off">
+                    <p class="ayuda-campo">Si hubo algo especial ese día. Si no, dejalo vacío.</p>
+                </div>
+
                 <div style="display: flex; gap: 12px; margin-top: 30px;">
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

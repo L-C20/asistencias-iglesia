@@ -4,6 +4,7 @@ var grupoActual = null;
 var asistenciasParaGuardar = {};
 var tipoEventoAsistencia = null;
 var fechaEventoActual = null;
+var descripcionEvento = '';
 
 console.log('🚀 asistencia-v12.js iniciando');
 
@@ -24,13 +25,31 @@ async function irAAsistencia(grupo) {
     document.getElementById('formConfigurarEvento').reset();
     modal.classList.add('show');
 
-    // Qué fechas ya tienen asistencia cargada, para marcarlas en los botones
+    // Qué fechas ya tienen asistencia cargada (para marcarlas en los botones) y sus notas
     fechasConDatos = {};
     try {
         const r = await fetch(`${API_URL}/reportes/fechas/${grupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (r.ok) fechasConDatos = await r.json();
     } catch (e) { /* sin esto los botones igual funcionan */ }
     renderOpcionesFecha();
+}
+
+// Nota ya guardada (o en borrador) para un evento y fecha
+function descripcionGuardada(tipo, fecha) {
+    const guardada = ((fechasConDatos.descripciones || {})[tipo] || {})[fecha];
+    if (guardada) return guardada;
+    const borrador = leerBorradorDe(grupoActual, tipo, fecha);
+    return (borrador && borrador._descripcion) || '';
+}
+
+// El campo "Evento" del modal sigue a la fecha elegida
+function actualizarDescripcionModal() {
+    const input = document.getElementById('descripcionEventoModal');
+    if (!input) return;
+    const tipo = document.querySelector('input[name="tipoEvento"]:checked')?.value || 'santo_culto';
+    const chip = document.querySelector('input[name="fechaChip"]:checked');
+    const fecha = chip && chip.value ? chip.value : document.getElementById('fechaEventoModal')?.value;
+    input.value = fecha ? descripcionGuardada(tipo, fecha) : '';
 }
 
 // ===== OPCIONES DE FECHA: BOTONES CON LOS ÚLTIMOS DÍAS =====
@@ -126,8 +145,10 @@ function renderOpcionesFecha() {
 
     // Resaltado del elegido (respaldo para navegadores sin :has())
     const marcarActivo = () => cont.querySelectorAll('.chip-fecha').forEach(c => c.classList.toggle('activo', c.querySelector('input').checked));
-    cont.querySelectorAll('input').forEach(i => i.addEventListener('change', marcarActivo));
+    cont.querySelectorAll('input').forEach(i => i.addEventListener('change', () => { marcarActivo(); actualizarDescripcionModal(); }));
+    inputFecha.onchange = actualizarDescripcionModal;
     marcarActivo();
+    actualizarDescripcionModal();
 }
 
 // ===== GUARDAR CONFIGURACIÓN DEL EVENTO =====
@@ -145,8 +166,7 @@ function guardarConfiguracionEvento(e) {
     
     tipoEventoAsistencia = tipoEvento;
     fechaEventoActual = fecha;
-    
-    console.log('✅ Datos guardados');
+    descripcionEvento = (document.getElementById('descripcionEventoModal')?.value || '').trim();
     
     // Cerrar modal de evento y cargar miembros
     cerrarModalEvento();
@@ -189,7 +209,9 @@ async function cargarMiembrosParaAsistencia(grupo) {
         await cargarRegistrosExistentes(grupo);
         const borrador = leerBorrador();
         if (borrador) {
-            Object.assign(asistenciasParaGuardar, borrador);
+            const { _descripcion, ...marcas } = borrador;
+            Object.assign(asistenciasParaGuardar, marcas);
+            if (_descripcion && !descripcionEvento) descripcionEvento = _descripcion;
             mostrarToast('Se recuperó lo que habías marcado sin guardar', 'info');
         }
 
@@ -236,8 +258,10 @@ function guardarBorrador() {
         const marcados = Object.fromEntries(
             Object.entries(asistenciasParaGuardar).filter(([, a]) => a.presente === true || a.presente === false)
         );
-        if (Object.keys(marcados).length) localStorage.setItem(claveBorrador(), JSON.stringify(marcados));
-        else borrarBorrador();
+        if (Object.keys(marcados).length) {
+            if (descripcionEvento) marcados._descripcion = descripcionEvento;
+            localStorage.setItem(claveBorrador(), JSON.stringify(marcados));
+        } else borrarBorrador();
     } catch (e) { /* sin almacenamiento disponible: se sigue sin borrador */ }
 }
 
@@ -264,6 +288,11 @@ function mostrarEncabezadoEvento() {
         const f = new Date(fechaEventoActual + 'T00:00:00');
         const texto = f.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         sub.textContent = texto.charAt(0).toUpperCase() + texto.slice(1);
+    }
+    const nota = document.getElementById('descripcionAsistencia');
+    if (nota) {
+        nota.textContent = descripcionEvento;
+        nota.hidden = !descripcionEvento;
     }
 }
 
@@ -466,7 +495,13 @@ async function guardarTodasAsistencias() {
         const response = await fetch(`${API_URL}/asistencia/registrar-lote`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ tipo_evento: tipoEventoAsistencia, fecha: fechaEventoActual, registros })
+            body: JSON.stringify({
+                grupo: grupoActual,
+                tipo_evento: tipoEventoAsistencia,
+                fecha: fechaEventoActual,
+                descripcion: descripcionEvento,
+                registros
+            })
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || `Error HTTP ${response.status}`);
@@ -494,7 +529,7 @@ function limpiarAsistencia() {
     asistenciasParaGuardar = {};
     tipoEventoAsistencia = null;
     fechaEventoActual = null;
-    console.log('🧹 Asistencia limpiada');
+    descripcionEvento = '';
 }
 
 // ===== CERRAR MODAL DE EVENTO =====

@@ -81,9 +81,18 @@ window.abrirReporteEvento = function(tipo) {
         return;
     }
     
+    // Notas de los eventos ("Santa Cena"...) para mostrarlas bajo cada fecha
+    fetch(`/api/reportes/fechas/${grupoReporte}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : {})
+        .then(d => {
+            window.descripcionesReporte = (d && d.descripciones) || {};
+            if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
+        })
+        .catch(() => { window.descripcionesReporte = {}; });
+
     const url = `/api/reportes/evento/${grupoReporte}?tipo_evento=${tipo}`;
     console.log('📡 Fetch evento:', url);
-    
+
     fetch(url, {
         headers: {'Authorization': `Bearer ${token}`}
     })
