@@ -33,7 +33,7 @@
                         </svg>
                     </div>
                     <h1>Asistencia</h1>
-                    <p id="loginIglesia">&nbsp;</p>
+                    <p>Control de asistencia</p>
                 </div>
 
                 <div id="errorMessage" class="alerta-error"></div>
@@ -135,7 +135,11 @@
             
             <nav class="navbar">
                 <h1>Panel de Asistencia</h1>
-                <span id="usuarioActual" class="usuario-info"></span>
+                <div class="navbar-derecha">
+                    <!-- Solo para el super administrador: sobre qué iglesia está trabajando -->
+                    <select id="selectorIglesia" class="selector-iglesia" hidden onchange="cambiarIglesia(this.value)" title="Cambiar de iglesia"></select>
+                    <span id="usuarioActual" class="usuario-info"></span>
+                </div>
             </nav>
 
             <div class="container">
@@ -398,10 +402,42 @@
                     </div>
 
                     <div class="config-container">
+                        <!-- SECCIÓN IGLESIAS (solo super administrador) -->
+                        <div class="config-section" id="seccionIglesias" hidden>
+                            <div class="section-header">
+                                <h3>Iglesias</h3>
+                                <button class="btn btn-primary" onclick="abrirModalIglesia()">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 5v14M5 12h14"></path>
+                                    </svg>
+                                    Nueva Iglesia
+                                </button>
+                            </div>
+
+                            <div class="tabla-miembros">
+                                <table class="tabla-datos">
+                                    <thead>
+                                        <tr>
+                                            <th>Iglesia</th>
+                                            <th>Departamento</th>
+                                            <th>Anciano a cargo</th>
+                                            <th>Grupos</th>
+                                            <th>Integrantes</th>
+                                            <th>Usuarios</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="iglesiasTableBody">
+                                        <tr><td colspan="7" class="tabla-vacia">Cargando iglesias...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- SECCIÓN USUARIOS -->
                         <div class="config-section" id="seccionGestionUsuarios">
                             <div class="section-header">
-                                <h3>Gestión de Usuarios</h3>
+                                <h3 id="tituloUsuarios">Gestión de Usuarios</h3>
                                 <button class="btn btn-primary" onclick="abrirModalNuevoUsuario()">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M12 5v14M5 12h14"></path>
@@ -431,6 +467,64 @@
 
             </div>
         </div>
+
+    <!-- MODAL IGLESIA (crear / editar, solo super administrador) -->
+    <div id="modalIglesia" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalIglesiaTitulo">Nueva Iglesia</span>
+                <button class="modal-close" onclick="cerrarModal('modalIglesia')">&times;</button>
+            </div>
+            <form id="formIglesia" onsubmit="guardarIglesia(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="iglesiaId">
+                    <div class="form-group">
+                        <label for="iglesiaNombre">Nombre de la iglesia:</label>
+                        <input type="text" id="iglesiaNombre" placeholder="Los Corralitos" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="iglesiaDepartamento">Departamento:</label>
+                        <input type="text" id="iglesiaDepartamento" placeholder="Maipú">
+                    </div>
+                    <div class="form-group">
+                        <label for="iglesiaAnciano">Anciano a cargo:</label>
+                        <input type="text" id="iglesiaAnciano" placeholder="Nombre y apellido">
+                    </div>
+                    <div class="form-group">
+                        <label>Grupos que tiene:</label>
+                        <div class="casillas-grupos">
+                            <label class="casilla"><input type="checkbox" id="iglesiaGrupoOrquesta" value="orquesta" checked> <span>Orquesta</span></label>
+                            <label class="casilla"><input type="checkbox" id="iglesiaGrupoCoro" value="coro"> <span>Coro</span></label>
+                        </div>
+                    </div>
+
+                    <div id="bloqueAdminIglesia">
+                        <p class="subtitulo-bloque">Primer administrador de la iglesia</p>
+                        <p class="ayuda-campo">Con este usuario entran y crean el resto de los usuarios e integrantes.</p>
+                        <div class="form-group">
+                            <label for="iglesiaAdminUsuario">Usuario:</label>
+                            <input type="text" id="iglesiaAdminUsuario" placeholder="Nombre Apellido" autocapitalize="none" autocorrect="off" spellcheck="false">
+                        </div>
+                        <div class="form-group">
+                            <label for="iglesiaAdminPassword">Contraseña:</label>
+                            <div class="campo-clave">
+                                <input type="password" id="iglesiaAdminPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                                <button type="button" class="btn-ojo" onclick="alternarClave(this)" aria-label="Mostrar contraseña" title="Mostrar contraseña"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="bloqueActivaIglesia" hidden>
+                        <label class="casilla"><input type="checkbox" id="iglesiaActiva" checked> <span>Iglesia activa (sus usuarios pueden ingresar)</span></label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalIglesia')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarIglesia">Crear iglesia</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- MODALES CONFIGURACIÓN -->
     <div id="modalNuevoUsuario" class="modal">
@@ -483,6 +577,7 @@
                     <select id="usuarioEditarRol">
                         <option value="operario">Operario</option>
                         <option value="admin">Admin</option>
+                        <option value="superadmin" hidden>Super admin</option>
                     </select>
                 </div>
                 <div class="form-group">

@@ -1,40 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const verifyToken = require('../middleware/verifyToken');
+const { verifyToken } = require('../middleware/auth');
 const db = require('../database');
+
+// Todas las consultas se limitan a la iglesia del usuario logueado (req.user.iglesia_id).
 
 // ===== CONTEOS DE EVENTOS =====
 router.get('/conteos/:grupo', verifyToken, async (req, res) => {
     try {
         const { grupo } = req.params;
-        
+
         // Un evento = una fecha. Cada integrante genera una fila por fecha,
         // así que COUNT(*) daría "cantidad de personas", no de cultos.
         const result = await db.query(`
-            SELECT
-                tipo_evento,
-                COUNT(DISTINCT fecha) as total
-            FROM registro_asistencia
-            WHERE tipo_evento IN ('santo_culto', 'ensayo', 'bautismo')
-            AND miembro_id IN (
-                SELECT id FROM miembros WHERE grupo = $1
-            )
-            GROUP BY tipo_evento
-        `, [grupo]);
-        
-        console.log('📊 Resultado conteos:', result.rows);
-        
-        const conteos = {
-            santo_culto: 0,
-            ensayo: 0,
-            bautismo: 0
-        };
-        
-        result.rows.forEach(row => {
-            const tipo = row.tipo_evento.toLowerCase().replace(' ', '_');
-            conteos[tipo] = row.total;
-        });
-        
+            SELECT ra.tipo_evento, COUNT(DISTINCT ra.fecha) AS total
+            FROM registro_asistencia ra
+            JOIN miembros m ON m.id = ra.miembro_id
+            WHERE ra.tipo_evento IN ('santo_culto', 'ensayo', 'bautismo')
+              AND m.iglesia_id = $1
+              AND m.grupo = $2
+            GROUP BY ra.tipo_evento
+        `, [req.user.iglesia_id, grupo]);
+
+        const conteos = { santo_culto: 0, ensayo: 0, bautismo: 0 };
+        result.rows.forEach(row => { conteos[row.tipo_evento] = Number(row.total); });
+
         res.json(conteos);
     } catch (error) {
         console.error('❌ Error en conteos:', error);
@@ -49,8 +39,8 @@ router.get('/fechas/:grupo', verifyToken, async (req, res) => {
             SELECT DISTINCT ra.tipo_evento, TO_CHAR(ra.fecha, 'YYYY-MM-DD') AS fecha
             FROM registro_asistencia ra
             JOIN miembros m ON m.id = ra.miembro_id
-            WHERE m.grupo = $1
-        `, [req.params.grupo]);
+            WHERE m.iglesia_id = $1 AND m.grupo = $2
+        `, [req.user.iglesia_id, req.params.grupo]);
 
         const porTipo = {};
         result.rows.forEach(r => (porTipo[r.tipo_evento] = porTipo[r.tipo_evento] || []).push(r.fecha));
@@ -69,15 +59,16 @@ router.get('/resumen/:grupo', verifyToken, async (req, res) => {
 
         const result = await db.query(`
             SELECT
-                (SELECT COUNT(*) FROM miembros WHERE ($1 = 'todos' OR grupo = $1) AND activo = true) AS integrantes,
+                (SELECT COUNT(*) FROM miembros
+                 WHERE iglesia_id = $1 AND ($2 = 'todos' OR grupo = $2) AND activo = true) AS integrantes,
                 COUNT(DISTINCT (ra.fecha, ra.tipo_evento)) AS eventos,
                 TO_CHAR(MAX(ra.fecha), 'YYYY-MM-DD') AS ultima_fecha,
                 COUNT(*) FILTER (WHERE ra.presente::text = 'true') AS presentes,
                 COUNT(*) AS registros
             FROM registro_asistencia ra
             JOIN miembros m ON m.id = ra.miembro_id
-            WHERE ($1 = 'todos' OR m.grupo = $1)
-        `, [grupo]);
+            WHERE m.iglesia_id = $1 AND ($2 = 'todos' OR m.grupo = $2)
+        `, [req.user.iglesia_id, grupo]);
 
         const r = result.rows[0];
         const registros = Number(r.registros);
@@ -102,8 +93,6 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
         const { grupo } = req.params;
         const { tipo_evento } = req.query;
 
-        console.log(`🎯 Obteniendo datos: grupo=${grupo}, evento=${tipo_evento}`);
-
         if (!tipo_evento) {
             return res.status(400).json({ error: 'tipo_evento es requerido' });
         }
@@ -126,112 +115,14 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 COALESCE(ra.nota, '') as nota
             FROM miembros m
             LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
-                AND ra.tipo_evento = $2
-            WHERE m.grupo = $1
+                AND ra.tipo_evento = $3
+            WHERE m.iglesia_id = $1 AND m.grupo = $2 AND m.activo = true
             ORDER BY m.nombre, m.apellido, ra.fecha DESC
-        `, [grupo, tipo_evento]);
-
-        console.log('📋 Registros encontrados:', result.rows.length);
+        `, [req.user.iglesia_id, grupo, tipo_evento]);
 
         res.json(result.rows);
     } catch (error) {
         console.error('❌ Error en evento:', error.message);
-        console.error('Stack:', error.stack);
-        res.status(500).json({
-            error: error.message,
-            details: error.toString(),
-            query: 'SELECT from miembros LEFT JOIN registro_asistencia'
-        });
-    }
-});
-
-// ===== ESTADÍSTICAS (MANTENER COMPATIBILIDAD) =====
-router.get('/estadisticas/:grupo', verifyToken, async (req, res) => {
-    try {
-        const { grupo } = req.params;
-        
-        const result = await db.query(`
-            SELECT 
-                m.id,
-                m.nombre,
-                m.apellido,
-                m.instrumento,
-                COUNT(*) as total_eventos,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as presentes,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as ausentes,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'justified' THEN 1 END) as justificados,
-                ROUND(
-                    COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) * 100.0 / 
-                    NULLIF(COUNT(*), 0), 2
-                ) as porcentaje_asistencia
-            FROM miembros m
-            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
-            WHERE LOWER(m.grupo) = $1
-            GROUP BY m.id, m.nombre, m.apellido, m.instrumento
-            ORDER BY m.nombre, m.apellido
-        `, [grupo.toLowerCase()]);
-        
-        res.json(result.rows);
-    } catch (error) {
-        console.error('❌ Error en estadísticas:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ===== DATOS DE UN MIEMBRO =====
-router.get('/miembro/:miembro_id', verifyToken, async (req, res) => {
-    try {
-        const { miembro_id } = req.params;
-        
-        const result = await db.query(`
-            SELECT 
-                m.nombre,
-                m.apellido,
-                m.grupo,
-                COUNT(ra.id) as total_eventos,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'true' THEN 1 END) as presentes,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'false' THEN 1 END) as ausentes,
-                COUNT(CASE WHEN CAST(ra.presente AS TEXT) = 'justified' THEN 1 END) as justificados
-            FROM miembros m
-            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
-            WHERE m.id = $1
-            GROUP BY m.id
-        `, [miembro_id]);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Miembro no encontrado' });
-        }
-        
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('❌ Error en miembro:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ===== DEBUG: Ver miembros y asistencia =====
-router.get('/debug/:grupo', verifyToken, async (req, res) => {
-    try {
-        const { grupo } = req.params;
-
-        const result = await db.query(`
-            SELECT
-                m.id,
-                m.nombre,
-                m.grupo,
-                COUNT(ra.id) as total_registros,
-                COUNT(CASE WHEN ra.tipo_evento = 'santo_culto' THEN 1 END) as santo_culto_count,
-                json_agg(json_build_object('fecha', ra.fecha, 'tipo_evento', ra.tipo_evento, 'presente', ra.presente)) as registros
-            FROM miembros m
-            LEFT JOIN registro_asistencia ra ON m.id = ra.miembro_id
-            WHERE m.grupo = $1
-            GROUP BY m.id, m.nombre, m.grupo
-            ORDER BY m.nombre
-        `, [grupo]);
-
-        res.json(result.rows);
-    } catch (error) {
-        console.error('❌ Error en debug:', error);
         res.status(500).json({ error: error.message });
     }
 });

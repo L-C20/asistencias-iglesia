@@ -391,6 +391,26 @@ svg { flex-shrink: 0; }
     white-space: nowrap;
 }
 
+.navbar-derecha {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    min-width: 0;
+}
+
+/* Super administrador: sobre qué iglesia está trabajando */
+.selector-iglesia {
+    width: auto;
+    max-width: 220px;
+    padding: 6px var(--sp-8) 6px var(--sp-3);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--brand-700);
+    background-color: var(--brand-50);
+    border-color: var(--brand-100);
+    box-shadow: none;
+}
+
 .avatar {
     display: inline-flex;
     align-items: center;
@@ -1680,6 +1700,9 @@ input::placeholder { color: var(--text-light); }
     align-items: start;
 }
 
+/* La tabla de iglesias tiene muchas columnas: ocupa todo el ancho */
+#seccionIglesias { grid-column: 1 / -1; }
+
 .config-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -1736,6 +1759,35 @@ input::placeholder { color: var(--text-light); }
 }
 
 .badge-admin    { background: var(--brand-50); color: var(--brand-700); }
+.badge-superadmin { background: var(--amber-50); color: var(--amber-700); }
+.fila-inactiva td { color: var(--text-light); }
+.celda-nombre .badge { margin-left: var(--sp-2); vertical-align: middle; }
+.badge-grupo    { background: var(--gray-100); color: var(--gray-700); margin-right: 4px; }
+
+/* Casillas Orquesta / Coro del formulario de iglesia */
+.casillas-grupos { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
+
+.casilla {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.casilla input { width: 16px; height: 16px; margin: 0; accent-color: var(--brand-600); }
+
+.subtitulo-bloque {
+    margin: var(--sp-5) 0 2px;
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.subtitulo-bloque + .ayuda-campo { margin: 0 0 var(--sp-3); }
 .badge-operario { background: var(--gray-100); color: var(--gray-700); }
 .badge-success  { background: var(--green-50); color: var(--green-700); }
 .badge-danger   { background: var(--red-50);   color: var(--red-700); }

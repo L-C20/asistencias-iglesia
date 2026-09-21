@@ -1,42 +1,45 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
-const { verifyToken } = require('./auth');
+const { verifyToken, verificarAdmin } = require('../middleware/auth');
 const crypto = require('crypto');
 const router = express.Router();
 
 const LARGO_MINIMO_PASSWORD = 6;
+const ROLES_ASIGNABLES = ['admin', 'operario'];
 
-// Middleware para verificar si es admin
-const verificarAdmin = async (req, res, next) => {
-  try {
-    const usuarioId = req.user.id;
-    
-    const result = await db.query(
-      'SELECT rol FROM usuarios WHERE id = $1',
-      [usuarioId]
-    );
-
-    if (result.rows.length === 0 || result.rows[0].rol !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado: Solo administradores' });
-    }
-
-    next();
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+// Un admin solo maneja usuarios de su iglesia y nunca al super administrador.
+// Devuelve el usuario objetivo o responde el error correspondiente.
+async function usuarioAlcanzable(req, res, id) {
+  const r = await db.query('SELECT id, usuario, rol, iglesia_id FROM usuarios WHERE id = $1', [id]);
+  if (r.rows.length === 0) {
+    res.status(404).json({ error: 'Usuario no encontrado' });
+    return null;
   }
-};
+  const objetivo = r.rows[0];
+  const esYo = objetivo.id === req.user.id;
+  if (objetivo.iglesia_id !== req.user.iglesia_id && !esYo) {
+    res.status(404).json({ error: 'Usuario no encontrado' });
+    return null;
+  }
+  if (objetivo.rol === 'superadmin' && !esYo) {
+    res.status(403).json({ error: 'No se puede modificar al super administrador' });
+    return null;
+  }
+  return objetivo;
+}
 
-// GET /api/usuarios - Listar todos los usuarios (solo admin)
+// GET /api/usuarios - Usuarios de la iglesia actual (solo admin)
 router.get('/', verifyToken, verificarAdmin, async (req, res) => {
   try {
-    console.log('📋 Obteniendo usuarios...');
-    
+    // El super administrador aparece en la lista solo para sí mismo
     const result = await db.query(
-      'SELECT id, usuario, rol, activo, fecha_creacion FROM usuarios ORDER BY fecha_creacion DESC'
+      `SELECT id, usuario, rol, activo, fecha_creacion
+       FROM usuarios
+       WHERE iglesia_id = $1 AND (rol <> 'superadmin' OR id = $2)
+       ORDER BY fecha_creacion DESC`,
+      [req.user.iglesia_id, req.user.id]
     );
-
-    console.log(`✅ ${result.rows.length} usuarios encontrados`);
     res.json(result.rows);
   } catch (error) {
     console.error('❌ Error en GET /usuarios:', error.message);
@@ -44,14 +47,12 @@ router.get('/', verifyToken, verificarAdmin, async (req, res) => {
   }
 });
 
-// GET /api/usuarios/perfil - Obtener perfil del usuario actual
+// GET /api/usuarios/perfil/actual - Perfil del usuario logueado
 router.get('/perfil/actual', verifyToken, async (req, res) => {
   try {
-    const usuarioId = req.user.id;
-    
     const result = await db.query(
-      'SELECT id, usuario, rol, activo, fecha_creacion FROM usuarios WHERE id = $1',
-      [usuarioId]
+      'SELECT id, usuario, rol, activo, fecha_creacion, iglesia_id FROM usuarios WHERE id = $1',
+      [req.user.id]
     );
 
     if (result.rows.length === 0) {
@@ -64,12 +65,11 @@ router.get('/perfil/actual', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/usuarios/crear - Crear nuevo usuario (solo admin)
+// POST /api/usuarios/crear - Crear usuario en la iglesia actual (solo admin)
 router.post('/crear', verifyToken, verificarAdmin, async (req, res) => {
   try {
-    const { usuario, password, rol } = req.body;
-
-    console.log('➕ Creando usuario:', usuario, 'Rol:', rol);
+    const usuario = String(req.body.usuario || '').trim();
+    const { password, rol } = req.body;
 
     if (!usuario || !password) {
       return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
@@ -79,25 +79,22 @@ router.post('/crear', verifyToken, verificarAdmin, async (req, res) => {
       return res.status(400).json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` });
     }
 
-    // Validar rol
-    if (!['admin', 'operario'].includes(rol)) {
+    if (!ROLES_ASIGNABLES.includes(rol)) {
       return res.status(400).json({ error: 'Rol inválido' });
     }
 
-    // Verificar si usuario existe
-    const existente = await db.query(
-      'SELECT id FROM usuarios WHERE usuario = $1',
-      [usuario]
-    );
-
+    // Los usuarios son únicos en todo el sistema (con el usuario entra directo a su iglesia)
+    const existente = await db.query('SELECT id FROM usuarios WHERE LOWER(usuario) = LOWER($1)', [usuario]);
     if (existente.rows.length > 0) {
       return res.status(400).json({ error: 'Usuario ya existe' });
     }
 
     const hash = await bcrypt.hash(password, 10);
     const result = await db.query(
-      'INSERT INTO usuarios (usuario, password, rol, activo) VALUES ($1, $2, $3, true) RETURNING id, usuario, rol, activo, fecha_creacion',
-      [usuario, hash, rol]
+      `INSERT INTO usuarios (usuario, password, rol, activo, iglesia_id)
+       VALUES ($1, $2, $3, true, $4)
+       RETURNING id, usuario, rol, activo, fecha_creacion`,
+      [usuario, hash, rol, req.user.iglesia_id]
     );
 
     console.log('✅ Usuario creado:', usuario);
@@ -114,48 +111,51 @@ router.put('/:id', verifyToken, verificarAdmin, async (req, res) => {
     const { id } = req.params;
     const { usuario, rol, activo } = req.body;
 
-    console.log('✏️ Actualizando usuario:', id);
+    const objetivo = await usuarioAlcanzable(req, res, id);
+    if (!objetivo) return;
 
-    // No permitir editar al mismo admin
-    if (req.user.id == id && rol !== 'admin') {
+    // Nadie se cambia el rol a sí mismo (ni se baja el super administrador)
+    if (objetivo.id === req.user.id && rol !== undefined && rol !== objetivo.rol) {
       return res.status(403).json({ error: 'No puedes cambiar tu propio rol' });
     }
 
-    let query = 'UPDATE usuarios SET ';
+    const cambios = [];
     const values = [];
-    let paramCount = 1;
 
     if (usuario !== undefined) {
-      query += `usuario = $${paramCount}, `;
-      values.push(usuario);
-      paramCount++;
+      const nombre = String(usuario).trim();
+      if (!nombre) return res.status(400).json({ error: 'El nombre de usuario no puede quedar vacío' });
+      const repetido = await db.query('SELECT id FROM usuarios WHERE LOWER(usuario) = LOWER($1) AND id <> $2', [nombre, id]);
+      if (repetido.rows.length > 0) return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' });
+      values.push(nombre);
+      cambios.push(`usuario = $${values.length}`);
     }
 
-    if (rol !== undefined) {
-      if (!['admin', 'operario'].includes(rol)) {
+    if (rol !== undefined && objetivo.id !== req.user.id) {
+      if (!ROLES_ASIGNABLES.includes(rol)) {
         return res.status(400).json({ error: 'Rol inválido' });
       }
-      query += `rol = $${paramCount}, `;
       values.push(rol);
-      paramCount++;
+      cambios.push(`rol = $${values.length}`);
     }
 
     if (activo !== undefined) {
-      query += `activo = $${paramCount}, `;
+      if (objetivo.id === req.user.id && activo === false) {
+        return res.status(403).json({ error: 'No puedes desactivar tu propia cuenta' });
+      }
       values.push(activo);
-      paramCount++;
+      cambios.push(`activo = $${values.length}`);
     }
 
-    // Remover última coma
-    query = query.slice(0, -2);
-    query += ` WHERE id = $${paramCount} RETURNING id, usuario, rol, activo`;
+    if (cambios.length === 0) {
+      return res.json({ id: objetivo.id, usuario: objetivo.usuario, rol: objetivo.rol });
+    }
+
     values.push(id);
-
-    const result = await db.query(query, values);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
+    const result = await db.query(
+      `UPDATE usuarios SET ${cambios.join(', ')} WHERE id = $${values.length} RETURNING id, usuario, rol, activo`,
+      values
+    );
 
     console.log('✅ Usuario actualizado');
     res.json(result.rows[0]);
@@ -170,21 +170,14 @@ router.delete('/:id', verifyToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log('🗑️ Eliminando usuario:', id);
-
-    // No permitir eliminar al mismo admin
     if (req.user.id == id) {
       return res.status(403).json({ error: 'No puedes eliminar tu propia cuenta' });
     }
 
-    const result = await db.query(
-      'DELETE FROM usuarios WHERE id = $1 RETURNING id, usuario',
-      [id]
-    );
+    const objetivo = await usuarioAlcanzable(req, res, id);
+    if (!objetivo) return;
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
+    const result = await db.query('DELETE FROM usuarios WHERE id = $1 RETURNING id, usuario', [id]);
 
     console.log('✅ Usuario eliminado');
     res.json({ mensaje: 'Usuario eliminado', usuario: result.rows[0].usuario });
@@ -194,30 +187,23 @@ router.delete('/:id', verifyToken, verificarAdmin, async (req, res) => {
   }
 });
 
-// POST /api/usuarios/:id/resetear-password - Resetear contraseña (solo admin)
+// POST /api/usuarios/:id/resetear-password - Contraseña aleatoria nueva (solo admin)
 router.post('/:id/resetear-password', verifyToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log('🔑 Reseteando contraseña para usuario:', id);
+    const objetivo = await usuarioAlcanzable(req, res, id);
+    if (!objetivo) return;
 
-    // Generar contraseña aleatoria
     const nuevaPassword = crypto.randomBytes(6).toString('hex');
     const hash = await bcrypt.hash(nuevaPassword, 10);
 
-    const result = await db.query(
-      'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING id, usuario',
-      [hash, id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
+    await db.query('UPDATE usuarios SET password = $1 WHERE id = $2', [hash, id]);
 
     console.log('✅ Contraseña reseteada');
-    res.json({ 
+    res.json({
       mensaje: 'Contraseña reseteada',
-      usuario: result.rows[0].usuario,
+      usuario: objetivo.usuario,
       nueva_password: nuevaPassword,
       aviso: '⚠️ Comparte esta contraseña de forma segura con el usuario'
     });
@@ -237,17 +223,13 @@ router.put('/:id/password', verifyToken, verificarAdmin, async (req, res) => {
       return res.status(400).json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` });
     }
 
+    const objetivo = await usuarioAlcanzable(req, res, id);
+    if (!objetivo) return;
+
     const hash = await bcrypt.hash(password, 10);
-    const result = await db.query(
-      'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING id, usuario',
-      [hash, id]
-    );
+    await db.query('UPDATE usuarios SET password = $1 WHERE id = $2', [hash, id]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    console.log('🔑 Contraseña definida por admin para:', result.rows[0].usuario);
+    console.log('🔑 Contraseña definida por admin para:', objetivo.usuario);
     res.json({ success: true });
   } catch (error) {
     console.error('❌ Error en PUT /:id/password:', error.message);

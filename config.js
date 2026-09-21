@@ -1,10 +1,5 @@
-// Configuración por instalación. Cada iglesia corre su propia copia de la app
-// y se distingue solo por estas variables de entorno:
-//
-//   IGLESIA_NOMBRE   Nombre que se muestra en el login y el menú (default: "Orquesta")
-//   GRUPOS           Grupos habilitados, separados por coma (default: "orquesta")
-//                    Valores posibles: orquesta, coro
-require('dotenv').config();
+// Grupos que puede tener una iglesia y cómo se organiza cada uno. Qué grupos
+// tiene cada iglesia se guarda en la tabla `iglesias` (columna `grupos`).
 
 const GRUPOS_DISPONIBLES = {
   orquesta: {
@@ -28,20 +23,30 @@ const GRUPOS_DISPONIBLES = {
   }
 };
 
-const idsHabilitados = String(process.env.GRUPOS || 'orquesta')
-  .split(',')
-  .map(g => g.trim().toLowerCase())
-  .filter(g => GRUPOS_DISPONIBLES[g]);
+const ORDEN_GRUPOS = Object.keys(GRUPOS_DISPONIBLES);
 
-const grupos = (idsHabilitados.length ? idsHabilitados : ['orquesta']).map(id => GRUPOS_DISPONIBLES[id]);
+// "orquesta,coro" (como se guarda en la base) -> ['orquesta', 'coro'] válidos y ordenados
+function normalizarGrupos(valor) {
+  const ids = Array.isArray(valor) ? valor : String(valor || '').split(',');
+  const limpios = ids.map(g => String(g).trim().toLowerCase()).filter(g => GRUPOS_DISPONIBLES[g]);
+  return ORDEN_GRUPOS.filter(g => limpios.includes(g));
+}
 
-const config = {
-  nombre: (process.env.IGLESIA_NOMBRE || '').trim() || grupos.map(g => g.nombre).join(' y '),
-  grupos
-};
+// Lo que el frontend necesita saber de una iglesia para armar sus pantallas
+function configDeIglesia(fila) {
+  const grupos = normalizarGrupos(fila.grupos);
+  return {
+    id: fila.id,
+    nombre: fila.nombre,
+    departamento: fila.departamento || '',
+    anciano: fila.anciano || '',
+    activa: fila.activa !== false,
+    grupos: (grupos.length ? grupos : ['orquesta']).map(id => GRUPOS_DISPONIBLES[id])
+  };
+}
 
-function grupoValido(id) {
-  return config.grupos.some(g => g.id === id);
+function grupoValidoEn(fila, grupoId) {
+  return configDeIglesia(fila).grupos.some(g => g.id === grupoId);
 }
 
 // En la base, la sección va en `instrumento` (orquesta) o en `voz` (coro)
@@ -49,4 +54,4 @@ function columnaSeccion(grupoId) {
   return grupoId === 'coro' ? 'voz' : 'instrumento';
 }
 
-module.exports = { config, grupoValido, columnaSeccion };
+module.exports = { GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion };

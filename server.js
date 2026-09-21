@@ -4,12 +4,17 @@ const path = require('path');
 require('dotenv').config();
 
 // Importar rutas
-const { router: authRouter, verifyToken } = require('./routes/auth');
+const { router: authRouter } = require('./routes/auth');
 const asistenciaRouter = require('./routes/asistencia');
 const reportesRouter = require('./routes/reportes');
 const usuariosRouter = require('./routes/usuarios');
+const iglesiasRouter = require('./routes/iglesias');
 const { initializeDatabase, seedDatabase } = require('./database');
-const { config } = require('./config');
+
+if (!process.env.JWT_SECRET) {
+  console.error('Falta la variable JWT_SECRET');
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,14 +24,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Configuración de esta instalación (pública: el login ya muestra el nombre)
-app.get('/api/config', (req, res) => res.json(config));
-
 // Rutas API
 app.use('/api/auth', authRouter);
 app.use('/api/asistencia', asistenciaRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/usuarios', usuariosRouter);
+app.use('/api/iglesias', iglesiasRouter);
 
 // Ruta raíz - servir login
 app.get('/', (req, res) => {
@@ -46,17 +49,13 @@ app.use((req, res) => {
 // Iniciar servidor
 async function start() {
   try {
-    // Inicializar BD
     await initializeDatabase();
-    
-    // Insertar datos iniciales
     await seedDatabase();
 
     app.listen(PORT, () => {
       console.log(`✓ Servidor ejecutándose en puerto ${PORT}`);
       console.log(`✓ URL: http://localhost:${PORT}`);
       console.log(`✓ Ambiente: ${process.env.NODE_ENV}`);
-      console.log(`✓ Iglesia: ${config.nombre} · grupos: ${config.grupos.map(g => g.id).join(', ')}`);
     });
   } catch (error) {
     console.error('Error iniciando servidor:', error);

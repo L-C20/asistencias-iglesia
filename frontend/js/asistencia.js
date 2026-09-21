@@ -207,18 +207,21 @@ async function cargarMiembrosParaAsistencia(grupo) {
 // Lo marcado se guarda en el teléfono por evento y fecha, para retomar
 // aunque se cierre la app sin tocar Guardar.
 function claveBorrador(grupo = grupoActual, tipo = tipoEventoAsistencia, fecha = fechaEventoActual) {
-    return `borrador-asistencia:${grupo}:${tipo}:${fecha}`;
+    return `borrador-asistencia:${APP_CONFIG.id}:${grupo}:${tipo}:${fecha}`;
 }
 
-// Antes de existir el coro la clave no llevaba grupo; se sigue leyendo para la orquesta
-function claveBorradorVieja(grupo, tipo, fecha) {
-    return grupo === 'orquesta' ? `borrador-asistencia:${tipo}:${fecha}` : null;
+// Claves de versiones anteriores (sin iglesia, y antes sin grupo); se siguen
+// leyendo para no perder lo que ya estaba marcado en los teléfonos
+function clavesBorradorViejas(grupo, tipo, fecha) {
+    const viejas = [`borrador-asistencia:${grupo}:${tipo}:${fecha}`];
+    if (grupo === 'orquesta') viejas.push(`borrador-asistencia:${tipo}:${fecha}`);
+    return viejas;
 }
 
 function leerBorradorDe(grupo, tipo, fecha) {
     try {
-        const raw = localStorage.getItem(claveBorrador(grupo, tipo, fecha))
-            || (claveBorradorVieja(grupo, tipo, fecha) && localStorage.getItem(claveBorradorVieja(grupo, tipo, fecha)));
+        let raw = localStorage.getItem(claveBorrador(grupo, tipo, fecha));
+        for (const k of clavesBorradorViejas(grupo, tipo, fecha)) raw = raw || localStorage.getItem(k);
         const datos = raw ? JSON.parse(raw) : null;
         return datos && Object.keys(datos).length ? datos : null;
     } catch (e) { return null; }
@@ -245,8 +248,7 @@ function leerBorrador() {
 function borrarBorrador() {
     try {
         localStorage.removeItem(claveBorrador());
-        const vieja = claveBorradorVieja(grupoActual, tipoEventoAsistencia, fechaEventoActual);
-        if (vieja) localStorage.removeItem(vieja);
+        clavesBorradorViejas(grupoActual, tipoEventoAsistencia, fechaEventoActual).forEach(k => localStorage.removeItem(k));
     } catch (e) { /* nada */ }
 }
 

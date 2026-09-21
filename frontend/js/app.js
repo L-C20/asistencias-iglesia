@@ -8,9 +8,6 @@ var API_URL = window.location.origin === 'http://localhost:3000'
 
 console.log('🔧 app.js inicializando - API_URL:', API_URL);
 
-// Nombre de la iglesia y grupos; se pide una sola vez al cargar la página
-const configLista = cargarConfigApp();
-
 // ===== INICIALIZAR APLICACIÓN =====
 function initApp() {
     console.log('📱 initApp() llamado');
@@ -51,8 +48,8 @@ function initApp() {
 
         // Ocultar Configuración si NO es admin
         const configTab = document.querySelector('.sidebar-menu-item[data-tab="configuracion"]');
-        if (configTab && usuarioRol !== 'admin') {
-            configTab.style.display = 'none';
+        if (configTab) {
+            configTab.style.display = ['admin', 'superadmin'].includes(usuarioRol) ? '' : 'none';
         }
 
         console.log('✅ Sesión iniciada - Rol:', usuarioRol, '- Cargando datos iniciales');
@@ -60,8 +57,8 @@ function initApp() {
         // Activar tab Inicio
         cambiarTab('inicio');
 
-        // Datos iniciales, una vez que se sabe qué grupos tiene esta iglesia
-        configLista.then(() => {
+        // Primero qué iglesia y qué grupos tiene el usuario; recién ahí los datos
+        cargarConfigApp().then(() => {
             const primerGrupo = APP_CONFIG.grupos[0].id;
             cargarConteosMiembros();
             cargarResumenInicio();

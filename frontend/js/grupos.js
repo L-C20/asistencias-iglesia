@@ -1,21 +1,46 @@
-// ===== CONFIGURACIÓN DE LA INSTALACIÓN: NOMBRE Y GRUPOS =====
-// El servidor dice qué grupos tiene esta iglesia (orquesta, coro o ambos) y
-// cómo se llama la sección de cada uno (instrumento / cuerda). Todas las
-// pantallas se arman a partir de esto, así con un solo grupo se ve igual que
-// siempre y con dos aparecen los selectores.
+// ===== IGLESIA DEL USUARIO: NOMBRE Y GRUPOS =====
+// Al entrar, el servidor dice a qué iglesia pertenece el usuario, qué grupos
+// tiene (orquesta, coro o ambos) y cómo se llama la sección de cada uno
+// (instrumento / cuerda). Todas las pantallas se arman a partir de esto, así
+// con un solo grupo se ve igual que siempre y con dos aparecen los selectores.
 
 var APP_CONFIG = {
+    id: null,
     nombre: '',
-    grupos: [{ id: 'orquesta', nombre: 'Orquesta', categoria: 'Instrumento', secciones: [] }]
+    grupos: [{ id: 'orquesta', nombre: 'Orquesta', categoria: 'Instrumento', secciones: [] }],
+    esSuperadmin: false,
+    iglesias: []
 };
 
 async function cargarConfigApp() {
     try {
-        const r = await fetch('/api/config');
+        const r = await fetch(`${API_URL}/iglesias/actual`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (r.ok) APP_CONFIG = await r.json();
     } catch (e) { /* se sigue con el default */ }
     aplicarConfigEnPantalla();
     return APP_CONFIG;
+}
+
+// El super administrador puede pasar a trabajar sobre otra iglesia
+async function cambiarIglesia(id) {
+    if (!id || Number(id) === APP_CONFIG.id) return;
+    try {
+        const r = await fetch(`${API_URL}/auth/cambiar-iglesia/${id}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'No se pudo cambiar de iglesia');
+        localStorage.setItem('token', data.token);
+        location.reload();
+    } catch (e) {
+        mostrarError(e.message);
+    }
+}
+
+// Para meter texto cargado por usuarios dentro de innerHTML
+function escaparHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function grupoInfo(id) {
@@ -79,9 +104,18 @@ function renderSelectorGrupo(contenedorId, activo, alCambiar) {
 function aplicarConfigEnPantalla() {
     const nombre = APP_CONFIG.nombre || APP_CONFIG.grupos.map(g => g.nombre).join(' y ');
     const set = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
-    set('loginIglesia', nombre);
     set('marcaNombre', nombre);
     document.title = `Asistencia · ${nombre}`;
+
+    // Super administrador: selector de iglesia en la barra superior
+    const selector = document.getElementById('selectorIglesia');
+    if (selector) {
+        const lista = APP_CONFIG.iglesias || [];
+        selector.hidden = !(APP_CONFIG.esSuperadmin && lista.length > 0);
+        selector.innerHTML = lista.map(i =>
+            `<option value="${i.id}" ${i.id === APP_CONFIG.id ? 'selected' : ''}>${escaparHtml(i.nombre)}${i.activa === false ? ' (baja)' : ''}</option>`
+        ).join('');
+    }
 
     const ARTICULO = { orquesta: 'la', coro: 'el' };
     const listaGrupos = APP_CONFIG.grupos.map(g => `${ARTICULO[g.id] || 'el'} ${g.nombre.toLowerCase()}`).join(' y ');

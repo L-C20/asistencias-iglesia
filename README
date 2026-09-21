@@ -1,50 +1,54 @@
 # Sistema de Asistencia - Orquesta y Coro
 
-Registro de asistencia para la orquesta y/o el coro de una iglesia. Cada iglesia
-corre su propia copia (su URL y su base de datos) y se configura con variables
-de entorno: nombre y qué grupos tiene.
+Registro de asistencia para la orquesta y/o el coro de varias iglesias en una
+sola aplicación. Cada usuario pertenece a una iglesia y, al entrar, ve solo los
+integrantes, la asistencia y los reportes de la suya.
 
 ## Características
 
+- Varias iglesias en una misma URL; los datos de cada una quedan aislados
+- Un **super administrador** crea iglesias (nombre, departamento, anciano a
+  cargo, si tiene orquesta, coro o ambos) con su primer administrador, y puede
+  trabajar sobre cualquier iglesia desde el selector de la barra superior
 - Asistencia por integrante (Presente / Ausente / Ausente justificado), agrupada
   por instrumento (orquesta) o por cuerda (coro)
 - Tres tipos de evento: Santo Culto, Ensayo, Bautismo
 - Fechas sugeridas con botones; borrador local si se interrumpe la carga
 - Reportes semanales con subtotales por sección y totales
-- Usuarios con roles admin / operario, contraseñas cifradas
+- Usuarios con roles superadmin / admin / operario, contraseñas cifradas
 - PostgreSQL
 
-## Configuración por iglesia
+## Roles
 
-| Variable         | Qué hace                                                        | Default        |
-|------------------|-----------------------------------------------------------------|----------------|
-| `IGLESIA_NOMBRE` | Nombre que se muestra en el login y el menú                     | según grupos   |
-| `GRUPOS`         | Grupos habilitados, separados por coma: `orquesta`, `coro`      | `orquesta`     |
-| `ADMIN_USUARIO`  | Usuario administrador que se crea en una base vacía             | `admin`        |
-| `ADMIN_PASSWORD` | Contraseña de ese administrador (cambiarla al entrar)           | `admin1234`    |
-| `DATABASE_URL`   | Conexión a PostgreSQL                                           | —              |
-| `JWT_SECRET`     | Secreto para firmar las sesiones (distinto en cada instalación) | —              |
+| Rol          | Puede                                                                 |
+|--------------|-----------------------------------------------------------------------|
+| `operario`   | Registrar asistencia, ver integrantes y reportes de su iglesia        |
+| `admin`      | Lo anterior + integrantes y usuarios de su iglesia                    |
+| `superadmin` | Lo anterior + crear y editar iglesias, y cambiar de iglesia activa    |
 
-Con un solo grupo la aplicación no muestra selectores; con dos aparece la
-botonera Orquesta | Coro en Integrantes y Reportes, y una tarjeta por grupo en
-Inicio para registrar asistencia por separado.
+Los nombres de usuario son únicos en todo el sistema (con el usuario alcanza
+para saber la iglesia). Nadie puede modificar al super administrador salvo él.
 
-## Instalar para otra iglesia (Railway)
+## Variables de entorno
 
-1. En Railway: **New Project → Deploy from GitHub repo**, elegir este repositorio.
-2. Agregar un servicio **PostgreSQL** al proyecto.
-3. En el servicio de la app, pestaña **Variables**:
-   - `DATABASE_URL` → referencia a la base del paso 2 (`${{Postgres.DATABASE_URL}}`)
-   - `JWT_SECRET` → una cadena larga y aleatoria, distinta a la de otras iglesias
-   - `NODE_ENV` → `production`
-   - `IGLESIA_NOMBRE` → por ejemplo `Iglesia Central`
-   - `GRUPOS` → `orquesta,coro` (o solo `orquesta`)
-   - `ADMIN_PASSWORD` → contraseña inicial del usuario `admin`
-4. **Settings → Networking → Generate Domain** para obtener la URL.
-5. Entrar con `admin` y la contraseña elegida, cambiarla desde Configuración y
-   crear los demás usuarios. Cargar los integrantes desde Orquesta / Coro.
+| Variable             | Qué hace                                                           |
+|----------------------|--------------------------------------------------------------------|
+| `DATABASE_URL`       | Conexión a PostgreSQL                                              |
+| `JWT_SECRET`         | Secreto para firmar las sesiones (obligatorio)                     |
+| `NODE_ENV`           | `production` en Railway                                            |
+| `SUPERADMIN_USUARIO` | Al migrar una base anterior: qué usuario pasa a super administrador. Si no se indica, el administrador más antiguo |
+| `IGLESIA_INICIAL`    | Nombre de la primera iglesia al migrar una base anterior o al crear una vacía (default `Dorrego`) |
+| `GRUPOS`             | Grupos de esa primera iglesia, `orquesta` y/o `coro` (default `orquesta`) |
+| `ADMIN_USUARIO` / `ADMIN_PASSWORD` | Super administrador que se crea en una base vacía (default `admin` / `admin1234`) |
 
-Cada push a `main` redespliega todas las instalaciones conectadas al repo.
+## Cómo agregar una iglesia
+
+1. Entrar como super administrador → **Configuración → Iglesias → Nueva Iglesia**.
+2. Completar nombre, departamento, anciano a cargo, marcar Orquesta y/o Coro,
+   y el usuario y contraseña del primer administrador de esa iglesia.
+3. Ese administrador entra con su usuario, cambia la contraseña y crea sus
+   usuarios e integrantes. El super administrador puede hacerlo por él usando
+   el selector de iglesia de la barra superior.
 
 ## Instalación local
 
@@ -60,22 +64,26 @@ DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/asistencia_iglesia
 PORT=3000
 JWT_SECRET=un_secreto_largo
 NODE_ENV=development
-GRUPOS=orquesta,coro
-IGLESIA_NOMBRE=Prueba
 ```
 
 ```bash
 npm start
 ```
 
+Al arrancar crea las tablas, migra una base anterior (crea la iglesia inicial
+y le asigna usuarios e integrantes) y, si la base está vacía, crea la primera
+iglesia y el super administrador.
+
 ## Estructura
 
 ```
 ├── server.js            # Servidor Express
-├── config.js            # Nombre y grupos de esta instalación (desde el entorno)
-├── database.js          # Tablas, migraciones y usuario inicial
+├── config.js            # Grupos disponibles (orquesta / coro) y sus secciones
+├── database.js          # Tablas, migraciones y datos iniciales
+├── middleware/auth.js   # verifyToken, verificarAdmin, verificarSuperadmin
 ├── routes/
-│   ├── auth.js          # Login y JWT
+│   ├── auth.js          # Login, JWT (lleva la iglesia), cambio de iglesia
+│   ├── iglesias.js      # Iglesia actual; alta y edición (super admin)
 │   ├── asistencia.js    # Integrantes y registro de asistencia
 │   ├── reportes.js      # Conteos, resumen y detalle por evento
 │   └── usuarios.js      # Gestión de usuarios (admin)
@@ -87,11 +95,14 @@ npm start
 
 ## Endpoints principales
 
-- `GET  /api/config` — nombre y grupos de la instalación (público)
-- `POST /api/auth/login`, `GET /api/auth/verify`
+Todos (salvo login) llevan `Authorization: Bearer <token>` y se limitan a la
+iglesia del token.
+
+- `POST /api/auth/login`, `GET /api/auth/verify`, `POST /api/auth/cambiar-iglesia/:id` (super admin)
+- `GET  /api/iglesias/actual`; `GET|POST /api/iglesias`, `PUT /api/iglesias/:id` (super admin)
 - `GET  /api/asistencia/miembros/:grupo`, `POST /api/asistencia/miembro/nuevo`,
-  `PUT|DELETE /api/asistencia/miembro/:id`
+  `GET|PUT|DELETE /api/asistencia/miembro/:id`
 - `POST /api/asistencia/registrar-lote` — guarda toda la asistencia de un evento
 - `GET  /api/asistencia/:grupo/:fecha/:tipoEvento`, `DELETE /api/asistencia/evento/:grupo/:fecha/:tipoEvento`
 - `GET  /api/reportes/conteos/:grupo`, `/fechas/:grupo`, `/resumen/:grupo|todos`, `/evento/:grupo?tipo_evento=`
-- `GET|POST|PUT|DELETE /api/usuarios/...` — solo admin
+- `GET|POST|PUT|DELETE /api/usuarios/...` — admin

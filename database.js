@@ -94,10 +94,72 @@ async function initializeDatabase() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_asistencia_fecha ON registro_asistencia(fecha)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_asistencia_miembro ON registro_asistencia(miembro_id)`);
 
+    await migrarAIglesias();
+
     console.log('✓ Base de datos inicializada correctamente');
   } catch (error) {
     console.error('Error inicializando BD:', error.message);
     throw error;
+  }
+}
+
+// ===== VARIAS IGLESIAS EN UNA MISMA BASE =====
+// Cada usuario e integrante pertenece a una iglesia. Las bases anteriores a
+// esto tenían una sola: se la crea y se le asigna todo lo existente.
+async function migrarAIglesias() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS iglesias (
+      id SERIAL PRIMARY KEY,
+      nombre VARCHAR(120) NOT NULL,
+      departamento VARCHAR(120),
+      anciano VARCHAR(120),
+      grupos VARCHAR(60) NOT NULL DEFAULT 'orquesta',
+      activa BOOLEAN DEFAULT true,
+      fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  for (const tabla of ['usuarios', 'miembros']) {
+    try {
+      await pool.query(`ALTER TABLE ${tabla} ADD COLUMN iglesia_id INTEGER REFERENCES iglesias(id)`);
+    } catch (e) { /* ya existe */ }
+  }
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_iglesia ON miembros(iglesia_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_usuarios_iglesia ON usuarios(iglesia_id)`);
+
+  // Datos previos sin iglesia: se crea la primera y se le asigna todo
+  const sinIglesia = await pool.query(`
+    SELECT (SELECT COUNT(*) FROM usuarios WHERE iglesia_id IS NULL) AS usuarios,
+           (SELECT COUNT(*) FROM miembros WHERE iglesia_id IS NULL) AS miembros
+  `);
+  if (Number(sinIglesia.rows[0].usuarios) + Number(sinIglesia.rows[0].miembros) > 0) {
+    let iglesia = await pool.query('SELECT id FROM iglesias ORDER BY id LIMIT 1');
+    if (iglesia.rows.length === 0) {
+      const nombre = process.env.IGLESIA_INICIAL || process.env.IGLESIA_NOMBRE || 'Dorrego';
+      const grupos = process.env.GRUPOS || 'orquesta';
+      iglesia = await pool.query(
+        'INSERT INTO iglesias (nombre, grupos) VALUES ($1, $2) RETURNING id',
+        [nombre, grupos]
+      );
+      console.log(`✓ Iglesia inicial creada: ${nombre} (${grupos})`);
+    }
+    const id = iglesia.rows[0].id;
+    await pool.query('UPDATE usuarios SET iglesia_id = $1 WHERE iglesia_id IS NULL', [id]);
+    await pool.query('UPDATE miembros SET iglesia_id = $1 WHERE iglesia_id IS NULL', [id]);
+    console.log('✓ Usuarios e integrantes existentes asignados a la iglesia inicial');
+  }
+
+  // Tiene que haber un super administrador (crea iglesias y ve todas)
+  const superadmins = await pool.query(`SELECT COUNT(*) FROM usuarios WHERE rol = 'superadmin'`);
+  if (Number(superadmins.rows[0].count) === 0) {
+    const preferido = process.env.SUPERADMIN_USUARIO;
+    const r = preferido
+      ? await pool.query(`UPDATE usuarios SET rol = 'superadmin' WHERE LOWER(usuario) = LOWER($1) RETURNING usuario`, [preferido])
+      : await pool.query(`
+          UPDATE usuarios SET rol = 'superadmin'
+          WHERE id = (SELECT id FROM usuarios WHERE rol = 'admin' AND activo = true ORDER BY fecha_creacion, id LIMIT 1)
+          RETURNING usuario`);
+    if (r.rows.length) console.log(`✓ Super administrador: ${r.rows[0].usuario}`);
   }
 }
 
@@ -113,18 +175,22 @@ async function seedDatabase() {
       return;
     }
 
-    // Instalación nueva: un administrador para entrar y crear el resto de
-    // los usuarios desde Configuración. La clave sale de ADMIN_PASSWORD.
+    // Instalación nueva: la primera iglesia y un super administrador para
+    // entrar, crear iglesias y usuarios. La clave sale de ADMIN_PASSWORD.
     const bcrypt = require('bcryptjs');
     const usuario = process.env.ADMIN_USUARIO || 'admin';
     const clave = process.env.ADMIN_PASSWORD || 'admin1234';
     const hashedPassword = await bcrypt.hash(clave, 10);
 
-    await pool.query(
-      'INSERT INTO usuarios (usuario, password, rol, nombre_completo) VALUES ($1, $2, $3, $4)',
-      [usuario, hashedPassword, 'admin', 'Administrador']
+    const iglesia = await pool.query(
+      'INSERT INTO iglesias (nombre, grupos) VALUES ($1, $2) RETURNING id',
+      [process.env.IGLESIA_INICIAL || 'Dorrego', process.env.GRUPOS || 'orquesta']
     );
-    console.log(`✓ Usuario administrador creado: ${usuario} (cambiá la contraseña al entrar)`);
+    await pool.query(
+      'INSERT INTO usuarios (usuario, password, rol, nombre_completo, iglesia_id) VALUES ($1, $2, $3, $4, $5)',
+      [usuario, hashedPassword, 'superadmin', 'Administrador', iglesia.rows[0].id]
+    );
+    console.log(`✓ Super administrador creado: ${usuario} (cambiá la contraseña al entrar)`);
 
   } catch (error) {
     console.error('Error en seed:', error.message);
