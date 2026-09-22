@@ -44,6 +44,10 @@ function initApp() {
             const etiqueta = document.createElement('span');
             etiqueta.textContent = nombre;
             usuarioActual.append(avatar, etiqueta);
+
+            // "Bienvenido, Lucas": el saludo del Inicio lleva el primer nombre
+            const saludo = document.getElementById('inicioTitulo');
+            if (saludo) saludo.textContent = `Bienvenido, ${nombre.trim().split(/\s+/)[0]}`;
         }
 
         // Ocultar Configuración si NO es admin

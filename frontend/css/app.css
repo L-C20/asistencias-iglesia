@@ -702,6 +702,19 @@ svg { flex-shrink: 0; }
     transform: translateX(-50%);
 }
 
+/* Debajo del saludo: cita compacta a la izquierda con un filete al costado */
+.versiculo-cabecera {
+    max-width: 680px;
+    margin: calc(-1 * var(--sp-2)) 0 var(--sp-6);
+    padding: 2px 0 2px var(--sp-4);
+    text-align: left;
+    border-left: 2px solid var(--brand-100);
+}
+
+.versiculo-cabecera::before { display: none; }
+.versiculo-cabecera p { font-size: 14px; line-height: 1.6; }
+.versiculo-cabecera figcaption { margin-top: var(--sp-1); }
+
 .versiculo blockquote { margin: 0; }
 
 .versiculo p {
