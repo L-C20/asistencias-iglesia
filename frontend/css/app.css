@@ -1434,10 +1434,19 @@ input::placeholder { color: var(--text-light); }
     color: var(--brand-600);
 }
 
+/* Título del evento a la izquierda, descargas a la derecha */
+.detalle-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-4);
+}
+
 #detalleEventoTitulo {
     font-size: var(--fs-xl);
     font-weight: 600;
-    margin-bottom: var(--sp-4);
 }
 
 /* Barra de filtros del detalle */
@@ -1632,7 +1641,6 @@ input::placeholder { color: var(--text-light); }
     align-items: center;
     flex-wrap: wrap;
     gap: var(--sp-2);
-    margin: calc(-1 * var(--sp-2)) 0 var(--sp-5);
 }
 
 .descargas-texto { font-size: var(--fs-sm); color: var(--text-3); margin-right: var(--sp-1); }
