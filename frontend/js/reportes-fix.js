@@ -41,9 +41,10 @@ window.actualizarHeaderTabla = function() {
 
     headEl.innerHTML = html + '</tr>';
 
-    const cont = document.getElementById('notasSemana');
-    if (cont) {
-        cont.hidden = notasSemana.length === 0;
+    const bloque = document.getElementById('notasSemana');
+    const cont = document.getElementById('notasSemanaLista');
+    if (bloque && cont) {
+        bloque.hidden = notasSemana.length === 0;
         cont.innerHTML = notasSemana.map(n =>
             `<div class="nota-semana"><span class="nota-semana-dia">${n.abr} ${n.ddmm}</span><span class="nota-semana-texto">${escaparHtml(n.nota)}</span></div>`
         ).join('');

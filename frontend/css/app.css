@@ -1626,12 +1626,35 @@ input::placeholder { color: var(--text-light); }
 
 .col-dia-marca-nota svg { width: 12px; height: 12px; }
 
-/* Notas de la semana, en tamaño legible, arriba de la tabla */
+/* Notas de la semana: tarjeta propia entre los filtros y la tabla */
 .notas-semana {
+    margin-bottom: var(--sp-5);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--brand-500);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-xs);
+}
+
+.notas-semana-titulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: var(--sp-2);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.notas-semana-titulo svg { width: 14px; height: 14px; color: var(--brand-600); }
+
+.notas-semana-lista {
     display: flex;
     flex-wrap: wrap;
     gap: var(--sp-2);
-    margin-bottom: var(--sp-3);
 }
 
 .nota-semana {
