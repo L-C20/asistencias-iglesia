@@ -1857,8 +1857,10 @@ input::placeholder { color: var(--text-light); }
     align-items: start;
 }
 
-/* La tabla de iglesias tiene muchas columnas: ocupa todo el ancho */
-#seccionIglesias { grid-column: 1 / -1; }
+/* Cada sección de Configuración ocupa todo el ancho, una debajo de la otra */
+.config-container { grid-template-columns: 1fr; }
+#seccionIglesias,
+#seccionGestionUsuarios { grid-column: 1 / -1; }
 
 .config-section {
     background: var(--surface);
