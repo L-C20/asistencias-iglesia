@@ -702,14 +702,6 @@ svg { flex-shrink: 0; }
     transform: translateX(-50%);
 }
 
-/* Variante al principio de la pantalla: la línea separadora va debajo */
-.versiculo-arriba {
-    margin: 0 auto var(--sp-8);
-    padding: 0 0 var(--sp-6);
-}
-
-.versiculo-arriba::before { top: auto; bottom: 0; }
-
 .versiculo blockquote { margin: 0; }
 
 .versiculo p {
