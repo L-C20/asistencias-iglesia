@@ -478,6 +478,9 @@ svg { flex-shrink: 0; }
     border-radius: var(--r-md);
 }
 
+/* Con un solo grupo va oculto: display propio no debe pisar el atributo hidden */
+.selector-grupo[hidden] { display: none; }
+
 .selector-grupo-btn {
     padding: 6px var(--sp-4);
     font-family: inherit;
@@ -698,6 +701,14 @@ svg { flex-shrink: 0; }
     background: var(--gray-300);
     transform: translateX(-50%);
 }
+
+/* Variante al principio de la pantalla: la línea separadora va debajo */
+.versiculo-arriba {
+    margin: 0 auto var(--sp-8);
+    padding: 0 0 var(--sp-6);
+}
+
+.versiculo-arriba::before { top: auto; bottom: 0; }
 
 .versiculo blockquote { margin: 0; }
 
@@ -1784,7 +1795,11 @@ input::placeholder { color: var(--text-light); }
     border-radius: var(--r-lg);
     padding: var(--sp-5);
     box-shadow: var(--sh-xs);
+    /* Las tablas anchas se desplazan adentro; la sección nunca desborda la pantalla */
+    min-width: 0;
 }
+
+.config-section .tabla-miembros { max-width: 100%; }
 
 .config-section h3 {
     font-size: var(--fs-md);
@@ -2133,6 +2148,7 @@ input::placeholder { color: var(--text-light); }
     }
     .stat-hint { min-height: 2.4em; }
 
+    /* Toma de asistencia: los tres botones P/A/AJ en su propia línea */
     .miembro-row {
         flex-direction: column;
         align-items: stretch;
@@ -2142,14 +2158,58 @@ input::placeholder { color: var(--text-light); }
     .miembro-switches { width: 100%; }
     .toggle-switch { flex: 1; min-width: 0; }
 
+    /* Lista de integrantes: nombre y botones editar/eliminar en una sola línea */
+    #listaMiembros .miembro-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
     .tabla-datos tbody td,
     .tabla-datos thead th { padding: var(--sp-3) var(--sp-2); }
 
     .tab-footer { flex-direction: column; }
     .tab-footer .btn { width: 100%; }
 
-    .barra-guardar { flex-direction: row; justify-content: space-between; }
-    .barra-guardar .btn { width: auto; flex: 1; }
+    /* Barra de guardar: fondo sólido de borde a borde, el texto no se mezcla con la lista */
+    .barra-guardar {
+        flex-direction: row;
+        justify-content: space-between;
+        margin: 0 calc(-1 * var(--sp-3));
+        padding: var(--sp-3);
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -4px 12px rgba(16, 24, 40, .06);
+    }
+    .barra-guardar .btn { width: auto; flex: 1; box-shadow: none; }
+
+    /* Tabla del reporte: la sección ya dice el instrumento, esa columna sobra;
+       el nombre queda fijo a la izquierda mientras se desplazan los días */
+    #tablaDetalle th:nth-child(2),
+    #tablaDetalle .celda-detalle { display: none; }
+    #tablaDetalle th:first-child,
+    #tablaDetalle .celda-nombre,
+    #tablaDetalle .seccion-rep-cabecera td:first-child,
+    #tablaDetalle .fila-total td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: inherit;
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    #tablaDetalle .miembro-fila td.celda-nombre { background: var(--surface); }
+    #tablaDetalle .seccion-rep-cabecera td:first-child { background: var(--gray-50); }
+    #tablaDetalle tfoot td:first-child { background: var(--surface); z-index: 3; }
+    #tablaDetalle thead th:first-child { background: var(--gray-50); z-index: 3; }
+    #tablaDetalle .seccion-rep-titulo { min-width: 0; }
+
+    /* Usuarios: sin la columna Estado entran las acciones sin desplazar */
+    #tablaUsuarios th:nth-child(3),
+    #tablaUsuarios td:nth-child(3) { display: none; }
+    #tablaUsuarios .celda-acciones { white-space: nowrap; }
 
     .modal-content { padding: var(--sp-5); }
 
