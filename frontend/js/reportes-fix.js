@@ -16,6 +16,7 @@ window.actualizarHeaderTabla = function() {
     const fechasConDatos = new Set((window.datosReporte || []).filter(d => d.fecha).map(d => d.fecha.split('T')[0]));
 
     let html = `<tr><th>Nombre y Apellido</th><th>${grupoInfo(grupoReporte).categoria}</th>`;
+    const notasSemana = [];
 
     fechasCulto.forEach(fecha => {
         const dia = new Date(fecha + 'T00:00:00');
@@ -29,12 +30,24 @@ window.actualizarHeaderTabla = function() {
                    </svg>
                </button>`
             : '';
+        // La nota completa va arriba de la tabla; en la columna solo una marca
         const nota = ((window.descripcionesReporte || {})[tipoEventoActual] || {})[fecha];
-        const notaHtml = nota ? `<span class="col-dia-nota" title="${escaparHtml(nota)}">${escaparHtml(nota)}</span>` : '';
-        html += `<th class="col-dia ${nota ? 'con-nota' : ''}"><span class="col-dia-nombre">${abr}</span><span class="col-dia-fecha">${ddmm}</span>${notaHtml}${borrar}</th>`;
+        if (nota) notasSemana.push({ abr, ddmm, nota });
+        const marcaNota = nota
+            ? `<span class="col-dia-marca-nota" title="${escaparHtml(nota)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg></span>`
+            : '';
+        html += `<th class="col-dia ${nota ? 'con-nota' : ''}"><span class="col-dia-nombre">${abr}${marcaNota}</span><span class="col-dia-fecha">${ddmm}</span>${borrar}</th>`;
     });
 
     headEl.innerHTML = html + '</tr>';
+
+    const cont = document.getElementById('notasSemana');
+    if (cont) {
+        cont.hidden = notasSemana.length === 0;
+        cont.innerHTML = notasSemana.map(n =>
+            `<div class="nota-semana"><span class="nota-semana-dia">${n.abr} ${n.ddmm}</span><span class="nota-semana-texto">${escaparHtml(n.nota)}</span></div>`
+        ).join('');
+    }
 };
 
 // Estado de un registro como P / A / AJ
