@@ -167,6 +167,46 @@ window.eliminarEvento = async function(fecha) {
     }
 };
 
+// ===== DESCARGAR EXCEL / PDF DE LA SEMANA MOSTRADA =====
+let descargando = false;
+
+window.descargarReporte = async function(formato) {
+    if (descargando) return;
+    const fechas = window.obtenerFechasCultoDeSemana();
+    const botones = document.querySelectorAll('.descargas .btn');
+    descargando = true;
+    botones.forEach(b => { b.disabled = true; });
+
+    try {
+        const token = localStorage.getItem('token');
+        const url = `/api/exportar/${grupoReporte}?tipo_evento=${tipoEventoActual}&fechas=${fechas.join(',')}&formato=${formato}`;
+        const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!r.ok) {
+            const data = await r.json().catch(() => ({}));
+            throw new Error(data.error || `Error HTTP ${r.status}`);
+        }
+
+        // El nombre del archivo lo decide el servidor
+        const disposicion = r.headers.get('Content-Disposition') || '';
+        const nombre = (disposicion.match(/filename="([^"]+)"/) || [])[1] || `asistencia.${formato}`;
+        const blob = await r.blob();
+        const enlace = document.createElement('a');
+        enlace.href = URL.createObjectURL(blob);
+        enlace.download = nombre;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        setTimeout(() => URL.revokeObjectURL(enlace.href), 10000);
+        mostrarToast(`${formato === 'pdf' ? 'PDF' : 'Excel'} descargado`, 'success');
+    } catch (e) {
+        console.error('❌ Error descargando:', e);
+        mostrarError('No se pudo generar el archivo');
+    } finally {
+        descargando = false;
+        botones.forEach(b => { b.disabled = false; });
+    }
+};
+
 // ===== VOLVER =====
 window.volverATarjetas = function() {
     console.log('🔙 Volver a tarjetas');

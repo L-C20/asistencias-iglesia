@@ -1626,6 +1626,17 @@ input::placeholder { color: var(--text-light); }
 
 .col-dia-marca-nota svg { width: 12px; height: 12px; }
 
+/* Botones de descarga (Excel / PDF) debajo de los filtros */
+.descargas {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin: calc(-1 * var(--sp-2)) 0 var(--sp-5);
+}
+
+.descargas-texto { font-size: var(--fs-sm); color: var(--text-3); margin-right: var(--sp-1); }
+
 /* Notas de la semana: tarjeta propia entre los filtros y la tabla */
 .notas-semana {
     margin-bottom: var(--sp-5);

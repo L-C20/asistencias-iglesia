@@ -9,6 +9,7 @@ const asistenciaRouter = require('./routes/asistencia');
 const reportesRouter = require('./routes/reportes');
 const usuariosRouter = require('./routes/usuarios');
 const iglesiasRouter = require('./routes/iglesias');
+const exportarRouter = require('./routes/exportar');
 const { initializeDatabase, seedDatabase } = require('./database');
 
 if (!process.env.JWT_SECRET) {
@@ -30,6 +31,7 @@ app.use('/api/asistencia', asistenciaRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/iglesias', iglesiasRouter);
+app.use('/api/exportar', exportarRouter);
 
 // Ruta raíz - servir login
 app.get('/', (req, res) => {
