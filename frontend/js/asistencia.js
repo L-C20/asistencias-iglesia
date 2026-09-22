@@ -42,11 +42,16 @@ function descripcionGuardada(tipo, fecha) {
     return (borrador && borrador._descripcion) || '';
 }
 
+// En un bautismo no hay nada más que anotar: el campo "Evento" no se muestra
+const TIPOS_SIN_NOTA = ['bautismo'];
+
 // El campo "Evento" del modal sigue a la fecha elegida
 function actualizarDescripcionModal() {
     const input = document.getElementById('descripcionEventoModal');
     if (!input) return;
     const tipo = document.querySelector('input[name="tipoEvento"]:checked')?.value || 'santo_culto';
+    const bloque = document.getElementById('bloqueDescripcionEvento');
+    if (bloque) bloque.hidden = TIPOS_SIN_NOTA.includes(tipo);
     const chip = document.querySelector('input[name="fechaChip"]:checked');
     const fecha = chip && chip.value ? chip.value : document.getElementById('fechaEventoModal')?.value;
     input.value = fecha ? descripcionGuardada(tipo, fecha) : '';
@@ -166,7 +171,9 @@ function guardarConfiguracionEvento(e) {
     
     tipoEventoAsistencia = tipoEvento;
     fechaEventoActual = fecha;
-    descripcionEvento = (document.getElementById('descripcionEventoModal')?.value || '').trim();
+    descripcionEvento = TIPOS_SIN_NOTA.includes(tipoEvento)
+        ? ''
+        : (document.getElementById('descripcionEventoModal')?.value || '').trim();
     
     // Cerrar modal de evento y cargar miembros
     cerrarModalEvento();
@@ -211,7 +218,7 @@ async function cargarMiembrosParaAsistencia(grupo) {
         if (borrador) {
             const { _descripcion, ...marcas } = borrador;
             Object.assign(asistenciasParaGuardar, marcas);
-            if (_descripcion && !descripcionEvento) descripcionEvento = _descripcion;
+            if (_descripcion && !descripcionEvento && !TIPOS_SIN_NOTA.includes(tipoEventoAsistencia)) descripcionEvento = _descripcion;
             mostrarToast('Se recuperó lo que habías marcado sin guardar', 'info');
         }
 
