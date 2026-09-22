@@ -743,19 +743,34 @@ svg { flex-shrink: 0; }
     gap: var(--sp-4);
 }
 
+/* Encabezado de la zona "Registrar asistencia" del Inicio */
+.seccion-registrar { margin: var(--sp-2) 0 var(--sp-4); }
+
+.seccion-registrar-titulo {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+}
+
+.seccion-registrar-sub {
+    margin-top: 2px;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+}
+
+/* Tarjeta principal del Inicio: fondo azul suave y botón sólido */
 .card-grupo {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: var(--sp-3);
+    align-items: stretch;
+    gap: var(--sp-4);
     width: 100%;
     max-width: 380px;
-    padding: var(--sp-6);
+    padding: var(--sp-5);
     text-align: left;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--brand-50) 0%, var(--surface) 100%);
+    border: 1px solid var(--brand-100);
     border-radius: var(--r-lg);
-    box-shadow: var(--sh-xs);
+    box-shadow: var(--sh-sm);
     cursor: pointer;
     transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
     font-family: inherit;
@@ -767,18 +782,35 @@ svg { flex-shrink: 0; }
     transform: translateY(-2px);
 }
 
+.card-grupo-cabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
 .card-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
     border-radius: var(--r-md);
-    background: var(--brand-50);
-    color: var(--brand-600);
+    background: var(--brand-600);
+    color: #fff;
+    box-shadow: var(--sh-sm);
 }
 
-.card-icon svg { width: 24px; height: 24px; }
+.card-icon svg { width: 26px; height: 26px; }
+
+/* El botón es decorativo (toda la tarjeta es el botón), pero marca la acción */
+.card-accion {
+    width: 100%;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.card-grupo:hover .card-accion { background: var(--brand-700); border-color: var(--brand-700); }
 
 .card-grupo h3 {
     font-size: var(--fs-lg);
@@ -790,19 +822,6 @@ svg { flex-shrink: 0; }
     font-size: var(--fs-sm);
     color: var(--text-3);
     margin: 0;
-}
-
-.card-footer {
-    margin-top: var(--sp-2);
-    padding-top: var(--sp-3);
-    border-top: 1px solid var(--border);
-    width: 100%;
-}
-
-.card-action {
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    color: var(--brand-600);
 }
 
 /* ---------- 8. Filtros ---------- */

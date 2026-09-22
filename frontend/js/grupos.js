@@ -143,12 +143,17 @@ function aplicarConfigEnPantalla() {
     if (tarjetas) {
         tarjetas.innerHTML = APP_CONFIG.grupos.map(g => `
             <button class="card-grupo" onclick="irAAsistencia('${g.id}'); return false;" type="button">
-                <div class="card-icon">${iconoGrupo(g.id, 48)}</div>
-                <h3>${g.nombre}</h3>
-                <p id="conteo-${g.id}" class="card-count">— integrantes</p>
-                <div class="card-footer">
-                    <span class="card-action">Registrar asistencia →</span>
+                <div class="card-grupo-cabecera">
+                    <div class="card-icon">${iconoGrupo(g.id, 48)}</div>
+                    <div>
+                        <h3>${g.nombre}</h3>
+                        <p id="conteo-${g.id}" class="card-count">— integrantes</p>
+                    </div>
                 </div>
+                <span class="btn btn-primary card-accion">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Registrar asistencia
+                </span>
             </button>
         `).join('');
     }
