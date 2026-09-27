@@ -77,21 +77,23 @@ function renderizarPanelIglesias() {
             <td class="celda-detalle">${i.asistencia_promedio === null ? '—' : i.asistencia_promedio + '%'}</td>
             <td class="celda-reportes">
                 <div class="botones-reportes">
-                    ${i.grupos.map(g => `
-                        <button class="btn-ver-reporte" onclick="verReportesDe(${i.id}, '${g.id}')">
-                            <span>${g.nombre}</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </button>`).join('')}
+                    <button class="btn-ver-reporte" onclick="verReportesDe(${i.id})">
+                        <span>Ver reporte</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
                 </div>
             </td>
         </tr>`;
     }).join('');
 }
 
-// Abre Reportes apuntando a otra iglesia (solo lectura)
+// Abre Reportes apuntando a otra iglesia (solo lectura). Sin grupo, entra por
+// el primero; si la iglesia tiene coro y orquesta, adentro está la botonera
+// para pasar de uno al otro.
 function verReportesDe(iglesiaId, grupo) {
     const iglesia = iglesiasResumen.find(i => i.id === iglesiaId);
     if (!iglesia) return;
+    grupo = grupo || (iglesia.grupos[0] && iglesia.grupos[0].id) || 'orquesta';
 
     cambiarTab('reportes');
     // null = la propia; con valor, las consultas de reportes llevan ?iglesia_id=
