@@ -2482,6 +2482,20 @@ input::placeholder { color: var(--text-light); }
     .toast-container { left: var(--sp-3); right: var(--sp-3); align-items: stretch; }
 }
 
+/* Lo que se pierde al eliminar una iglesia */
+.lista-borrado {
+    margin: 0 0 var(--sp-5);
+    padding: var(--sp-3) var(--sp-4);
+    list-style: none;
+    border: 1px solid #fecdca;
+    border-radius: var(--r-md);
+    background: var(--red-50);
+    font-size: var(--fs-sm);
+    color: var(--red-700);
+}
+
+.lista-borrado li { padding: 3px 0; }
+
 /* ---------- 20. Solicitudes de alta ---------- */
 .enlace-generado {
     display: flex;

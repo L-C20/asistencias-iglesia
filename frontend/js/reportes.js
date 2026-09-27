@@ -39,6 +39,9 @@ window.cargarReporteGrupo = function(grupo) {
         const detalle = document.getElementById('vistaDetalle');
         if (detalle && detalle.style.display !== 'none') abrirReporteEvento(tipoEventoActual);
     }, gruposVisibles);
+    const tarjetaBautismo = document.getElementById('tarjetaBautismo');
+    if (tarjetaBautismo) tarjetaBautismo.hidden = !registraBautismos();
+
     const sub = document.getElementById('reportesSubtitulo');
     if (sub) sub.textContent = hayVariosGrupos(gruposVisibles) ? `Análisis de asistencia · ${grupoInfo(grupoReporte).nombre}` : 'Análisis de asistencia';
 

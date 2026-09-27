@@ -442,10 +442,99 @@ function renderizarTablaIglesias(iglesias) {
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                         <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="abrirModalEliminarIglesia(${i.id})" title="Eliminar iglesia">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
                 </button>`}
             </td>
         </tr>
     `).join('');
+}
+
+// ===== ELIMINAR UNA IGLESIA =====
+// Se borra todo lo suyo y no hay vuelta atrás, así que el servidor dice antes
+// qué se va a perder y el botón se habilita recién al escribir el nombre.
+let iglesiaAEliminar = null;
+
+async function abrirModalEliminarIglesia(id) {
+    const modal = document.getElementById('modalEliminarIglesia');
+    if (!modal) return;
+
+    const impedido = document.getElementById('borradoImpedido');
+    const posible = document.getElementById('borradoPosible');
+    const boton = document.getElementById('btnEliminarIglesia');
+    document.getElementById('borradoConfirmacion').value = '';
+    boton.disabled = true;
+
+    try {
+        const r = await fetch(`${API_URL}/iglesias/${id}/borrado`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const datos = await r.json();
+        if (!r.ok) throw new Error(datos.error || 'No se pudo consultar la iglesia');
+
+        iglesiaAEliminar = datos;
+        document.getElementById('borradoNombre').textContent = datos.nombre;
+
+        // Alguna iglesia no se puede borrar: se explica y no se ofrece el campo
+        impedido.style.display = datos.motivo ? 'block' : 'none';
+        impedido.textContent = datos.motivo || '';
+        posible.hidden = !!datos.motivo;
+        boton.hidden = !!datos.motivo;
+
+        const linea = (cantidad, singular, plural) =>
+            `<li><b>${cantidad.toLocaleString('es-AR')}</b> ${cantidad === 1 ? singular : plural}</li>`;
+        document.getElementById('borradoDetalle').innerHTML =
+            linea(datos.integrantes, 'integrante', 'integrantes') +
+            linea(datos.usuarios, 'usuario', 'usuarios') +
+            linea(datos.eventos, 'evento', 'eventos') +
+            linea(datos.registros, 'registro de asistencia', 'registros de asistencia');
+
+        modal.classList.add('show');
+    } catch (e) {
+        mostrarToast(e.message, 'error');
+    }
+}
+
+// El botón se habilita solo si el nombre escrito coincide
+function revisarConfirmacionBorrado() {
+    const escrito = document.getElementById('borradoConfirmacion').value.trim().toLowerCase();
+    const esperado = (iglesiaAEliminar?.nombre || '').trim().toLowerCase();
+    document.getElementById('btnEliminarIglesia').disabled = !escrito || escrito !== esperado;
+}
+
+async function eliminarIglesia(e) {
+    e.preventDefault();
+    if (!iglesiaAEliminar) return;
+
+    const boton = document.getElementById('btnEliminarIglesia');
+    boton.disabled = true;
+    try {
+        const r = await fetch(`${API_URL}/iglesias/${iglesiaAEliminar.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre: document.getElementById('borradoConfirmacion').value.trim() })
+        });
+        const datos = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(datos.error || 'No se pudo eliminar la iglesia');
+
+        cerrarModal('modalEliminarIglesia');
+        mostrarToast(`Iglesia ${iglesiaAEliminar.nombre} eliminada`, 'success');
+        iglesiaAEliminar = null;
+        await cargarIglesias();
+        // El selector de la barra superior ya no la tiene
+        cargarConfigApp();
+        if (typeof cargarSolicitudes === 'function') cargarSolicitudes();
+    } catch (error) {
+        mostrarToast(error.message, 'error');
+        boton.disabled = false;
+    }
 }
 
 // Sin id: crear (pide el primer administrador). Con id: editar datos.
@@ -470,6 +559,7 @@ function abrirModalIglesia(id) {
     document.getElementById('iglesiaGrupoOrquesta').checked = tiene('orquesta');
     document.getElementById('iglesiaGrupoCoro').checked = tiene('coro');
 
+    document.getElementById('iglesiaBautismos').checked = editando ? iglesia.bautismos === true : false;
     renderDiasCulto(editando ? iglesia.diasCulto : [0, 2, 6]);
 
     document.getElementById('bloqueAdminIglesia').hidden = editando;
@@ -510,7 +600,8 @@ async function guardarIglesia(e) {
         departamento: document.getElementById('iglesiaDepartamento').value.trim(),
         anciano: document.getElementById('iglesiaAnciano').value.trim(),
         grupos,
-        dias_culto: dias
+        dias_culto: dias,
+        bautismos: document.getElementById('iglesiaBautismos').checked
     };
 
     if (!datos.nombre) { mostrarToast('Poné el nombre de la iglesia', 'error'); return; }

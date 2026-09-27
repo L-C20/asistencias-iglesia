@@ -171,6 +171,21 @@ async function migrarAIglesias() {
     await pool.query(`UPDATE iglesias SET dias_culto = '0,2,6' WHERE dias_culto IS NULL`);
   } catch (e) { /* ya existe */ }
 
+  // Bautismos: no todas las iglesias los registran. Al estrenar la columna,
+  // los conservan la iglesia original y las que ya tengan alguno cargado; el
+  // resto arranca sin ellos y se habilitan desde el formulario de iglesia.
+  try {
+    await pool.query(`ALTER TABLE iglesias ADD COLUMN bautismos BOOLEAN DEFAULT false`);
+    await pool.query(`
+      UPDATE iglesias SET bautismos = true
+      WHERE id = (SELECT MIN(id) FROM iglesias)
+         OR id IN (
+           SELECT DISTINCT m.iglesia_id
+           FROM registro_asistencia ra JOIN miembros m ON m.id = ra.miembro_id
+           WHERE ra.tipo_evento = 'bautismo'
+         )`);
+  } catch (e) { /* ya existe */ }
+
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_iglesia ON miembros(iglesia_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_usuarios_iglesia ON usuarios(iglesia_id)`);
 

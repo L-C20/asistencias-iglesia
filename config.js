@@ -57,7 +57,9 @@ function configDeIglesia(fila) {
     anciano: fila.anciano || '',
     activa: fila.activa !== false,
     grupos: (grupos.length ? grupos : ['orquesta']).map(id => GRUPOS_DISPONIBLES[id]),
-    diasCulto: dias.length ? dias : DIAS_CULTO_POR_DEFECTO
+    diasCulto: dias.length ? dias : DIAS_CULTO_POR_DEFECTO,
+    // No todas las iglesias registran bautismos
+    bautismos: fila.bautismos === true
   };
 }
 

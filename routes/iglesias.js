@@ -91,9 +91,9 @@ router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
     }
 
     const iglesia = await client.query(
-      `INSERT INTO iglesias (nombre, departamento, anciano, grupos, dias_culto)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [nombre, departamento, anciano, grupos.join(','), diasCulto.join(',')]
+      `INSERT INTO iglesias (nombre, departamento, anciano, grupos, dias_culto, bautismos)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [nombre, departamento, anciano, grupos.join(','), diasCulto.join(','), req.body.bautismos === true]
     );
     const hash = await bcrypt.hash(adminPassword, 10);
     await client.query(
@@ -127,8 +127,9 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
     const result = await db.query(
       `UPDATE iglesias
        SET nombre = $1, departamento = $2, anciano = $3, grupos = $4, activa = $5,
-           dias_culto = COALESCE($6, dias_culto)
-       WHERE id = $7 RETURNING *`,
+           dias_culto = COALESCE($6, dias_culto),
+           bautismos = COALESCE($7, bautismos)
+       WHERE id = $8 RETURNING *`,
       [
         nombre,
         String(req.body.departamento || '').trim() || null,
@@ -136,6 +137,7 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
         grupos.join(','),
         req.body.activa !== false,
         dias ? dias.join(',') : null,
+        req.body.bautismos === undefined ? null : req.body.bautismos === true,
         req.params.id
       ]
     );
@@ -148,5 +150,95 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
+
+// Qué se perdería al eliminar una iglesia - GET /api/iglesias/:id/borrado
+router.get('/:id/borrado', verifyToken, verificarSuperadmin, async (req, res) => {
+  try {
+    const datos = await contarDatosDe(req.params.id);
+    if (!datos) return res.status(404).json({ error: 'Iglesia no encontrada' });
+    res.json({ ...datos, ...motivoParaNoBorrar(datos, req.user.iglesia_id) });
+  } catch (error) {
+    console.error('Error contando datos de la iglesia:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// Eliminar una iglesia con todo lo suyo - DELETE /api/iglesias/:id
+// Body: { nombre } — el nombre escrito a mano, como confirmación
+router.delete('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
+  const client = await db.pool.connect();
+  try {
+    const datos = await contarDatosDe(req.params.id);
+    if (!datos) return res.status(404).json({ error: 'Iglesia no encontrada' });
+
+    const impedimento = motivoParaNoBorrar(datos, req.user.iglesia_id);
+    if (impedimento.motivo) return res.status(409).json({ error: impedimento.motivo });
+
+    // La confirmación se vuelve a comprobar acá: el botón del panel no alcanza
+    const escrito = String(req.body.nombre || '').trim().toLowerCase();
+    if (escrito !== datos.nombre.trim().toLowerCase()) {
+      return res.status(400).json({ error: 'El nombre escrito no coincide con el de la iglesia' });
+    }
+
+    const id = Number(req.params.id);
+    await client.query('BEGIN');
+    await client.query(
+      `DELETE FROM registro_asistencia
+       WHERE miembro_id IN (SELECT id FROM miembros WHERE iglesia_id = $1)`, [id]);
+    await client.query('DELETE FROM eventos WHERE iglesia_id = $1', [id]);
+    await client.query('DELETE FROM miembros WHERE iglesia_id = $1', [id]);
+    await client.query('DELETE FROM usuarios WHERE iglesia_id = $1', [id]);
+    // La solicitud que le dio origen queda como registro, sin apuntar a nada
+    await client.query('UPDATE solicitudes SET iglesia_id = NULL WHERE iglesia_id = $1', [id]);
+    await client.query('DELETE FROM iglesias WHERE id = $1', [id]);
+    await client.query('COMMIT');
+
+    console.log(`🗑️ Iglesia eliminada: ${datos.nombre} (${datos.integrantes} integrantes, ${datos.usuarios} usuarios, ${datos.registros} registros)`);
+    res.json({ success: true, ...datos });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error eliminando iglesia:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  } finally {
+    client.release();
+  }
+});
+
+// Cuánto hay cargado en una iglesia; null si no existe
+async function contarDatosDe(id) {
+  const r = await db.query(`
+    SELECT i.nombre,
+      (SELECT COUNT(*) FROM miembros m WHERE m.iglesia_id = i.id) AS integrantes,
+      (SELECT COUNT(*) FROM usuarios u WHERE u.iglesia_id = i.id) AS usuarios,
+      (SELECT COUNT(*) FROM usuarios u WHERE u.iglesia_id = i.id AND u.rol = 'superadmin') AS superadmins,
+      (SELECT COUNT(*) FROM eventos e WHERE e.iglesia_id = i.id) AS eventos,
+      (SELECT COUNT(*) FROM registro_asistencia ra
+        WHERE ra.miembro_id IN (SELECT id FROM miembros WHERE iglesia_id = i.id)) AS registros
+    FROM iglesias i WHERE i.id = $1
+  `, [id]);
+  if (r.rows.length === 0) return null;
+  const f = r.rows[0];
+  return {
+    id: Number(id),
+    nombre: f.nombre,
+    integrantes: Number(f.integrantes),
+    usuarios: Number(f.usuarios),
+    superadmins: Number(f.superadmins),
+    eventos: Number(f.eventos),
+    registros: Number(f.registros)
+  };
+}
+
+// Dos iglesias no se pueden borrar: sobre la que se está trabajando y la que
+// tiene al super administrador, que si no se borraría a sí mismo
+function motivoParaNoBorrar(datos, iglesiaDelUsuario) {
+  if (datos.id === Number(iglesiaDelUsuario)) {
+    return { motivo: 'No podés eliminar la iglesia sobre la que estás trabajando. Cambiá a otra y volvé a intentarlo.' };
+  }
+  if (datos.superadmins > 0) {
+    return { motivo: 'Esta iglesia tiene al super administrador. Movelo a otra iglesia antes de eliminarla.' };
+  }
+  return { motivo: null };
+}
 
 module.exports = router;

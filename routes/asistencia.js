@@ -15,6 +15,13 @@ async function grupoHabilitado(iglesiaId, grupo) {
   return r.rows.length > 0 && grupoValidoEn(r.rows[0], grupo);
 }
 
+// Las iglesias que no registran bautismos tampoco los pueden cargar
+async function eventoHabilitado(iglesiaId, tipoEvento) {
+  if (tipoEvento !== 'bautismo') return true;
+  const r = await db.query('SELECT bautismos FROM iglesias WHERE id = $1', [iglesiaId]);
+  return r.rows.length > 0 && r.rows[0].bautismos === true;
+}
+
 // Obtener miembros por grupo - GET /api/asistencia/miembros/:grupo
 router.get('/miembros/:grupo', verifyToken, async (req, res) => {
   try {
@@ -47,6 +54,10 @@ router.post('/registrar-lote', verifyToken, async (req, res) => {
 
   if (!tipo_evento || !fecha || !Array.isArray(registros) || registros.length === 0) {
     return res.status(400).json({ error: 'Datos incompletos' });
+  }
+
+  if (!(await eventoHabilitado(req.user.iglesia_id, tipo_evento))) {
+    return res.status(400).json({ error: 'Esta iglesia no registra bautismos' });
   }
 
   const ids = registros.map(r => Number(r.miembro_id));

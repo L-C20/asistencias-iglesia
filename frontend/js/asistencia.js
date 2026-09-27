@@ -42,8 +42,9 @@ function descripcionGuardada(tipo, fecha) {
     return (borrador && borrador._descripcion) || '';
 }
 
-// En un bautismo no hay nada más que anotar: el campo "Evento" no se muestra
-const TIPOS_SIN_NOTA = ['bautismo'];
+// El campo "Evento" es para ocasiones especiales del culto; en ensayos y
+// bautismos no hay nada que anotar, así que no se muestra
+const TIPOS_SIN_NOTA = ['bautismo', 'ensayo'];
 
 // El campo "Evento" del modal sigue a la fecha elegida
 function actualizarDescripcionModal() {

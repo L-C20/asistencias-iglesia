@@ -345,7 +345,7 @@
                                 <p class="stat-hint">fechas registradas</p>
                                 <span class="ver-mas">Ver →</span>
                             </div>
-                            <div class="tarjeta-evento" onclick="abrirReporteEvento('bautismo')">
+                            <div class="tarjeta-evento" id="tarjetaBautismo" onclick="abrirReporteEvento('bautismo')">
                                 <h3>Bautismo</h3>
                                 <p class="evento-count" id="countBautismo">-</p>
                                 <p class="stat-hint">fechas registradas</p>
@@ -635,6 +635,33 @@
         </div>
     </div>
 
+    <!-- MODAL ELIMINAR IGLESIA (solo super administrador) -->
+    <div id="modalEliminarIglesia" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Eliminar iglesia</span>
+                <button class="modal-close" onclick="cerrarModal('modalEliminarIglesia')">&times;</button>
+            </div>
+            <form id="formEliminarIglesia" onsubmit="eliminarIglesia(event)">
+                <div class="modal-body">
+                    <div id="borradoImpedido" class="alerta-error"></div>
+                    <div id="borradoPosible">
+                        <p class="ayuda-campo">Se eliminarán definitivamente los siguientes datos de <b id="borradoNombre"></b>. Esta acción no se puede deshacer.</p>
+                        <ul class="lista-borrado" id="borradoDetalle"></ul>
+                        <div class="form-group">
+                            <label for="borradoConfirmacion">Escriba el nombre de la iglesia para confirmar:</label>
+                            <input type="text" id="borradoConfirmacion" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" oninput="revisarConfirmacionBorrado()">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalEliminarIglesia')">Cancelar</button>
+                    <button type="submit" class="btn btn-danger" id="btnEliminarIglesia" disabled>Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL IGLESIA (crear / editar, solo super administrador) -->
     <div id="modalIglesia" class="modal">
         <div class="modal-content">
@@ -662,6 +689,12 @@
                         <div class="casillas-grupos">
                             <label class="casilla"><input type="checkbox" id="iglesiaGrupoOrquesta" value="orquesta" checked> <span>Orquesta</span></label>
                             <label class="casilla"><input type="checkbox" id="iglesiaGrupoCoro" value="coro"> <span>Coro</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Registra bautismos:</label>
+                        <div class="casillas-grupos">
+                            <label class="casilla"><input type="checkbox" id="iglesiaBautismos"> <span>Sí, esta iglesia registra bautismos</span></label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -837,7 +870,7 @@
                                 <span class="radio-text">Ensayo</span>
                             </span>
                         </label>
-                        <label class="radio-option">
+                        <label class="radio-option" id="opcionBautismo">
                             <input type="radio" name="tipoEvento" value="bautismo" onchange="renderOpcionesFecha()">
                             <span class="radio-label">
                                 <span class="radio-circle"></span>

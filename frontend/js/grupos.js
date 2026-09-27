@@ -72,6 +72,11 @@ function diasCultoActivos() {
     return Array.isArray(dias) && dias.length ? dias : [0, 2, 6];
 }
 
+// Si la iglesia que se está mirando registra bautismos
+function registraBautismos() {
+    return iglesiaConsultada ? iglesiaConsultada.bautismos === true : APP_CONFIG.bautismos === true;
+}
+
 function grupoInfo(id) {
     // Otra iglesia puede tener grupos que la propia no tiene (p. ej. coro)
     const otros = iglesiaConsultada ? iglesiaConsultada.grupos : [];
@@ -137,6 +142,10 @@ function aplicarConfigEnPantalla() {
     const set = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
     set('marcaNombre', nombre);
     document.title = `Asistencia · ${nombre}`;
+
+    // Bautismos: solo en las iglesias que los registran
+    const opcionBautismo = document.getElementById('opcionBautismo');
+    if (opcionBautismo) opcionBautismo.hidden = !APP_CONFIG.bautismos;
 
     // Panel de todas las iglesias: solo con el permiso correspondiente
     const menuTodas = document.getElementById('menuTodasIglesias');
