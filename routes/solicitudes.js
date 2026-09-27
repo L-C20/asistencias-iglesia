@@ -12,6 +12,15 @@ const router = express.Router();
 
 const ESTADOS = ['pendiente', 'respondida', 'aprobada', 'descartada'];
 
+// Alfabeto sin I, L, O ni U: así ningún código se confunde al leerlo o dictarlo
+const ALFABETO_CODIGO = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+
+// Diez caracteres alcanzan de sobra (más de mil billones de combinaciones) y
+// dejan un enlace corto para mandar por mensaje
+function nuevoCodigo() {
+  return Array.from(crypto.randomBytes(10), b => ALFABETO_CODIGO[b % 32]).join('');
+}
+
 function recorte(valor, largo) {
   const texto = String(valor ?? '').trim();
   return texto ? texto.slice(0, largo) : null;
@@ -45,7 +54,7 @@ function comoSolicitud(fila) {
 // Qué pide el formulario y si el enlace sigue sirviendo - GET /api/solicitudes/formulario/:token
 router.get('/formulario/:token', async (req, res) => {
   try {
-    const r = await db.query('SELECT * FROM solicitudes WHERE token = $1', [req.params.token]);
+    const r = await db.query('SELECT * FROM solicitudes WHERE UPPER(token) = UPPER($1)', [req.params.token]);
     if (r.rows.length === 0) {
       return res.status(404).json({ error: 'Este enlace no es válido o fue dado de baja' });
     }
@@ -67,7 +76,7 @@ router.get('/formulario/:token', async (req, res) => {
 // El encargado envía sus datos - POST /api/solicitudes/formulario/:token
 router.post('/formulario/:token', async (req, res) => {
   try {
-    const actual = await db.query('SELECT * FROM solicitudes WHERE token = $1', [req.params.token]);
+    const actual = await db.query('SELECT * FROM solicitudes WHERE UPPER(token) = UPPER($1)', [req.params.token]);
     if (actual.rows.length === 0) {
       return res.status(404).json({ error: 'Este enlace no es válido o fue dado de baja' });
     }
@@ -91,7 +100,7 @@ router.post('/formulario/:token', async (req, res) => {
            iglesia_nombre = $4, departamento = $5, anciano = $6,
            grupos = $7, dias_culto = $8, comentarios = $9,
            fecha_respuesta = CURRENT_TIMESTAMP
-       WHERE token = $10 AND estado = 'pendiente'
+       WHERE UPPER(token) = UPPER($10) AND estado = 'pendiente'
        RETURNING id`,
       [
         solicitante,
@@ -145,7 +154,7 @@ router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
     const etiqueta = recorte(req.body.etiqueta, 160);
     if (!etiqueta) return res.status(400).json({ error: 'Poné para quién es el enlace' });
 
-    const token = crypto.randomBytes(24).toString('hex');
+    const token = nuevoCodigo();
     const r = await db.query(
       'INSERT INTO solicitudes (token, etiqueta) VALUES ($1, $2) RETURNING *',
       [token, etiqueta]

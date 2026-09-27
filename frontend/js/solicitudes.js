@@ -15,7 +15,7 @@ const ETIQUETA_ESTADO = {
 };
 
 function enlaceDeSolicitud(token) {
-    return `${location.origin}/encuesta/${token}`;
+    return `${location.origin}/alta/${token}`;
 }
 
 async function cargarSolicitudes() {

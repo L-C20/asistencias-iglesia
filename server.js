@@ -40,8 +40,9 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// Formulario público de alta de iglesia: /encuesta/<codigo>
-app.get('/encuesta/:token', (req, res) => {
+// Formulario público de alta de iglesia: /alta/<codigo>
+// (/encuesta/<codigo> se mantiene por los enlaces ya enviados)
+app.get(['/alta/:token', '/encuesta/:token'], (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'encuesta.html'));
 });
 
