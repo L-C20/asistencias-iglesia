@@ -118,7 +118,10 @@ function renderizarTablaUsuarios(usuarios) {
 
     tbody.innerHTML = usuarios.map(usuario => `
         <tr>
-            <td class="celda-nombre">${escaparHtml(usuario.usuario)}</td>
+            <td class="celda-nombre">
+                ${escaparHtml(usuario.usuario)}
+                ${usuario.ver_todas_iglesias ? '<span class="badge badge-grupo" title="Puede ver la asistencia de todas las iglesias">todas las iglesias</span>' : ''}
+            </td>
             <td class="celda-detalle">
                 <span class="badge badge-${usuario.rol}">
                     ${ETIQUETA_ROL[usuario.rol] || usuario.rol}
@@ -130,7 +133,7 @@ function renderizarTablaUsuarios(usuarios) {
                 </span>
             </td>
             <td class="celda-acciones">
-                <button class="btn btn-sm" onclick="abrirModalEditarUsuario(${usuario.id}, this.dataset.usuario, '${usuario.rol}', ${usuario.activo})" data-usuario="${escaparHtml(usuario.usuario)}" title="Editar">
+                <button class="btn btn-sm" onclick="abrirModalEditarUsuario(${usuario.id}, this.dataset.usuario, '${usuario.rol}', ${usuario.activo}, ${!!usuario.ver_todas_iglesias})" data-usuario="${escaparHtml(usuario.usuario)}" title="Editar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -157,7 +160,7 @@ function renderizarTablaUsuarios(usuarios) {
 }
 
 // ===== ABRIR MODAL EDITAR USUARIO =====
-function abrirModalEditarUsuario(id, usuario, rol, activo) {
+function abrirModalEditarUsuario(id, usuario, rol, activo, verTodas) {
     const modal = document.getElementById('modalEditarUsuario');
     if (!modal) {
         console.error('❌ Modal editar usuario no encontrado');
@@ -167,6 +170,10 @@ function abrirModalEditarUsuario(id, usuario, rol, activo) {
     document.getElementById('usuarioEditarId').value = id;
     document.getElementById('usuarioEditarNombre').value = usuario;
     document.getElementById('usuarioEditarPassword').value = '';
+
+    // El permiso de ver todas las iglesias solo lo maneja el super administrador
+    document.getElementById('bloqueVerTodasEditar').hidden = !esSuperadmin;
+    document.getElementById('usuarioEditarVerTodas').checked = !!verTodas;
 
     // Nadie se cambia el rol ni se desactiva a sí mismo
     const esYo = usuarioActual && id === usuarioActual.id;
@@ -247,10 +254,13 @@ async function guardarUsuarioEditado() {
 
         // Sobre uno mismo solo se manda el nombre (rol y estado van deshabilitados)
         const esYo = usuarioActual && Number(id) === usuarioActual.id;
+        const datos = esYo ? { usuario } : { usuario, rol, activo };
+        if (esSuperadmin) datos.ver_todas_iglesias = document.getElementById('usuarioEditarVerTodas').checked;
+
         const response = await fetch(`${API_URL}/usuarios/${id}`, {
             method: 'PUT',
             headers: cabeceras,
-            body: JSON.stringify(esYo ? { usuario } : { usuario, rol, activo })
+            body: JSON.stringify(datos)
         });
 
         if (!response.ok) {
@@ -329,6 +339,8 @@ function abrirModalNuevoUsuario() {
     document.getElementById('nuevoUsuarioNombre').value = '';
     document.getElementById('nuevoUsuarioPassword').value = '';
     document.getElementById('nuevoUsuarioRol').value = 'operario';
+    document.getElementById('bloqueVerTodasNuevo').hidden = !esSuperadmin;
+    document.getElementById('nuevoUsuarioVerTodas').checked = false;
 
     modal.classList.add('show');
 }
@@ -352,7 +364,10 @@ async function guardarNuevoUsuario() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ usuario, password, rol })
+            body: JSON.stringify({
+                usuario, password, rol,
+                ver_todas_iglesias: esSuperadmin && document.getElementById('nuevoUsuarioVerTodas').checked
+            })
         });
 
         if (!response.ok) {

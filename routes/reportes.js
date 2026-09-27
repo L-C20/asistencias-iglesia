@@ -1,14 +1,62 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, verificarVerTodas, iglesiaConsultada } = require('../middleware/auth');
+const { configDeIglesia } = require('../config');
 const db = require('../database');
 
-// Todas las consultas se limitan a la iglesia del usuario logueado (req.user.iglesia_id).
+// Todas las consultas se limitan a la iglesia del usuario logueado, salvo que
+// pida otra con ?iglesia_id= y tenga el permiso de ver todas (solo lectura).
+
+// Resuelve la iglesia a consultar y contesta el error si no corresponde
+async function alcance(req, res) {
+  try {
+    return await iglesiaConsultada(req);
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+    return null;
+  }
+}
+
+// ===== RESUMEN DE TODAS LAS IGLESIAS (permiso "ver todas") =====
+router.get('/iglesias', verifyToken, verificarVerTodas, async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT
+                i.*,
+                (SELECT COUNT(*) FROM miembros m WHERE m.iglesia_id = i.id AND m.activo = true) AS integrantes,
+                COUNT(DISTINCT (ra.fecha, ra.tipo_evento)) AS eventos,
+                TO_CHAR(MAX(ra.fecha), 'YYYY-MM-DD') AS ultima_fecha,
+                COUNT(*) FILTER (WHERE ra.presente) AS presentes,
+                COUNT(ra.id) AS registros
+            FROM iglesias i
+            LEFT JOIN miembros m2 ON m2.iglesia_id = i.id
+            LEFT JOIN registro_asistencia ra ON ra.miembro_id = m2.id
+            GROUP BY i.id
+            ORDER BY i.nombre
+        `);
+
+        res.json(result.rows.map(r => {
+            const registros = Number(r.registros);
+            return {
+                ...configDeIglesia(r),
+                integrantes: Number(r.integrantes),
+                eventos: Number(r.eventos),
+                ultima_fecha: r.ultima_fecha,
+                asistencia_promedio: registros > 0 ? Math.round((Number(r.presentes) / registros) * 100) : null
+            };
+        }));
+    } catch (error) {
+        console.error('❌ Error en resumen de iglesias:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // ===== CONTEOS DE EVENTOS =====
 router.get('/conteos/:grupo', verifyToken, async (req, res) => {
     try {
         const { grupo } = req.params;
+        const iglesiaId = await alcance(req, res);
+        if (!iglesiaId) return;
 
         // Un evento = una fecha. Cada integrante genera una fila por fecha,
         // así que COUNT(*) daría "cantidad de personas", no de cultos.
@@ -20,7 +68,7 @@ router.get('/conteos/:grupo', verifyToken, async (req, res) => {
               AND m.iglesia_id = $1
               AND m.grupo = $2
             GROUP BY ra.tipo_evento
-        `, [req.user.iglesia_id, grupo]);
+        `, [iglesiaId, grupo]);
 
         const conteos = { santo_culto: 0, ensayo: 0, bautismo: 0 };
         result.rows.forEach(row => { conteos[row.tipo_evento] = Number(row.total); });
@@ -35,12 +83,15 @@ router.get('/conteos/:grupo', verifyToken, async (req, res) => {
 // ===== FECHAS QUE YA TIENEN ASISTENCIA, POR TIPO DE EVENTO =====
 router.get('/fechas/:grupo', verifyToken, async (req, res) => {
     try {
+        const iglesiaId = await alcance(req, res);
+        if (!iglesiaId) return;
+
         const result = await db.query(`
             SELECT DISTINCT ra.tipo_evento, TO_CHAR(ra.fecha, 'YYYY-MM-DD') AS fecha
             FROM registro_asistencia ra
             JOIN miembros m ON m.id = ra.miembro_id
             WHERE m.iglesia_id = $1 AND m.grupo = $2
-        `, [req.user.iglesia_id, req.params.grupo]);
+        `, [iglesiaId, req.params.grupo]);
 
         const porTipo = {};
         result.rows.forEach(r => (porTipo[r.tipo_evento] = porTipo[r.tipo_evento] || []).push(r.fecha));
@@ -50,7 +101,7 @@ router.get('/fechas/:grupo', verifyToken, async (req, res) => {
             SELECT tipo_evento, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, descripcion
             FROM eventos
             WHERE iglesia_id = $1 AND grupo = $2 AND descripcion IS NOT NULL
-        `, [req.user.iglesia_id, req.params.grupo]);
+        `, [iglesiaId, req.params.grupo]);
         const descripciones = {};
         notas.rows.forEach(r => ((descripciones[r.tipo_evento] = descripciones[r.tipo_evento] || {})[r.fecha] = r.descripcion));
 
@@ -66,6 +117,8 @@ router.get('/fechas/:grupo', verifyToken, async (req, res) => {
 router.get('/resumen/:grupo', verifyToken, async (req, res) => {
     try {
         const { grupo } = req.params;
+        const iglesiaId = await alcance(req, res);
+        if (!iglesiaId) return;
 
         const result = await db.query(`
             SELECT
@@ -78,7 +131,7 @@ router.get('/resumen/:grupo', verifyToken, async (req, res) => {
             FROM registro_asistencia ra
             JOIN miembros m ON m.id = ra.miembro_id
             WHERE m.iglesia_id = $1 AND ($2 = 'todos' OR m.grupo = $2)
-        `, [req.user.iglesia_id, grupo]);
+        `, [iglesiaId, grupo]);
 
         const r = result.rows[0];
         const registros = Number(r.registros);
@@ -107,6 +160,9 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
             return res.status(400).json({ error: 'tipo_evento es requerido' });
         }
 
+        const iglesiaId = await alcance(req, res);
+        if (!iglesiaId) return;
+
         const result = await db.query(`
             SELECT
                 m.id,
@@ -128,7 +184,7 @@ router.get('/evento/:grupo', verifyToken, async (req, res) => {
                 AND ra.tipo_evento = $3
             WHERE m.iglesia_id = $1 AND m.grupo = $2 AND m.activo = true
             ORDER BY m.nombre, m.apellido, ra.fecha DESC
-        `, [req.user.iglesia_id, grupo, tipo_evento]);
+        `, [iglesiaId, grupo, tipo_evento]);
 
         res.json(result.rows);
     } catch (error) {

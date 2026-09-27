@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
-const { verifyToken, verificarSuperadmin } = require('../middleware/auth');
+const { verifyToken, verificarSuperadmin, puedeVerTodas } = require('../middleware/auth');
 const { configDeIglesia, normalizarGrupos } = require('../config');
 const router = express.Router();
 
@@ -19,7 +19,9 @@ router.get('/actual', verifyToken, async (req, res) => {
     const respuesta = {
       ...configDeIglesia(actual.rows[0]),
       rol: req.user.rol,
-      esSuperadmin: req.user.rol === 'superadmin'
+      esSuperadmin: req.user.rol === 'superadmin',
+      // Permiso de solo lectura sobre la asistencia de las demás iglesias
+      verTodas: await puedeVerTodas(req.user.id, req.user.rol)
     };
 
     if (respuesta.esSuperadmin) {

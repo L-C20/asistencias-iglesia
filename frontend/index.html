@@ -17,6 +17,7 @@
     <script src="js/grupos.js"></script>
     <script src="js/reportes.js"></script>
     <script src="js/reportes-fix.js"></script>
+    <script src="js/todas-iglesias.js"></script>
 </head>
 <body>
     
@@ -102,13 +103,22 @@
                 </div></li>
                 <!-- Un ítem por grupo (Orquesta, Coro); los arma app.js según la configuración -->
                 <li id="menuGruposFin" hidden></li>
-                <li><div class="sidebar-menu-item" data-tab="reportes" onclick="cambiarTab('reportes')">
+                <li><div class="sidebar-menu-item" data-tab="reportes" onclick="irAReportesPropios()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                         <line x1="9" y1="9" x2="9" y2="15"></line>
                         <line x1="15" y1="9" x2="15" y2="15"></line>
                     </svg>
                     <span>Reportes</span>
+                </div></li>
+                <!-- Solo con el permiso de ver la asistencia de todas las iglesias -->
+                <li id="menuTodasIglesias" hidden><div class="sidebar-menu-item" data-tab="todas-iglesias" onclick="cambiarTab('todas-iglesias')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <span>Todas las iglesias</span>
                 </div></li>
                 <li><div class="sidebar-menu-item" data-tab="configuracion" onclick="cambiarTab('configuracion')">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -311,6 +321,13 @@
                         <p id="reportesSubtitulo">Análisis de asistencia</p>
                     </div>
 
+                    <!-- Visible solo al mirar los reportes de otra iglesia -->
+                    <div class="aviso-otra-iglesia" id="avisoOtraIglesia" hidden>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <span>Estás viendo la asistencia de <b class="aviso-iglesia-nombre"></b>. Solo lectura.</span>
+                        <button type="button" class="link-limpiar" onclick="volverAMiIglesia()">Volver a mi iglesia</button>
+                    </div>
+
                     <div class="selector-grupo selector-grupo-reportes" id="selectorGrupoReportes" hidden></div>
 
                     <!-- Vista de Cards -->
@@ -417,6 +434,43 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- TODAS LAS IGLESIAS (permiso de solo lectura) -->
+                <div id="todas-iglesias" class="tab-content">
+                    <div class="reportes-header">
+                        <h2>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                            Todas las iglesias
+                        </h2>
+                        <p>Asistencia de cada iglesia. Solo lectura.</p>
+                    </div>
+
+                    <div class="resumen-grid" id="totalesIglesias"></div>
+
+                    <div class="tabla-miembros">
+                        <table class="tabla-datos">
+                            <thead>
+                                <tr>
+                                    <th>Iglesia</th>
+                                    <th>Departamento</th>
+                                    <th>Grupos</th>
+                                    <th>Integrantes</th>
+                                    <th>Eventos</th>
+                                    <th>Última asistencia</th>
+                                    <th>Presentismo</th>
+                                    <th>Reportes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaIglesiasBody">
+                                <tr><td colspan="8" class="tabla-vacia">Cargando iglesias...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -587,6 +641,11 @@
                         <option value="admin">Admin</option>
                     </select>
                 </div>
+                <!-- Permiso que solo otorga el super administrador -->
+                <div class="form-group permiso-todas" id="bloqueVerTodasNuevo" hidden>
+                    <label class="casilla"><input type="checkbox" id="nuevoUsuarioVerTodas"> <span>Puede ver la asistencia de todas las iglesias</span></label>
+                    <p class="ayuda-campo">Solo lectura: ve los reportes de las demás iglesias, sin poder cargar ni modificar nada.</p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="cerrarModal('modalNuevoUsuario')">Cancelar</button>
@@ -620,6 +679,11 @@
                         <input type="checkbox" id="usuarioEditarActivo">
                         Activo
                     </label>
+                </div>
+                <!-- Permiso que solo otorga el super administrador -->
+                <div class="form-group permiso-todas" id="bloqueVerTodasEditar" hidden>
+                    <label class="casilla"><input type="checkbox" id="usuarioEditarVerTodas"> <span>Puede ver la asistencia de todas las iglesias</span></label>
+                    <p class="ayuda-campo">Solo lectura: ve los reportes de las demás iglesias, sin poder cargar ni modificar nada.</p>
                 </div>
                 <div class="form-group">
                     <label>Nueva contraseña:</label>

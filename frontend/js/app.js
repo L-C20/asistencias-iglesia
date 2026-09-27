@@ -255,6 +255,11 @@ function cambiarTab(nombreTab, grupo) {
             mostrarGrupoMiembros(grupo || grupoMiembros);
         }
 
+        // Panel con el resumen de todas las iglesias
+        if (nombreTab === 'todas-iglesias' && typeof cargarTodasIglesias === 'function') {
+            cargarTodasIglesias();
+        }
+
         // Si es configuración, cargar usuarios
         if (nombreTab === 'configuracion') {
             console.log('⚙️ Cargando configuración');

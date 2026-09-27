@@ -43,12 +43,18 @@ function escaparHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Iglesia que se está consultando en Reportes cuando no es la propia
+// (permiso "ver todas"); null = la del usuario. La define todas-iglesias.js.
+var iglesiaConsultada = null;
+
 function grupoInfo(id) {
-    return APP_CONFIG.grupos.find(g => g.id === id) || APP_CONFIG.grupos[0];
+    // Otra iglesia puede tener grupos que la propia no tiene (p. ej. coro)
+    const otros = iglesiaConsultada ? iglesiaConsultada.grupos : [];
+    return [...APP_CONFIG.grupos, ...otros].find(g => g.id === id) || APP_CONFIG.grupos[0];
 }
 
-function hayVariosGrupos() {
-    return APP_CONFIG.grupos.length > 1;
+function hayVariosGrupos(grupos = APP_CONFIG.grupos) {
+    return grupos.length > 1;
 }
 
 // Orden en que se listan las secciones de un grupo (las desconocidas van al final)
@@ -81,13 +87,13 @@ function iconoGrupo(id, tam = 20) {
 }
 
 // Botonera Orquesta | Coro. Solo se muestra cuando hay más de un grupo.
-function renderSelectorGrupo(contenedorId, activo, alCambiar) {
+function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFIG.grupos) {
     const cont = document.getElementById(contenedorId);
     if (!cont) return;
-    cont.hidden = !hayVariosGrupos();
+    cont.hidden = !hayVariosGrupos(grupos);
     cont.innerHTML = '';
-    if (!hayVariosGrupos()) return;
-    APP_CONFIG.grupos.forEach(g => {
+    if (!hayVariosGrupos(grupos)) return;
+    grupos.forEach(g => {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'selector-grupo-btn' + (g.id === activo ? ' activo' : '');
@@ -106,6 +112,10 @@ function aplicarConfigEnPantalla() {
     const set = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
     set('marcaNombre', nombre);
     document.title = `Asistencia · ${nombre}`;
+
+    // Panel de todas las iglesias: solo con el permiso correspondiente
+    const menuTodas = document.getElementById('menuTodasIglesias');
+    if (menuTodas) menuTodas.hidden = !APP_CONFIG.verTodas;
 
     // Super administrador: selector de iglesia en la barra superior
     const selector = document.getElementById('selectorIglesia');

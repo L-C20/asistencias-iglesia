@@ -22,7 +22,8 @@ window.actualizarHeaderTabla = function() {
         const dia = new Date(fecha + 'T00:00:00');
         const abr = DIAS_ABREVIADOS[dia.getDay()];
         const ddmm = `${String(dia.getDate()).padStart(2, '0')}/${String(dia.getMonth() + 1).padStart(2, '0')}`;
-        const borrar = fechasConDatos.has(fecha)
+        // Mirando otra iglesia es solo lectura: no se ofrece eliminar
+        const borrar = fechasConDatos.has(fecha) && !iglesiaConsultada
             ? `<button type="button" class="col-dia-borrar" title="Eliminar este evento" onclick="eliminarEvento('${fecha}')">
                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                        <polyline points="3 6 5 6 21 6"></polyline>

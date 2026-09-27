@@ -8,30 +8,50 @@ var tipoEventoActual = 'santo_culto'; // Track current event type
 // Días de culto: 2 (martes), 6 (sábado), 0 (domingo)
 const DIAS_CULTO = [0, 2, 6];
 
+// Cuando se consulta otra iglesia, todas las lecturas llevan su id
+function paramIglesia(primero = false) {
+    if (!iglesiaConsultada) return '';
+    return `${primero ? '?' : '&'}iglesia_id=${iglesiaConsultada.id}`;
+}
+
+// Aviso de que lo que se ve es de otra iglesia (y no se puede modificar)
+function mostrarAvisoOtraIglesia() {
+    const aviso = document.getElementById('avisoOtraIglesia');
+    if (!aviso) return;
+    aviso.hidden = !iglesiaConsultada;
+    if (iglesiaConsultada) {
+        aviso.querySelector('.aviso-iglesia-nombre').textContent = iglesiaConsultada.nombre;
+    }
+}
+
 // ===== CARGAR CONTEOS DEL GRUPO =====
 window.cargarReporteGrupo = function(grupo) {
     console.log('🔵 cargarReporteGrupo:', grupo);
 
     grupoReporte = grupo;
 
+    // Los grupos son los de la iglesia que se está mirando
+    const gruposVisibles = iglesiaConsultada ? iglesiaConsultada.grupos : APP_CONFIG.grupos;
+    mostrarAvisoOtraIglesia();
+
     // Con más de un grupo: botonera Orquesta | Coro y subtítulo con el elegido
     renderSelectorGrupo('selectorGrupoReportes', grupoReporte, g => {
         cargarReporteGrupo(g);
         const detalle = document.getElementById('vistaDetalle');
         if (detalle && detalle.style.display !== 'none') abrirReporteEvento(tipoEventoActual);
-    });
+    }, gruposVisibles);
     const sub = document.getElementById('reportesSubtitulo');
-    if (sub) sub.textContent = hayVariosGrupos() ? `Análisis de asistencia · ${grupoInfo(grupoReporte).nombre}` : 'Análisis de asistencia';
+    if (sub) sub.textContent = hayVariosGrupos(gruposVisibles) ? `Análisis de asistencia · ${grupoInfo(grupoReporte).nombre}` : 'Análisis de asistencia';
 
     const token = localStorage.getItem('token');
     if (!token) {
         console.error('❌ Sin token');
         return;
     }
-    
+
     console.log('📡 Fetch conteos:', grupo);
-    
-    fetch(`/api/reportes/conteos/${grupo}`, {
+
+    fetch(`/api/reportes/conteos/${grupo}${paramIglesia(true)}`, {
         headers: {'Authorization': `Bearer ${token}`}
     })
     .then(r => r.json())
@@ -82,7 +102,7 @@ window.abrirReporteEvento = function(tipo) {
     }
     
     // Notas de los eventos ("Santa Cena"...) para mostrarlas bajo cada fecha
-    fetch(`/api/reportes/fechas/${grupoReporte}`, { headers: { 'Authorization': `Bearer ${token}` } })
+    fetch(`/api/reportes/fechas/${grupoReporte}${paramIglesia(true)}`, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(r => r.ok ? r.json() : {})
         .then(d => {
             window.descripcionesReporte = (d && d.descripciones) || {};
@@ -90,7 +110,7 @@ window.abrirReporteEvento = function(tipo) {
         })
         .catch(() => { window.descripcionesReporte = {}; });
 
-    const url = `/api/reportes/evento/${grupoReporte}?tipo_evento=${tipo}`;
+    const url = `/api/reportes/evento/${grupoReporte}?tipo_evento=${tipo}${paramIglesia()}`;
     console.log('📡 Fetch evento:', url);
 
     fetch(url, {
@@ -179,7 +199,7 @@ window.descargarReporte = async function(formato) {
 
     try {
         const token = localStorage.getItem('token');
-        const url = `/api/exportar/${grupoReporte}?tipo_evento=${tipoEventoActual}&fechas=${fechas.join(',')}&formato=${formato}`;
+        const url = `/api/exportar/${grupoReporte}?tipo_evento=${tipoEventoActual}&fechas=${fechas.join(',')}&formato=${formato}${paramIglesia()}`;
         const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
         if (!r.ok) {
             const data = await r.json().catch(() => ({}));

@@ -24,9 +24,13 @@ async function initializeDatabase() {
       )
     `);
 
-    // Agregar columna nombre_completo si no existe
+    // Agregar columnas si no existen
     try {
       await pool.query(`ALTER TABLE usuarios ADD COLUMN nombre_completo VARCHAR(255)`);
+    } catch (e) { /* ya existe */ }
+    // Permiso de solo lectura para ver la asistencia de todas las iglesias
+    try {
+      await pool.query(`ALTER TABLE usuarios ADD COLUMN ver_todas_iglesias BOOLEAN DEFAULT false`);
     } catch (e) { /* ya existe */ }
 
     // Tabla de miembros

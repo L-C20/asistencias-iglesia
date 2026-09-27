@@ -34,7 +34,7 @@ router.get('/', verifyToken, verificarAdmin, async (req, res) => {
   try {
     // El super administrador aparece en la lista solo para sí mismo
     const result = await db.query(
-      `SELECT id, usuario, rol, activo, fecha_creacion
+      `SELECT id, usuario, rol, activo, fecha_creacion, COALESCE(ver_todas_iglesias, false) AS ver_todas_iglesias
        FROM usuarios
        WHERE iglesia_id = $1 AND (rol <> 'superadmin' OR id = $2)
        ORDER BY fecha_creacion DESC`,
@@ -51,7 +51,9 @@ router.get('/', verifyToken, verificarAdmin, async (req, res) => {
 router.get('/perfil/actual', verifyToken, async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT id, usuario, rol, activo, fecha_creacion, iglesia_id FROM usuarios WHERE id = $1',
+      `SELECT id, usuario, rol, activo, fecha_creacion, iglesia_id,
+              COALESCE(ver_todas_iglesias, false) AS ver_todas_iglesias
+       FROM usuarios WHERE id = $1`,
       [req.user.id]
     );
 
@@ -89,12 +91,15 @@ router.post('/crear', verifyToken, verificarAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Usuario ya existe' });
     }
 
+    // El permiso de ver otras iglesias solo lo puede dar el super administrador
+    const verTodas = req.user.rol === 'superadmin' && req.body.ver_todas_iglesias === true;
+
     const hash = await bcrypt.hash(password, 10);
     const result = await db.query(
-      `INSERT INTO usuarios (usuario, password, rol, activo, iglesia_id)
-       VALUES ($1, $2, $3, true, $4)
-       RETURNING id, usuario, rol, activo, fecha_creacion`,
-      [usuario, hash, rol, req.user.iglesia_id]
+      `INSERT INTO usuarios (usuario, password, rol, activo, iglesia_id, ver_todas_iglesias)
+       VALUES ($1, $2, $3, true, $4, $5)
+       RETURNING id, usuario, rol, activo, fecha_creacion, ver_todas_iglesias`,
+      [usuario, hash, rol, req.user.iglesia_id, verTodas]
     );
 
     console.log('✅ Usuario creado:', usuario);
@@ -147,13 +152,20 @@ router.put('/:id', verifyToken, verificarAdmin, async (req, res) => {
       cambios.push(`activo = $${values.length}`);
     }
 
+    // El permiso de ver otras iglesias solo lo puede dar o quitar el super administrador
+    if (req.body.ver_todas_iglesias !== undefined && req.user.rol === 'superadmin') {
+      values.push(req.body.ver_todas_iglesias === true);
+      cambios.push(`ver_todas_iglesias = $${values.length}`);
+    }
+
     if (cambios.length === 0) {
       return res.json({ id: objetivo.id, usuario: objetivo.usuario, rol: objetivo.rol });
     }
 
     values.push(id);
     const result = await db.query(
-      `UPDATE usuarios SET ${cambios.join(', ')} WHERE id = $${values.length} RETURNING id, usuario, rol, activo`,
+      `UPDATE usuarios SET ${cambios.join(', ')} WHERE id = $${values.length}
+       RETURNING id, usuario, rol, activo, ver_todas_iglesias`,
       values
     );
 

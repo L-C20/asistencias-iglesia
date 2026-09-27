@@ -2,7 +2,7 @@ const express = require('express');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const db = require('../database');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, iglesiaConsultada } = require('../middleware/auth');
 const { GRUPOS_DISPONIBLES, configDeIglesia } = require('../config');
 const router = express.Router();
 
@@ -322,12 +322,13 @@ router.get('/:grupo', verifyToken, async (req, res) => {
     if (!NOMBRES_EVENTO[tipoEvento]) return res.status(400).json({ error: 'tipo_evento inválido' });
     if (fechas.length === 0) return res.status(400).json({ error: 'Indicá al menos una fecha' });
 
-    const datos = await armarDatos(req.user.iglesia_id, grupo, tipoEvento, fechas);
+    // Con permiso se puede exportar el reporte de otra iglesia (solo lectura)
+    const datos = await armarDatos(await iglesiaConsultada(req), grupo, tipoEvento, fechas);
     if (formato === 'pdf') return generarPdf(datos, res);
     await generarExcel(datos, res);
   } catch (error) {
     console.error('❌ Error exportando:', error.message);
-    if (!res.headersSent) res.status(500).json({ error: error.message });
+    if (!res.headersSent) res.status(error.status || 500).json({ error: error.message });
   }
 });
 
