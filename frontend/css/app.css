@@ -1199,6 +1199,45 @@ input::placeholder { color: var(--text-light); }
     color: var(--red-600);
 }
 
+/* Enlaces a los reportes de cada iglesia: botones de texto, no iconos */
+.celda-reportes {
+    text-align: right;
+    width: 1%;
+}
+
+.botones-reportes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+}
+
+.btn-ver-reporte {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px 6px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--sh-xs);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-2);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+.btn-ver-reporte svg { width: 14px; height: 14px; }
+
+.btn-ver-reporte:hover {
+    background: var(--brand-50);
+    border-color: var(--brand-100);
+    color: var(--brand-700);
+}
+
 /* Acciones dentro de una fila de sección (lista de integrantes) */
 .miembro-row .celda-acciones {
     display: flex;

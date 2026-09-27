@@ -66,7 +66,7 @@ function renderizarPanelIglesias() {
         <tr class="${i.activa ? '' : 'fila-inactiva'}">
             <td class="celda-nombre">
                 ${escaparHtml(i.nombre)}
-                ${i.id === APP_CONFIG.id ? '<span class="badge badge-admin">la tuya</span>' : ''}
+                ${i.id === APP_CONFIG.id ? '<span class="badge badge-admin">Tu iglesia</span>' : ''}
                 ${i.activa ? '' : '<span class="badge badge-danger">baja</span>'}
             </td>
             <td class="celda-detalle">${escaparHtml(i.departamento) || '—'}</td>
@@ -75,11 +75,14 @@ function renderizarPanelIglesias() {
             <td class="celda-detalle">${i.eventos}</td>
             <td class="celda-detalle">${fecha}</td>
             <td class="celda-detalle">${i.asistencia_promedio === null ? '—' : i.asistencia_promedio + '%'}</td>
-            <td class="celda-acciones">
-                ${i.grupos.map(g => `
-                    <button class="btn btn-sm btn-secondary" onclick="verReportesDe(${i.id}, '${g.id}')">
-                        ${g.nombre} →
-                    </button>`).join('')}
+            <td class="celda-reportes">
+                <div class="botones-reportes">
+                    ${i.grupos.map(g => `
+                        <button class="btn-ver-reporte" onclick="verReportesDe(${i.id}, '${g.id}')">
+                            <span>${g.nombre}</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>`).join('')}
+                </div>
             </td>
         </tr>`;
     }).join('');
