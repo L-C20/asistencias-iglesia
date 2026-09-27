@@ -8,10 +8,10 @@ let solicitudAbierta = null;
 let solicitudDeAlta = null;
 
 const ETIQUETA_ESTADO = {
-    pendiente:  { texto: 'Esperando respuesta', clase: 'badge-operario' },
-    respondida: { texto: 'Para revisar',        clase: 'badge-admin' },
-    aprobada:   { texto: 'Dada de alta',        clase: 'badge-success' },
-    descartada: { texto: 'Descartada',          clase: 'badge-danger' }
+    pendiente:  { texto: 'Pendiente de respuesta', clase: 'badge-operario' },
+    respondida: { texto: 'Pendiente de revisión',  clase: 'badge-admin' },
+    aprobada:   { texto: 'Aprobada',               clase: 'badge-success' },
+    descartada: { texto: 'Rechazada',              clase: 'badge-danger' }
 };
 
 function enlaceDeSolicitud(token) {
@@ -41,7 +41,7 @@ function renderizarSolicitudes() {
     if (!tbody) return;
 
     if (solicitudesCargadas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="tabla-vacia">Todavía no generaste ningún enlace</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="tabla-vacia">No hay solicitudes registradas</td></tr>';
         return;
     }
 
@@ -56,19 +56,19 @@ function renderizarSolicitudes() {
             <td class="celda-detalle">${escaparHtml(s.solicitante) || '—'}</td>
             <td class="celda-acciones">
                 ${pendiente ? `
-                <button class="btn btn-sm" onclick="copiarEnlaceDe(${s.id})" title="Copiar el enlace">
+                <button class="btn btn-sm" onclick="copiarEnlaceDe(${s.id})" title="Copiar enlace">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                 </button>` : `
-                <button class="btn btn-sm" onclick="abrirSolicitud(${s.id})" title="Ver la respuesta">
+                <button class="btn btn-sm" onclick="abrirSolicitud(${s.id})" title="Ver solicitud">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                 </button>`}
-                <button class="btn btn-sm btn-danger" onclick="eliminarSolicitud(${s.id})" title="${pendiente ? 'Anular el enlace' : 'Borrar la solicitud'}">
+                <button class="btn btn-sm btn-danger" onclick="eliminarSolicitud(${s.id})" title="${pendiente ? 'Anular enlace' : 'Eliminar solicitud'}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -96,7 +96,7 @@ function abrirModalEnlace() {
 async function generarEnlace(e) {
     e.preventDefault();
     const etiqueta = document.getElementById('enlaceEtiqueta').value.trim();
-    if (!etiqueta) return mostrarToast('Poné para quién es el enlace', 'error');
+    if (!etiqueta) return mostrarToast('Indique el destinatario del enlace', 'error');
 
     const boton = document.getElementById('btnGenerarEnlace');
     boton.disabled = true;
@@ -110,7 +110,7 @@ async function generarEnlace(e) {
             body: JSON.stringify({ etiqueta })
         });
         const data = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(data.error || 'No se pudo generar');
+        if (!r.ok) throw new Error(data.error || 'No se pudo generar el enlace');
 
         document.getElementById('enlaceGenerado').value = enlaceDeSolicitud(data.token);
         document.getElementById('bloqueEtiquetaEnlace').hidden = true;
@@ -128,7 +128,7 @@ async function copiar(texto) {
         await navigator.clipboard.writeText(texto);
         mostrarToast('Enlace copiado', 'success');
     } catch (e) {
-        mostrarToast('Copialo a mano: ' + texto, 'info');
+        mostrarToast('No se pudo copiar automáticamente. El enlace es: ' + texto, 'info');
     }
 }
 
@@ -159,21 +159,21 @@ function abrirSolicitud(id) {
     const resuelta = s.estado === 'aprobada' || s.estado === 'descartada';
 
     document.getElementById('detalleSolicitud').innerHTML =
-        `<p class="subtitulo-bloque" style="border: 0; padding-top: 0; margin-top: 0;">Quién contestó</p>` +
+        `<p class="subtitulo-bloque" style="border: 0; padding-top: 0; margin-top: 0;">Datos del solicitante</p>` +
         dato('Nombre y apellido', s.solicitante) +
-        dato('DNI', s.dni) +
-        dato('Teléfono', s.telefono) +
-        `<p class="subtitulo-bloque">La iglesia</p>` +
+        dato('Documento de identidad', s.dni) +
+        dato('Teléfono de contacto', s.telefono) +
+        `<p class="subtitulo-bloque">Datos de la iglesia</p>` +
         dato('Nombre', s.iglesia_nombre) +
         dato('Departamento', s.departamento) +
         dato('Anciano que autoriza', s.anciano) +
-        dato('Grupos', grupos) +
+        dato('Grupos que participan', grupos) +
         dato('Días de culto', dias) +
-        (s.comentarios ? `<p class="subtitulo-bloque">Comentarios</p><p class="ayuda-campo">${escaparHtml(s.comentarios)}</p>` : '') +
+        (s.comentarios ? `<p class="subtitulo-bloque">Observaciones</p><p class="ayuda-campo">${escaparHtml(s.comentarios)}</p>` : '') +
         (s.estado === 'aprobada'
-            ? `<p class="aviso-inline">Ya diste de alta <b>${escaparHtml(s.iglesia_creada || s.iglesia_nombre)}</b> con estos datos.</p>`
+            ? `<p class="aviso-inline">La iglesia <b>${escaparHtml(s.iglesia_creada || s.iglesia_nombre)}</b> fue dada de alta con estos datos.</p>`
             : '') +
-        (s.estado === 'descartada' ? '<p class="aviso-inline">Esta solicitud quedó descartada.</p>' : '');
+        (s.estado === 'descartada' ? '<p class="aviso-inline">Esta solicitud fue rechazada.</p>' : '');
 
     // Una solicitud ya resuelta solo se mira
     document.querySelectorAll('#modalSolicitud .modal-footer .btn').forEach(b => { b.hidden = resuelta; });
@@ -218,18 +218,18 @@ async function resolverSolicitud(id, estado, iglesiaId) {
 
 async function descartarSolicitud() {
     if (!solicitudAbierta) return;
-    if (!confirm(`¿Descartar la solicitud de ${solicitudAbierta.iglesia_nombre}?`)) return;
+    if (!confirm(`¿Rechazar la solicitud de ${solicitudAbierta.iglesia_nombre}?`)) return;
     await resolverSolicitud(solicitudAbierta.id, 'descartada');
     cerrarModal('modalSolicitud');
-    mostrarToast('Solicitud descartada', 'success');
+    mostrarToast('Solicitud rechazada', 'success');
 }
 
 async function eliminarSolicitud(id) {
     const s = solicitudesCargadas.find(x => x.id === id);
     if (!s) return;
     const aviso = s.estado === 'pendiente'
-        ? `¿Anular el enlace de "${s.etiqueta}"? Deja de funcionar.`
-        : `¿Borrar la solicitud de "${s.etiqueta}"?`;
+        ? `¿Anular el enlace de ${s.etiqueta}? Dejará de estar disponible.`
+        : `¿Eliminar la solicitud de ${s.etiqueta}?`;
     if (!confirm(aviso)) return;
 
     try {
@@ -237,8 +237,8 @@ async function eliminarSolicitud(id) {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
-        if (!r.ok) throw new Error('No se pudo borrar');
-        mostrarToast(s.estado === 'pendiente' ? 'Enlace anulado' : 'Solicitud borrada', 'success');
+        if (!r.ok) throw new Error('No se pudo eliminar');
+        mostrarToast(s.estado === 'pendiente' ? 'Enlace anulado' : 'Solicitud eliminada', 'success');
         cargarSolicitudes();
     } catch (e) {
         mostrarToast(e.message, 'error');

@@ -152,7 +152,7 @@ router.get('/', verifyToken, verificarSuperadmin, async (req, res) => {
 router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
   try {
     const etiqueta = recorte(req.body.etiqueta, 160);
-    if (!etiqueta) return res.status(400).json({ error: 'Poné para quién es el enlace' });
+    if (!etiqueta) return res.status(400).json({ error: 'Indique el destinatario del enlace' });
 
     const token = nuevoCodigo();
     const r = await db.query(

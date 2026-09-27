@@ -536,21 +536,21 @@
                                     Generar enlace
                                 </button>
                             </div>
-                            <p class="ayuda-campo">Mandale el enlace al encargado de la iglesia nueva. Cuando lo complete, la solicitud aparece acá y vos decidís si la das de alta.</p>
+                            <p class="ayuda-campo">El enlace se envía al encargado de la iglesia. Una vez completado, la solicitud queda registrada aquí para su revisión y alta.</p>
 
                             <div class="tabla-miembros">
                                 <table class="tabla-datos">
                                     <thead>
                                         <tr>
-                                            <th>Para</th>
+                                            <th>Destinatario</th>
                                             <th>Estado</th>
                                             <th>Iglesia</th>
-                                            <th>Quién contestó</th>
+                                            <th>Solicitante</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody id="solicitudesTableBody">
-                                        <tr><td colspan="5" class="tabla-vacia">Cargando solicitudes...</td></tr>
+                                        <tr><td colspan="5" class="tabla-vacia">Cargando solicitudes…</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -594,18 +594,18 @@
     <div id="modalEnlace" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span>Generar enlace</span>
+                <span>Generar enlace de solicitud</span>
                 <button class="modal-close" onclick="cerrarModal('modalEnlace')">&times;</button>
             </div>
             <form id="formEnlace" onsubmit="generarEnlace(event)">
                 <div class="modal-body">
                     <div class="form-group" id="bloqueEtiquetaEnlace">
-                        <label for="enlaceEtiqueta">¿Para quién es?</label>
+                        <label for="enlaceEtiqueta">Destinatario</label>
                         <input type="text" id="enlaceEtiqueta" maxlength="160" placeholder="Iglesia de Rivadavia · Hno. Pérez" required>
-                        <p class="ayuda-campo">Solo para que sepas de quién es cada enlace; el encargado lo ve como título del formulario.</p>
+                        <p class="ayuda-campo">Identifica el enlace en el listado y se muestra como referencia en el encabezado del formulario.</p>
                     </div>
                     <div id="bloqueEnlaceListo" hidden>
-                        <p class="ayuda-campo">Copiá el enlace y mandáselo. Sirve hasta que lo complete o lo anules.</p>
+                        <p class="ayuda-campo">El enlace permanece activo hasta que la solicitud se complete o se anule.</p>
                         <div class="enlace-generado">
                             <input type="text" id="enlaceGenerado" readonly>
                             <button type="button" class="btn btn-secondary" onclick="copiarEnlace()">Copiar</button>
@@ -614,7 +614,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalEnlace')">Cerrar</button>
-                    <button type="submit" class="btn btn-primary" id="btnGenerarEnlace">Generar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGenerarEnlace">Generar enlace</button>
                 </div>
             </form>
         </div>
@@ -624,13 +624,13 @@
     <div id="modalSolicitud" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span>Solicitud de alta</span>
+                <span>Solicitud de alta de iglesia</span>
                 <button class="modal-close" onclick="cerrarModal('modalSolicitud')">&times;</button>
             </div>
             <div class="modal-body" id="detalleSolicitud"></div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" onclick="descartarSolicitud()">Descartar</button>
-                <button type="button" class="btn btn-primary" onclick="crearIglesiaDesdeSolicitud()">Crear iglesia</button>
+                <button type="button" class="btn btn-danger" onclick="descartarSolicitud()">Rechazar</button>
+                <button type="button" class="btn btn-primary" onclick="crearIglesiaDesdeSolicitud()">Dar de alta</button>
             </div>
         </div>
     </div>
