@@ -120,7 +120,7 @@ function renderizarTablaUsuarios(usuarios) {
         <tr>
             <td class="celda-nombre">
                 ${escaparHtml(usuario.usuario)}
-                ${usuario.ver_todas_iglesias ? '<span class="badge badge-grupo" title="Puede ver la asistencia de todas las iglesias">todas las iglesias</span>' : ''}
+                ${usuario.ver_todas_iglesias ? '<span class="badge badge-admin" title="Puede ver la asistencia de todas las iglesias (solo lectura)">Ve todas las iglesias</span>' : ''}
             </td>
             <td class="celda-detalle">
                 <span class="badge badge-${usuario.rol}">
