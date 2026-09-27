@@ -34,6 +34,7 @@
     --red-50:    #fef3f2;
     --amber-700: #b54708;
     --amber-600: #dc6803;
+    --amber-200: #fedf89;
     --amber-50:  #fffaeb;
 
     /* Superficies */
@@ -1386,11 +1387,84 @@ input::placeholder { color: var(--text-light); }
 
 .miembro-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--sp-4);
     padding: var(--sp-3) var(--sp-4);
     border-bottom: 1px solid var(--border);
+}
+
+/* Motivo de la ausencia justificada: aparece recién al marcar AJ */
+.motivo-aj {
+    flex-basis: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-top: calc(var(--sp-1) * -1);
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--r-md);
+    background: var(--amber-50);
+}
+
+.motivo-aj-titulo {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: var(--amber-700);
+}
+
+.motivo-aj-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.motivo-chip {
+    padding: 5px 10px;
+    border: 1px solid var(--amber-200);
+    border-radius: var(--r-full);
+    background: var(--surface);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+.motivo-chip:hover { border-color: var(--amber-600); color: var(--amber-700); }
+
+.motivo-chip.activo {
+    background: var(--amber-600);
+    border-color: var(--amber-600);
+    color: #fff;
+    font-weight: 600;
+}
+
+.motivo-aj-texto {
+    flex: 1 1 180px;
+    min-width: 0;
+    padding: 6px var(--sp-3);
+    border: 1px solid var(--amber-200);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.motivo-aj-texto:focus {
+    outline: none;
+    border-color: var(--amber-600);
+}
+
+/* Motivo dentro del reporte: la marca AJ avisa que hay algo escrito */
+.marca-aj.con-motivo {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
 }
 
 .miembro-row:last-child { border-bottom: none; }

@@ -379,6 +379,9 @@ function renderizarListaAsistencia(grupo) {
     console.log('✅ Lista renderizada con', miembrosActuales.length, 'miembros en', orden.length, 'secciones');
 }
 
+// Motivos frecuentes de una ausencia justificada; "Otro" abre el campo libre
+const MOTIVOS_AJ = ['Enfermedad', 'Trabajo', 'Viaje', 'Estudio', 'Familiar'];
+
 function crearFilaMiembro(miembro) {
         const registro = asistenciasParaGuardar[miembro.id] || { presente: null, justificado: false, nota: '' };
 
@@ -389,6 +392,15 @@ function crearFilaMiembro(miembro) {
         const esPresente = registro.presente === true && !registro.justificado;
         const esAusente = registro.presente === false && !registro.justificado;
         const esJustificado = !!registro.justificado;
+
+        // Motivo ya cargado: si no es uno de los frecuentes, quedó escrito a mano
+        const motivo = registro.nota || '';
+        const motivoEscrito = motivo !== '' && !MOTIVOS_AJ.includes(motivo);
+        const chipsMotivo = MOTIVOS_AJ.map(m => `
+                    <button type="button" class="motivo-chip ${motivo === m ? 'activo' : ''}"
+                        data-motivo="${m}" onclick="elegirMotivo(this, ${miembro.id})">${m}</button>`).join('') + `
+                    <button type="button" class="motivo-chip ${motivoEscrito ? 'activo' : ''}"
+                        data-motivo="otro" onclick="elegirMotivo(this, ${miembro.id})">Otro…</button>`;
 
         miembroDiv.innerHTML = `
             <div class="miembro-info">
@@ -414,9 +426,65 @@ function crearFilaMiembro(miembro) {
                     <span class="toggle-label">Justificado</span>
                 </label>
             </div>
+            <div class="motivo-aj" id="motivo-${miembro.id}" ${esJustificado ? '' : 'hidden'}>
+                <span class="motivo-aj-titulo">Motivo</span>
+                <div class="motivo-aj-chips">${chipsMotivo}</div>
+                <input type="text" class="motivo-aj-texto" maxlength="80" placeholder="Escribí el motivo"
+                    value="${escaparHtml(motivo)}" oninput="escribirMotivo(this, ${miembro.id})" ${motivoEscrito ? '' : 'hidden'}>
+            </div>
         `;
 
         return miembroDiv;
+}
+
+// ===== MOTIVO DE LA AUSENCIA JUSTIFICADA =====
+function elegirMotivo(boton, miembroId) {
+    const bloque = boton.closest('.motivo-aj');
+    const campo = bloque.querySelector('.motivo-aj-texto');
+    const esOtro = boton.dataset.motivo === 'otro';
+    const yaEstaba = boton.classList.contains('activo');
+
+    bloque.querySelectorAll('.motivo-chip').forEach(b => b.classList.remove('activo'));
+
+    // Volver a tocar el mismo motivo lo desmarca
+    if (yaEstaba) {
+        campo.value = '';
+        campo.hidden = true;
+        guardarMotivo(miembroId, '');
+        return;
+    }
+
+    boton.classList.add('activo');
+    campo.hidden = !esOtro;
+
+    if (esOtro) {
+        campo.focus();
+        guardarMotivo(miembroId, campo.value.trim());
+    } else {
+        campo.value = '';
+        guardarMotivo(miembroId, boton.dataset.motivo);
+    }
+}
+
+function escribirMotivo(campo, miembroId) {
+    guardarMotivo(miembroId, campo.value.trim());
+}
+
+function guardarMotivo(miembroId, motivo) {
+    const registro = asistenciasParaGuardar[miembroId];
+    if (!registro) return;
+    registro.nota = motivo;
+    guardarBorrador();
+}
+
+// Al dejar de ser justificado, el motivo se descarta
+function limpiarMotivo(miembroId) {
+    const bloque = document.getElementById(`motivo-${miembroId}`);
+    if (!bloque) return;
+    bloque.querySelectorAll('.motivo-chip').forEach(b => b.classList.remove('activo'));
+    const campo = bloque.querySelector('.motivo-aj-texto');
+    campo.value = '';
+    campo.hidden = true;
 }
 
 // Cuántos integrantes de la sección ya tienen algo marcado
@@ -453,8 +521,16 @@ function cambiarAsistencia(checkbox) {
     asistenciasParaGuardar[miembroId] = {
         presente: presente,
         justificado: justificado,
-        nota: asistenciasParaGuardar[miembroId]?.nota || ''
+        // El motivo solo acompaña a un AJ
+        nota: justificado ? (asistenciasParaGuardar[miembroId]?.nota || '') : ''
     };
+
+    // El motivo se pide únicamente cuando la ausencia es justificada
+    const bloqueMotivo = document.getElementById(`motivo-${miembroId}`);
+    if (bloqueMotivo) {
+        bloqueMotivo.hidden = !justificado;
+        if (!justificado) limpiarMotivo(miembroId);
+    }
 
     // Respaldo del resaltado para navegadores sin soporte de :has()
     document.querySelectorAll(`input[name="${name}"]`).forEach(input => {

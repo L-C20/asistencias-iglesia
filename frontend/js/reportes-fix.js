@@ -59,6 +59,18 @@ function estadoDe(registro) {
     return registro.presente ? 'P' : 'A';
 }
 
+// La marca de una celda; un AJ con motivo se puede tocar para leerlo
+function marcaDeCelda(estado, clase, motivo, quien) {
+    if (!motivo) return `<span class="marca ${clase}">${estado || '—'}</span>`;
+    return `<span class="marca ${clase} con-motivo" title="${escaparHtml(motivo)}"
+        data-quien="${escaparHtml(quien)}" data-motivo="${escaparHtml(motivo)}"
+        onclick="verMotivo(this)">${estado}</span>`;
+}
+
+window.verMotivo = function(marca) {
+    mostrarToast(`${marca.dataset.quien}: ${marca.dataset.motivo}`, 'info');
+};
+
 // Cuenta P/A/AJ de un conjunto de registros para una fecha
 function contar(registros, fecha) {
     const c = { P: 0, A: 0, AJ: 0 };
@@ -125,7 +137,8 @@ window.generarTablaHorizontal = function({ filas, registros, integrantes, busque
                 const registro = registros.find(d => d.id == miembro.id && d.fecha.split('T')[0] === fecha);
                 const estado = estadoDe(registro);
                 const clase = estado ? `marca-${estado.toLowerCase()}` : 'marca-vacia';
-                html += `<td class="celda-marca"><span class="marca ${clase}">${estado || '—'}</span></td>`;
+                const motivo = estado === 'AJ' ? (registro.nota || '') : '';
+                html += `<td class="celda-marca">${marcaDeCelda(estado, clase, motivo, nombreCompleto)}</td>`;
             });
             html += '</tr>';
         });
