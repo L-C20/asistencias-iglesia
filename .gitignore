@@ -9,4 +9,6 @@ npm-debug.log*
 dist/
 build/
 *.swp
-*.swo.claude/
+*.swo
+.claude/
+
