@@ -335,6 +335,7 @@ async function eliminarMiembro(miembroId) {
 
 // ===== CARGAR CONTEOS =====
 async function cargarConteosMiembros() {
+    await esperarConfig();
     // Cantidad de integrantes en la tarjeta de cada grupo
     await Promise.all(APP_CONFIG.grupos.map(async g => {
         try {
@@ -353,6 +354,7 @@ async function cargarConteosMiembros() {
 // ===== RESUMEN DE INICIO =====
 async function cargarResumenInicio() {
     try {
+        await esperarConfig();
         const alcance = hayVariosGrupos() ? 'todos' : APP_CONFIG.grupos[0].id;
         const response = await fetch(`${API_URL}/reportes/resumen/${alcance}`, {
             headers: { 'Authorization': `Bearer ${token}` }

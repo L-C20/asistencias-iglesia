@@ -132,6 +132,7 @@ svg { flex-shrink: 0; }
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: var(--sp-5);
     background: var(--gray-100);
 }
@@ -226,6 +227,7 @@ svg { flex-shrink: 0; }
 .dashboard-page {
     display: flex;
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .sidebar {
@@ -238,6 +240,7 @@ svg { flex-shrink: 0; }
     position: sticky;
     top: 0;
     height: 100vh;
+    height: 100dvh; /* en el teléfono, 100vh se mete abajo de la barra del sistema */
 }
 
 .sidebar-header {
@@ -320,7 +323,11 @@ svg { flex-shrink: 0; }
 
 .sidebar-footer {
     padding: var(--sp-3);
+    /* Deja libre la franja de los botones del sistema */
+    padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border);
+    /* Con muchos ítems, el menú se desplaza y el pie no se achica */
+    flex-shrink: 0;
 }
 
 /* El logout no debe dominar la pantalla: variante discreta */
@@ -2323,6 +2330,7 @@ input::placeholder { color: var(--text-light); }
         left: 0;
         z-index: 70;
         height: 100vh;
+        height: 100dvh;
         transform: translateX(-100%);
         transition: transform .22s ease;
         box-shadow: var(--sh-xl);

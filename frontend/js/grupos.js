@@ -16,13 +16,28 @@ var APP_CONFIG = {
 
 const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-async function cargarConfigApp() {
+// Promesa de la configuración en curso. Las pantallas la esperan antes de
+// pedir datos: si no, arrancan con el default (orquesta) y una iglesia que
+// solo tiene coro termina pidiendo un grupo que no existe.
+var configLista = null;
+
+function cargarConfigApp() {
+    configLista = pedirConfigApp();
+    return configLista;
+}
+
+async function pedirConfigApp() {
     try {
         const r = await fetch(`${API_URL}/iglesias/actual`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (r.ok) APP_CONFIG = await r.json();
     } catch (e) { /* se sigue con el default */ }
     aplicarConfigEnPantalla();
     return APP_CONFIG;
+}
+
+// Qué grupos tiene esta iglesia; hasta saberlo no se piden datos de ninguno
+function esperarConfig() {
+    return configLista || Promise.resolve(APP_CONFIG);
 }
 
 // El super administrador puede pasar a trabajar sobre otra iglesia

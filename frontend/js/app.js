@@ -58,11 +58,15 @@ function initApp() {
 
         console.log('✅ Sesión iniciada - Rol:', usuarioRol, '- Cargando datos iniciales');
 
+        // Primero qué iglesia y qué grupos tiene el usuario; recién ahí los
+        // datos. Se pide antes de mostrar nada para que las pantallas que
+        // cargan solas sepan a qué grupos pertenecen.
+        const config = cargarConfigApp();
+
         // Activar tab Inicio
         cambiarTab('inicio');
 
-        // Primero qué iglesia y qué grupos tiene el usuario; recién ahí los datos
-        cargarConfigApp().then(() => {
+        config.then(() => {
             const primerGrupo = APP_CONFIG.grupos[0].id;
             cargarConteosMiembros();
             cargarResumenInicio();
