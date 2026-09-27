@@ -8,9 +8,13 @@ var APP_CONFIG = {
     id: null,
     nombre: '',
     grupos: [{ id: 'orquesta', nombre: 'Orquesta', categoria: 'Instrumento', secciones: [] }],
+    // Días en que esta iglesia hace culto (0 = domingo … 6 = sábado)
+    diasCulto: [0, 2, 6],
     esSuperadmin: false,
     iglesias: []
 };
+
+const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 async function cargarConfigApp() {
     try {
@@ -46,6 +50,12 @@ function escaparHtml(s) {
 // Iglesia que se está consultando en Reportes cuando no es la propia
 // (permiso "ver todas"); null = la del usuario. La define todas-iglesias.js.
 var iglesiaConsultada = null;
+
+// Días de culto de la iglesia que se está mirando (puede no ser la propia)
+function diasCultoActivos() {
+    const dias = iglesiaConsultada ? iglesiaConsultada.diasCulto : APP_CONFIG.diasCulto;
+    return Array.isArray(dias) && dias.length ? dias : [0, 2, 6];
+}
 
 function grupoInfo(id) {
     // Otra iglesia puede tener grupos que la propia no tiene (p. ej. coro)

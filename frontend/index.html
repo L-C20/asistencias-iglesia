@@ -511,13 +511,46 @@
                                             <th>Departamento</th>
                                             <th>Anciano a cargo</th>
                                             <th>Grupos</th>
+                                            <th>Días de culto</th>
                                             <th>Integrantes</th>
                                             <th>Usuarios</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody id="iglesiasTableBody">
-                                        <tr><td colspan="7" class="tabla-vacia">Cargando iglesias...</td></tr>
+                                        <tr><td colspan="8" class="tabla-vacia">Cargando iglesias...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN SOLICITUDES DE ALTA (solo super administrador) -->
+                        <div class="config-section" id="seccionSolicitudes" hidden>
+                            <div class="section-header">
+                                <h3>Solicitudes de alta</h3>
+                                <button class="btn btn-primary" onclick="abrirModalEnlace()">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                    </svg>
+                                    Generar enlace
+                                </button>
+                            </div>
+                            <p class="ayuda-campo">Mandale el enlace al encargado de la iglesia nueva. Cuando lo complete, la solicitud aparece acá y vos decidís si la das de alta.</p>
+
+                            <div class="tabla-miembros">
+                                <table class="tabla-datos">
+                                    <thead>
+                                        <tr>
+                                            <th>Para</th>
+                                            <th>Estado</th>
+                                            <th>Iglesia</th>
+                                            <th>Quién contestó</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="solicitudesTableBody">
+                                        <tr><td colspan="5" class="tabla-vacia">Cargando solicitudes...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -557,6 +590,51 @@
             </div>
         </div>
 
+    <!-- MODAL GENERAR ENLACE DE SOLICITUD (solo super administrador) -->
+    <div id="modalEnlace" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Generar enlace</span>
+                <button class="modal-close" onclick="cerrarModal('modalEnlace')">&times;</button>
+            </div>
+            <form id="formEnlace" onsubmit="generarEnlace(event)">
+                <div class="modal-body">
+                    <div class="form-group" id="bloqueEtiquetaEnlace">
+                        <label for="enlaceEtiqueta">¿Para quién es?</label>
+                        <input type="text" id="enlaceEtiqueta" maxlength="160" placeholder="Iglesia de Rivadavia · Hno. Pérez" required>
+                        <p class="ayuda-campo">Solo para que sepas de quién es cada enlace; el encargado lo ve como título del formulario.</p>
+                    </div>
+                    <div id="bloqueEnlaceListo" hidden>
+                        <p class="ayuda-campo">Copiá el enlace y mandáselo. Sirve hasta que lo complete o lo anules.</p>
+                        <div class="enlace-generado">
+                            <input type="text" id="enlaceGenerado" readonly>
+                            <button type="button" class="btn btn-secondary" onclick="copiarEnlace()">Copiar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalEnlace')">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGenerarEnlace">Generar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETALLE DE UNA SOLICITUD (solo super administrador) -->
+    <div id="modalSolicitud" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Solicitud de alta</span>
+                <button class="modal-close" onclick="cerrarModal('modalSolicitud')">&times;</button>
+            </div>
+            <div class="modal-body" id="detalleSolicitud"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="descartarSolicitud()">Descartar</button>
+                <button type="button" class="btn btn-primary" onclick="crearIglesiaDesdeSolicitud()">Crear iglesia</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL IGLESIA (crear / editar, solo super administrador) -->
     <div id="modalIglesia" class="modal">
         <div class="modal-content">
@@ -585,6 +663,11 @@
                             <label class="casilla"><input type="checkbox" id="iglesiaGrupoOrquesta" value="orquesta" checked> <span>Orquesta</span></label>
                             <label class="casilla"><input type="checkbox" id="iglesiaGrupoCoro" value="coro"> <span>Coro</span></label>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Días de culto:</label>
+                        <p class="ayuda-campo">Son los días que se ofrecen al registrar un Santo Culto. Los ensayos se cargan cualquier día.</p>
+                        <div class="casillas-dias" id="iglesiaDias"></div>
                     </div>
 
                     <div id="bloqueAdminIglesia">
@@ -847,6 +930,7 @@
 
     <script src="js/miembros.js"></script>
     <script src="js/asistencia.js"></script>
+    <script src="js/solicitudes.js"></script>
     <script src="js/configuracion.js"></script>
     <script src="js/app.js"></script>
 </body>

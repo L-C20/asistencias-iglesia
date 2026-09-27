@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alta de iglesia</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="pagina-encuesta">
+    <main class="encuesta-hoja">
+        <header class="encuesta-marca">
+            <div class="login-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+            </div>
+            <h1>Alta de iglesia</h1>
+            <p id="encuestaPara">Control de asistencia</p>
+        </header>
+
+        <!-- Mientras se comprueba el enlace -->
+        <div id="encuestaCargando" class="encuesta-aviso">
+            <span class="spinner"></span> Abriendo el formulario…
+        </div>
+
+        <!-- Enlace inválido o ya usado -->
+        <div id="encuestaCerrada" class="encuesta-aviso encuesta-aviso-cerrado" hidden></div>
+
+        <form id="encuestaForm" class="encuesta-form" hidden>
+            <div id="encuestaError" class="alerta-error"></div>
+
+            <section class="encuesta-bloque">
+                <h2>Tus datos</h2>
+                <div class="form-group">
+                    <label for="solicitante">Nombre y apellido</label>
+                    <input type="text" id="solicitante" maxlength="160" required>
+                </div>
+                <div class="encuesta-fila">
+                    <div class="form-group">
+                        <label for="dni">DNI</label>
+                        <input type="text" id="dni" maxlength="30" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" maxlength="40" inputmode="tel">
+                    </div>
+                </div>
+            </section>
+
+            <section class="encuesta-bloque">
+                <h2>La iglesia</h2>
+                <div class="form-group">
+                    <label for="iglesiaNombre">Nombre de la iglesia</label>
+                    <input type="text" id="iglesiaNombre" maxlength="120" required>
+                </div>
+                <div class="encuesta-fila">
+                    <div class="form-group">
+                        <label for="departamento">Departamento</label>
+                        <input type="text" id="departamento" maxlength="120">
+                    </div>
+                    <div class="form-group">
+                        <label for="anciano">Anciano que autoriza</label>
+                        <input type="text" id="anciano" maxlength="120">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>¿Qué grupos tienen?</label>
+                    <div class="casillas-grupos" id="encuestaGrupos"></div>
+                </div>
+            </section>
+
+            <section class="encuesta-bloque">
+                <h2>Días de culto</h2>
+                <p class="ayuda-campo">Marcá los días en que hacen culto. Los ensayos se cargan cualquier día, no hace falta indicarlos.</p>
+                <div class="casillas-dias" id="encuestaDias"></div>
+            </section>
+
+            <section class="encuesta-bloque">
+                <h2>Algo más</h2>
+                <div class="form-group">
+                    <label for="comentarios">Comentarios (opcional)</label>
+                    <textarea id="comentarios" rows="3" maxlength="1000"></textarea>
+                </div>
+            </section>
+
+            <button type="submit" class="btn btn-primary encuesta-enviar" id="encuestaEnviar">Enviar</button>
+        </form>
+
+        <!-- Enviado -->
+        <div id="encuestaGracias" class="encuesta-aviso encuesta-aviso-ok" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <p><b>¡Listo! Ya recibimos tus datos.</b></p>
+            <p>Vamos a revisarlos y dar de alta la iglesia. Podés cerrar esta página.</p>
+        </div>
+    </main>
+
+    <script src="/js/encuesta.js"></script>
+</body>
+</html>

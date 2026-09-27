@@ -6,7 +6,6 @@ var semanaMostrada = new Date(); // Semana actual por defecto
 var tipoEventoActual = 'santo_culto'; // Track current event type
 
 // Días de culto: 2 (martes), 6 (sábado), 0 (domingo)
-const DIAS_CULTO = [0, 2, 6];
 
 // Cuando se consulta otra iglesia, todas las lecturas llevan su id
 function paramIglesia(primero = false) {
@@ -394,6 +393,11 @@ window.actualizarVisibleSemana = function() {
     aplicarFiltrosDetalle();
 };
 
+// Fechas que ya tienen asistencia cargada, según lo que trajo el reporte
+function fechasConRegistros() {
+    return new Set((window.datosReporte || []).filter(d => d.fecha).map(d => d.fecha.split('T')[0]));
+}
+
 window.obtenerFechasCultoDeSemana = function() {
     const semana = window.calcularSemana(semanaMostrada);
     const fechas = [];
@@ -403,10 +407,14 @@ window.obtenerFechasCultoDeSemana = function() {
         fecha.setDate(semana.lunes.getDate() + i);
         const diaSemana = fecha.getDay();
 
-        // Si es santo_culto, solo días específicos; si es ensayo/bautismo, todos los días
+        // Si es santo_culto, solo los días de culto de la iglesia; si es
+        // ensayo o bautismo, todos los días
         if (tipoEventoActual === 'santo_culto') {
-            if (DIAS_CULTO.includes(diaSemana)) {
-                fechas.push(window.fechaLocalISO(fecha));
+            const iso = window.fechaLocalISO(fecha);
+            // Un día que dejó de ser de culto pero tiene asistencia cargada
+            // se sigue mostrando: si no, esos registros desaparecerían
+            if (diasCultoActivos().includes(diaSemana) || fechasConRegistros().has(iso)) {
+                fechas.push(iso);
             }
         } else {
             // Todos los días para ensayo y bautismo
@@ -425,14 +433,7 @@ window.obtenerDiaCulto = function(fechaStr) {
     const fecha = new Date(fechaParts);
     const diaSemana = fecha.getDay();
 
-    // 0=domingo, 2=martes, 6=sábado
-    const diasCulto = {
-        0: 'Domingo',
-        2: 'Martes',
-        6: 'Sábado'
-    };
-
-    const nombreDia = diasCulto[diaSemana] || '-';
+    const nombreDia = NOMBRES_DIA[diaSemana] || '-';
     const opciones = { day: 'numeric', month: 'short' };
     const fechaFormato = fecha.toLocaleDateString('es-ES', opciones);
 

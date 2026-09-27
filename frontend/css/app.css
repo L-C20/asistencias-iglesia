@@ -27,6 +27,7 @@
 
     /* Semánticos */
     --green-700: #067647;
+    --green-200: #a6f4c5;
     --green-600: #079455;
     --green-50:  #ecfdf3;
     --red-700:   #b42318;
@@ -892,6 +893,7 @@ input[type="text"],
 input[type="search"],
 input[type="password"],
 input[type="email"],
+input[type="tel"],
 input[type="date"],
 input[type="number"],
 select,
@@ -2090,6 +2092,25 @@ input::placeholder { color: var(--text-light); }
 /* Casillas Orquesta / Coro del formulario de iglesia */
 .casillas-grupos { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
 
+/* Días de culto: una casilla por día, en grilla para que no bailen */
+.casillas-dias {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: var(--sp-2);
+}
+
+.casilla-dia {
+    padding: 8px var(--sp-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    transition: border-color .15s, background .15s;
+}
+
+.casilla-dia:hover { border-color: var(--brand-600); }
+.casilla-dia:has(input:checked) { border-color: var(--brand-600); background: var(--brand-50); }
+.casilla-dia:has(input:checked) span { color: var(--brand-700); font-weight: 600; }
+
 .casilla {
     display: inline-flex;
     align-items: center;
@@ -2452,3 +2473,120 @@ input::placeholder { color: var(--text-light); }
 
     .toast-container { left: var(--sp-3); right: var(--sp-3); align-items: stretch; }
 }
+
+/* ---------- 20. Solicitudes de alta ---------- */
+.enlace-generado {
+    display: flex;
+    gap: var(--sp-2);
+}
+
+.enlace-generado input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 8px var(--sp-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--gray-50);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+}
+
+.dato-solicitud {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-sm);
+}
+
+.dato-solicitud:last-child { border-bottom: none; }
+.dato-etiqueta { color: var(--text-3); }
+.dato-valor { font-weight: 600; color: var(--text); text-align: right; }
+
+.aviso-inline {
+    margin-top: var(--sp-4);
+    padding: var(--sp-3);
+    border-radius: var(--r-md);
+    background: var(--gray-50);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+}
+
+/* ---------- 21. Formulario público de alta de iglesia ---------- */
+.pagina-encuesta {
+    background: var(--gray-50);
+    padding: var(--sp-5) var(--sp-4) var(--sp-8);
+}
+
+.encuesta-hoja {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.encuesta-marca {
+    text-align: center;
+    margin-bottom: var(--sp-6);
+}
+
+.encuesta-marca h1 {
+    margin: var(--sp-3) 0 2px;
+    font-size: var(--fs-2xl);
+    color: var(--text);
+}
+
+.encuesta-marca p {
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+}
+
+.encuesta-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-sm);
+    padding: var(--sp-6);
+}
+
+.encuesta-bloque + .encuesta-bloque {
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--border);
+}
+
+.encuesta-bloque h2 {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.encuesta-fila {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0 var(--sp-4);
+}
+
+.encuesta-enviar {
+    width: 100%;
+    margin-top: var(--sp-6);
+    justify-content: center;
+}
+
+.encuesta-aviso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-6);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-2);
+}
+
+.encuesta-aviso svg { width: 40px; height: 40px; }
+.encuesta-aviso-ok { border-color: var(--green-200); color: var(--green-700); }
+.encuesta-aviso-cerrado { border-color: #fecdca; color: var(--red-700); background: var(--red-50); }

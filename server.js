@@ -10,6 +10,7 @@ const reportesRouter = require('./routes/reportes');
 const usuariosRouter = require('./routes/usuarios');
 const iglesiasRouter = require('./routes/iglesias');
 const exportarRouter = require('./routes/exportar');
+const solicitudesRouter = require('./routes/solicitudes');
 const { initializeDatabase, seedDatabase } = require('./database');
 
 if (!process.env.JWT_SECRET) {
@@ -32,10 +33,16 @@ app.use('/api/reportes', reportesRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/iglesias', iglesiasRouter);
 app.use('/api/exportar', exportarRouter);
+app.use('/api/solicitudes', solicitudesRouter);
 
 // Ruta raíz - servir login
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
+
+// Formulario público de alta de iglesia: /encuesta/<codigo>
+app.get('/encuesta/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'encuesta.html'));
 });
 
 // Health check

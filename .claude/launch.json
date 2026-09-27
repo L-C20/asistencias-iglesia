@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "C:/Users/Lucas/AppData/Local/Temp/claude/C--PROYECTOS-asistencia-raco/c113cd0c-e953-4b17-9d08-a07b3c28e6f4/scratchpad/dev-local.js"
+      ],
+      "port": 3000
+    }
+  ]
+}

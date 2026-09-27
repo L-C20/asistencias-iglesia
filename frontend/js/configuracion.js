@@ -10,7 +10,7 @@ async function inicializarConfiguracion() {
     console.log('⚙️ Inicializando configuración...');
 
     await obtenerPerfilActual();
-    await Promise.all([cargarUsuarios(), cargarIglesias()]);
+    await Promise.all([cargarUsuarios(), cargarIglesias(), cargarSolicitudes()]);
     configurarEventos();
 }
 
@@ -50,6 +50,8 @@ function actualizarVisibilidadPorRol() {
 
     const seccionIglesias = document.getElementById('seccionIglesias');
     if (seccionIglesias) seccionIglesias.hidden = !esSuperadmin;
+    const seccionSolicitudes = document.getElementById('seccionSolicitudes');
+    if (seccionSolicitudes) seccionSolicitudes.hidden = !esSuperadmin;
 
     // El super administrador ve los usuarios de la iglesia que tiene elegida
     const tituloUsuarios = document.getElementById('tituloUsuarios');
@@ -410,7 +412,7 @@ function renderizarTablaIglesias(iglesias) {
     if (!tbody) return;
 
     if (iglesias.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="tabla-vacia">No hay iglesias cargadas</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="tabla-vacia">No hay iglesias cargadas</td></tr>';
         return;
     }
 
@@ -424,6 +426,7 @@ function renderizarTablaIglesias(iglesias) {
             <td class="celda-detalle">${escaparHtml(i.departamento) || '—'}</td>
             <td class="celda-detalle">${escaparHtml(i.anciano) || '—'}</td>
             <td class="celda-detalle">${i.grupos.map(g => `<span class="badge badge-grupo">${g.nombre}</span>`).join('')}</td>
+            <td class="celda-detalle">${(i.diasCulto || []).map(d => NOMBRES_DIA[d].slice(0, 3)).join(' · ') || '—'}</td>
             <td class="celda-detalle">${i.integrantes}</td>
             <td class="celda-detalle">${i.usuarios}</td>
             <td class="celda-acciones">
@@ -450,6 +453,9 @@ function abrirModalIglesia(id) {
     const modal = document.getElementById('modalIglesia');
     if (!modal) return;
 
+    // Si viene de una solicitud, quien la abre lo marca después
+    solicitudDeAlta = null;
+
     const iglesia = id ? iglesiasCargadas.find(i => i.id === id) : null;
     const editando = !!iglesia;
 
@@ -464,6 +470,8 @@ function abrirModalIglesia(id) {
     document.getElementById('iglesiaGrupoOrquesta').checked = tiene('orquesta');
     document.getElementById('iglesiaGrupoCoro').checked = tiene('coro');
 
+    renderDiasCulto(editando ? iglesia.diasCulto : [0, 2, 6]);
+
     document.getElementById('bloqueAdminIglesia').hidden = editando;
     document.getElementById('iglesiaAdminUsuario').value = '';
     document.getElementById('iglesiaAdminPassword').value = '';
@@ -472,6 +480,18 @@ function abrirModalIglesia(id) {
 
     modal.classList.add('show');
     document.getElementById('iglesiaNombre').focus();
+}
+
+// Casillas de los días de culto; `marcados` son los que van tildados
+function renderDiasCulto(marcados) {
+    const cont = document.getElementById('iglesiaDias');
+    if (!cont) return;
+    const elegidos = Array.isArray(marcados) ? marcados : [];
+    cont.innerHTML = NOMBRES_DIA.map((nombre, i) => `
+        <label class="casilla casilla-dia">
+            <input type="checkbox" name="diaCulto" value="${i}" ${elegidos.includes(i) ? 'checked' : ''}>
+            <span>${nombre}</span>
+        </label>`).join('');
 }
 
 async function guardarIglesia(e) {
@@ -483,15 +503,19 @@ async function guardarIglesia(e) {
         .filter(c => c.checked)
         .map(c => c.value);
 
+    const dias = [...document.querySelectorAll('#iglesiaDias input:checked')].map(c => Number(c.value));
+
     const datos = {
         nombre: document.getElementById('iglesiaNombre').value.trim(),
         departamento: document.getElementById('iglesiaDepartamento').value.trim(),
         anciano: document.getElementById('iglesiaAnciano').value.trim(),
-        grupos
+        grupos,
+        dias_culto: dias
     };
 
     if (!datos.nombre) { mostrarToast('Poné el nombre de la iglesia', 'error'); return; }
     if (grupos.length === 0) { mostrarToast('Elegí al menos un grupo: orquesta o coro', 'error'); return; }
+    if (dias.length === 0) { mostrarToast('Elegí al menos un día de culto', 'error'); return; }
 
     if (id) {
         datos.activa = document.getElementById('iglesiaActiva').checked;
@@ -519,6 +543,12 @@ async function guardarIglesia(e) {
 
         cerrarModal('modalIglesia');
         mostrarToast(id ? 'Iglesia actualizada' : `Iglesia ${datos.nombre} creada`, 'success');
+
+        if (!id && solicitudDeAlta && data.iglesia) {
+            await resolverSolicitud(solicitudDeAlta, 'aprobada', data.iglesia.id);
+            solicitudDeAlta = null;
+        }
+
         await cargarIglesias();
 
         // Si se editó la iglesia actual, su nombre y grupos pueden haber cambiado

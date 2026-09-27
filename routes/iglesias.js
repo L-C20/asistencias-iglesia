@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { verifyToken, verificarSuperadmin, puedeVerTodas } = require('../middleware/auth');
-const { configDeIglesia, normalizarGrupos } = require('../config');
+const { configDeIglesia, normalizarGrupos, normalizarDiasCulto, DIAS_CULTO_POR_DEFECTO } = require('../config');
 const router = express.Router();
 
 const LARGO_MINIMO_PASSWORD = 6;
@@ -65,11 +65,16 @@ router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
   const departamento = String(req.body.departamento || '').trim() || null;
   const anciano = String(req.body.anciano || '').trim() || null;
   const grupos = normalizarGrupos(req.body.grupos);
+  // Sin el dato (una pantalla vieja) se usan los días de siempre
+  const diasCulto = req.body.dias_culto === undefined
+    ? DIAS_CULTO_POR_DEFECTO
+    : normalizarDiasCulto(req.body.dias_culto);
   const adminUsuario = String(req.body.admin_usuario || '').trim();
   const adminPassword = String(req.body.admin_password || '');
 
   if (!nombre) return res.status(400).json({ error: 'El nombre de la iglesia es requerido' });
   if (grupos.length === 0) return res.status(400).json({ error: 'Elegí al menos un grupo (orquesta o coro)' });
+  if (diasCulto.length === 0) return res.status(400).json({ error: 'Elegí al menos un día de culto' });
   if (!adminUsuario) return res.status(400).json({ error: 'Indicá el usuario administrador de la iglesia' });
   if (adminPassword.length < LARGO_MINIMO_PASSWORD) {
     return res.status(400).json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` });
@@ -86,8 +91,9 @@ router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
     }
 
     const iglesia = await client.query(
-      'INSERT INTO iglesias (nombre, departamento, anciano, grupos) VALUES ($1, $2, $3, $4) RETURNING *',
-      [nombre, departamento, anciano, grupos.join(',')]
+      `INSERT INTO iglesias (nombre, departamento, anciano, grupos, dias_culto)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [nombre, departamento, anciano, grupos.join(','), diasCulto.join(',')]
     );
     const hash = await bcrypt.hash(adminPassword, 10);
     await client.query(
@@ -112,19 +118,24 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
   try {
     const nombre = String(req.body.nombre || '').trim();
     const grupos = normalizarGrupos(req.body.grupos);
+    // Si no viene el dato (pantallas viejas), la iglesia conserva sus días
+    const dias = req.body.dias_culto === undefined ? null : normalizarDiasCulto(req.body.dias_culto);
     if (!nombre) return res.status(400).json({ error: 'El nombre de la iglesia es requerido' });
     if (grupos.length === 0) return res.status(400).json({ error: 'Elegí al menos un grupo (orquesta o coro)' });
+    if (dias && dias.length === 0) return res.status(400).json({ error: 'Elegí al menos un día de culto' });
 
     const result = await db.query(
       `UPDATE iglesias
-       SET nombre = $1, departamento = $2, anciano = $3, grupos = $4, activa = $5
-       WHERE id = $6 RETURNING *`,
+       SET nombre = $1, departamento = $2, anciano = $3, grupos = $4, activa = $5,
+           dias_culto = COALESCE($6, dias_culto)
+       WHERE id = $7 RETURNING *`,
       [
         nombre,
         String(req.body.departamento || '').trim() || null,
         String(req.body.anciano || '').trim() || null,
         grupos.join(','),
         req.body.activa !== false,
+        dias ? dias.join(',') : null,
         req.params.id
       ]
     );

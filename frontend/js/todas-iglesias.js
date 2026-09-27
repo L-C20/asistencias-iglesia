@@ -95,7 +95,9 @@ function verReportesDe(iglesiaId, grupo) {
 
     cambiarTab('reportes');
     // null = la propia; con valor, las consultas de reportes llevan ?iglesia_id=
-    iglesiaConsultada = iglesiaId === APP_CONFIG.id ? null : { id: iglesiaId, nombre: iglesia.nombre, grupos: iglesia.grupos };
+    iglesiaConsultada = iglesiaId === APP_CONFIG.id
+        ? null
+        : { id: iglesiaId, nombre: iglesia.nombre, grupos: iglesia.grupos, diasCulto: iglesia.diasCulto };
     volverATarjetas();
     cargarReporteGrupo(grupo);
 }

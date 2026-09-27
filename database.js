@@ -113,6 +113,30 @@ async function initializeDatabase() {
       )
     `);
 
+    // Solicitudes de alta: el encargado de una iglesia nueva completa un
+    // formulario público y el super administrador decide si la da de alta.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS solicitudes (
+        id SERIAL PRIMARY KEY,
+        token VARCHAR(64) NOT NULL UNIQUE,
+        etiqueta VARCHAR(160),
+        estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
+        solicitante VARCHAR(160),
+        dni VARCHAR(30),
+        telefono VARCHAR(40),
+        iglesia_nombre VARCHAR(120),
+        departamento VARCHAR(120),
+        anciano VARCHAR(120),
+        grupos VARCHAR(60),
+        dias_culto VARCHAR(20),
+        comentarios TEXT,
+        iglesia_id INTEGER REFERENCES iglesias(id),
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        fecha_respuesta TIMESTAMP,
+        fecha_resolucion TIMESTAMP
+      )
+    `);
+
     console.log('✓ Base de datos inicializada correctamente');
   } catch (error) {
     console.error('Error inicializando BD:', error.message);
@@ -141,6 +165,12 @@ async function migrarAIglesias() {
       await pool.query(`ALTER TABLE ${tabla} ADD COLUMN iglesia_id INTEGER REFERENCES iglesias(id)`);
     } catch (e) { /* ya existe */ }
   }
+  // Días de culto de cada iglesia; las que ya existían siguen con dom/mar/sáb
+  try {
+    await pool.query(`ALTER TABLE iglesias ADD COLUMN dias_culto VARCHAR(20) DEFAULT '0,2,6'`);
+    await pool.query(`UPDATE iglesias SET dias_culto = '0,2,6' WHERE dias_culto IS NULL`);
+  } catch (e) { /* ya existe */ }
+
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_iglesia ON miembros(iglesia_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_usuarios_iglesia ON usuarios(iglesia_id)`);
 

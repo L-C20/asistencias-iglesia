@@ -59,7 +59,6 @@ function actualizarDescripcionModal() {
 
 // ===== OPCIONES DE FECHA: BOTONES CON LOS ÚLTIMOS DÍAS =====
 let fechasConDatos = {};
-const DIAS_CULTO_ASISTENCIA = [0, 2, 6]; // domingo, martes, sábado
 const ABREV_DIA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 function fechaISOLocal(d) {
@@ -71,9 +70,11 @@ function fechasSugeridas(tipo) {
     const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
     const lista = [];
     if (tipo === 'santo_culto') {
-        for (let i = 0; i < 14 && lista.length < 3; i++) {
+        // Los días de culto los define cada iglesia
+        const dias = diasCultoActivos();
+        for (let i = 0; i < 21 && lista.length < 3; i++) {
             const d = new Date(hoy); d.setDate(hoy.getDate() - i);
-            if (DIAS_CULTO_ASISTENCIA.includes(d.getDay())) lista.push(d);
+            if (dias.includes(d.getDay())) lista.push(d);
         }
     } else {
         for (let i = 0; i < 2; i++) {
