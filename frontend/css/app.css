@@ -2549,6 +2549,29 @@ input::placeholder { color: var(--text-light); }
     font-size: var(--fs-sm);
 }
 
+.encuesta-destinatario {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-2);
+}
+
+.encuesta-intro {
+    margin-bottom: var(--sp-6);
+    padding-bottom: var(--sp-5);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--text-2);
+}
+
+.encuesta-nota {
+    margin-top: var(--sp-4);
+    font-size: var(--fs-xs);
+    text-align: center;
+    color: var(--text-3);
+}
+
 .encuesta-form {
     background: var(--surface);
     border: 1px solid var(--border);

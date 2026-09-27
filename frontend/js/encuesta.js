@@ -28,11 +28,14 @@ async function abrirFormulario() {
 
         if (!r.ok) {
             return mostrarCerrada(datos.completado
-                ? 'Este formulario ya fue completado. Si necesitás corregir algo, pedí un enlace nuevo.'
-                : 'Este enlace no es válido. Pedí uno nuevo a quien te lo envió.');
+                ? 'Esta solicitud ya fue enviada. Si necesita modificar algún dato, solicite un nuevo enlace.'
+                : 'Este enlace no es válido o fue dado de baja. Solicite uno nuevo a quien se lo envió.');
         }
 
-        if (datos.etiqueta) el('encuestaPara').textContent = datos.etiqueta;
+        if (datos.etiqueta) {
+            el('encuestaPara').textContent = datos.etiqueta;
+            el('encuestaPara').hidden = false;
+        }
 
         el('encuestaGrupos').innerHTML = datos.grupos.map(g => `
             <label class="casilla">
@@ -47,7 +50,7 @@ async function abrirFormulario() {
         el('encuestaCargando').hidden = true;
         el('encuestaForm').hidden = false;
     } catch (e) {
-        mostrarCerrada('No pudimos abrir el formulario. Probá de nuevo en un rato.');
+        mostrarCerrada('No fue posible abrir el formulario. Vuelva a intentarlo en unos minutos.');
     }
 }
 
@@ -73,10 +76,10 @@ async function enviarEncuesta(evento) {
         comentarios: el('comentarios').value.trim()
     };
 
-    if (!datos.solicitante) return mostrarError('Poné tu nombre y apellido');
-    if (!datos.iglesia_nombre) return mostrarError('Poné el nombre de la iglesia');
-    if (datos.grupos.length === 0) return mostrarError('Marcá si tienen orquesta, coro o ambas');
-    if (datos.dias_culto.length === 0) return mostrarError('Marcá los días en que hacen culto');
+    if (!datos.solicitante) return mostrarError('Indique su nombre y apellido');
+    if (!datos.iglesia_nombre) return mostrarError('Indique el nombre de la iglesia');
+    if (datos.grupos.length === 0) return mostrarError('Indique si la iglesia tiene orquesta, coro o ambos');
+    if (datos.dias_culto.length === 0) return mostrarError('Señale los días en que la iglesia celebra culto');
 
     const boton = el('encuestaEnviar');
     enviando = true;
@@ -91,7 +94,7 @@ async function enviarEncuesta(evento) {
         });
         const respuesta = await r.json().catch(() => ({}));
 
-        if (!r.ok) throw new Error(respuesta.error || 'No se pudo enviar');
+        if (!r.ok) throw new Error(respuesta.error || 'No fue posible enviar la solicitud');
 
         el('encuestaForm').hidden = true;
         el('encuestaGracias').hidden = false;
@@ -99,7 +102,7 @@ async function enviarEncuesta(evento) {
     } catch (e) {
         mostrarError(e.message);
         boton.disabled = false;
-        boton.textContent = 'Enviar';
+        boton.textContent = 'Enviar solicitud';
     } finally {
         enviando = false;
     }

@@ -47,11 +47,11 @@ router.get('/formulario/:token', async (req, res) => {
   try {
     const r = await db.query('SELECT * FROM solicitudes WHERE token = $1', [req.params.token]);
     if (r.rows.length === 0) {
-      return res.status(404).json({ error: 'Este enlace no es válido' });
+      return res.status(404).json({ error: 'Este enlace no es válido o fue dado de baja' });
     }
     const solicitud = r.rows[0];
     if (solicitud.estado !== 'pendiente') {
-      return res.status(409).json({ error: 'Este formulario ya fue completado', completado: true });
+      return res.status(409).json({ error: 'Esta solicitud ya fue enviada', completado: true });
     }
     res.json({
       etiqueta: solicitud.etiqueta || '',
@@ -69,10 +69,10 @@ router.post('/formulario/:token', async (req, res) => {
   try {
     const actual = await db.query('SELECT * FROM solicitudes WHERE token = $1', [req.params.token]);
     if (actual.rows.length === 0) {
-      return res.status(404).json({ error: 'Este enlace no es válido' });
+      return res.status(404).json({ error: 'Este enlace no es válido o fue dado de baja' });
     }
     if (actual.rows[0].estado !== 'pendiente') {
-      return res.status(409).json({ error: 'Este formulario ya fue completado' });
+      return res.status(409).json({ error: 'Esta solicitud ya fue enviada' });
     }
 
     const solicitante = recorte(req.body.solicitante, 160);
@@ -80,10 +80,10 @@ router.post('/formulario/:token', async (req, res) => {
     const grupos = normalizarGrupos(req.body.grupos);
     const dias = normalizarDiasCulto(req.body.dias_culto);
 
-    if (!solicitante) return res.status(400).json({ error: 'Poné tu nombre y apellido' });
-    if (!iglesiaNombre) return res.status(400).json({ error: 'Poné el nombre de la iglesia' });
-    if (grupos.length === 0) return res.status(400).json({ error: 'Marcá si tienen orquesta, coro o ambas' });
-    if (dias.length === 0) return res.status(400).json({ error: 'Marcá los días en que hacen culto' });
+    if (!solicitante) return res.status(400).json({ error: 'Indique su nombre y apellido' });
+    if (!iglesiaNombre) return res.status(400).json({ error: 'Indique el nombre de la iglesia' });
+    if (grupos.length === 0) return res.status(400).json({ error: 'Indique si la iglesia tiene orquesta, coro o ambos' });
+    if (dias.length === 0) return res.status(400).json({ error: 'Señale los días en que la iglesia celebra culto' });
 
     const r = await db.query(
       `UPDATE solicitudes
@@ -108,7 +108,7 @@ router.post('/formulario/:token', async (req, res) => {
     );
 
     if (r.rows.length === 0) {
-      return res.status(409).json({ error: 'Este formulario ya fue completado' });
+      return res.status(409).json({ error: 'Esta solicitud ya fue enviada' });
     }
 
     console.log(`📝 Solicitud completada: ${iglesiaNombre} (${solicitante})`);
