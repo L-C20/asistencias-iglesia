@@ -11,6 +11,7 @@ const usuariosRouter = require('./routes/usuarios');
 const iglesiasRouter = require('./routes/iglesias');
 const exportarRouter = require('./routes/exportar');
 const solicitudesRouter = require('./routes/solicitudes');
+const inscripcionesRouter = require('./routes/inscripciones');
 const { initializeDatabase, seedDatabase } = require('./database');
 
 if (!process.env.JWT_SECRET) {
@@ -34,6 +35,7 @@ app.use('/api/usuarios', usuariosRouter);
 app.use('/api/iglesias', iglesiasRouter);
 app.use('/api/exportar', exportarRouter);
 app.use('/api/solicitudes', solicitudesRouter);
+app.use('/api/inscripciones', inscripcionesRouter);
 
 // Ruta raíz - servir login
 app.get('/', (req, res) => {
@@ -44,6 +46,11 @@ app.get('/', (req, res) => {
 // (/encuesta/<codigo> se mantiene por los enlaces ya enviados)
 app.get(['/alta/:token', '/encuesta/:token'], (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'encuesta.html'));
+});
+
+// Formulario público de inscripción de integrantes: /unirse/<codigo>
+app.get('/unirse/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'inscripcion.html'));
 });
 
 // Health check

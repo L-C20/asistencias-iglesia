@@ -72,7 +72,16 @@ function columnaSeccion(grupoId) {
   return grupoId === 'coro' ? 'voz' : 'instrumento';
 }
 
+// Alfabeto sin I, L, O ni U: así ningún código se confunde al leerlo o dictarlo
+const ALFABETO_CODIGO = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+
+// Diez caracteres alcanzan de sobra (más de mil billones de combinaciones) y
+// dejan un enlace corto para mandar por mensaje
+function nuevoCodigo() {
+  return Array.from(require('crypto').randomBytes(10), b => ALFABETO_CODIGO[b % 32]).join('');
+}
+
 module.exports = {
-  GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
+  nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
   DIAS_CULTO_POR_DEFECTO, NOMBRES_DIA, normalizarDiasCulto
 };

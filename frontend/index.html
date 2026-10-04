@@ -556,6 +556,35 @@
                             </div>
                         </div>
 
+                        <!-- SECCIÓN INSCRIPCIONES DE INTEGRANTES (administradores) -->
+                        <div class="config-section" id="seccionInscripciones" hidden>
+                            <div class="section-header">
+                                <h3>Inscripciones de integrantes <span class="badge badge-admin" id="contadorInscripciones" hidden></span></h3>
+                                <button class="btn btn-secondary" id="btnCopiarEnlaceInscripcion" onclick="copiarEnlaceInscripcion()" hidden>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    Copiar enlace
+                                </button>
+                            </div>
+                            <p class="ayuda-campo" id="ayudaInscripciones"></p>
+
+                            <div class="tabla-miembros" id="tablaInscripciones" hidden>
+                                <table class="tabla-datos">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Grupo</th>
+                                            <th>Sección</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inscripcionesTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- SECCIÓN USUARIOS -->
                         <div class="config-section" id="seccionGestionUsuarios">
                             <div class="section-header">
@@ -964,6 +993,7 @@
     <script src="js/miembros.js"></script>
     <script src="js/asistencia.js"></script>
     <script src="js/solicitudes.js"></script>
+    <script src="js/inscripciones.js"></script>
     <script src="js/configuracion.js"></script>
     <script src="js/app.js"></script>
 </body>

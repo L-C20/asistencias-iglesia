@@ -3,23 +3,13 @@
 // encargado completa un formulario público (sin cuenta) y queda una solicitud
 // esperando. La iglesia se crea recién cuando el super administrador la aprueba.
 
-const crypto = require('crypto');
 const express = require('express');
 const db = require('../database');
 const { verifyToken, verificarSuperadmin } = require('../middleware/auth');
-const { normalizarGrupos, normalizarDiasCulto, GRUPOS_DISPONIBLES, NOMBRES_DIA } = require('../config');
+const { nuevoCodigo, normalizarGrupos, normalizarDiasCulto, GRUPOS_DISPONIBLES, NOMBRES_DIA } = require('../config');
 const router = express.Router();
 
 const ESTADOS = ['pendiente', 'respondida', 'aprobada', 'descartada'];
-
-// Alfabeto sin I, L, O ni U: así ningún código se confunde al leerlo o dictarlo
-const ALFABETO_CODIGO = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
-
-// Diez caracteres alcanzan de sobra (más de mil billones de combinaciones) y
-// dejan un enlace corto para mandar por mensaje
-function nuevoCodigo() {
-  return Array.from(crypto.randomBytes(10), b => ALFABETO_CODIGO[b % 32]).join('');
-}
 
 function recorte(valor, largo) {
   const texto = String(valor ?? '').trim();

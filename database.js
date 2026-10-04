@@ -137,6 +137,20 @@ async function initializeDatabase() {
       )
     `);
 
+    // Inscripciones de integrantes: quien recibe el enlace de su iglesia deja
+    // sus datos acá y pasan a la planilla cuando el encargado los aprueba.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS inscripciones (
+        id SERIAL PRIMARY KEY,
+        iglesia_id INTEGER NOT NULL REFERENCES iglesias(id),
+        nombre VARCHAR(255) NOT NULL,
+        grupo VARCHAR(20) NOT NULL,
+        seccion VARCHAR(100),
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_inscripciones_iglesia ON inscripciones(iglesia_id)`);
+
     console.log('✓ Base de datos inicializada correctamente');
   } catch (error) {
     console.error('Error inicializando BD:', error.message);
@@ -184,6 +198,12 @@ async function migrarAIglesias() {
            FROM registro_asistencia ra JOIN miembros m ON m.id = ra.miembro_id
            WHERE ra.tipo_evento = 'bautismo'
          )`);
+  } catch (e) { /* ya existe */ }
+
+  // Enlace con el que los integrantes de la iglesia piden su inscripción;
+  // sin valor, la inscripción por enlace está desactivada
+  try {
+    await pool.query(`ALTER TABLE iglesias ADD COLUMN token_inscripcion VARCHAR(20)`);
   } catch (e) { /* ya existe */ }
 
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_iglesia ON miembros(iglesia_id)`);

@@ -10,7 +10,7 @@ async function inicializarConfiguracion() {
     console.log('⚙️ Inicializando configuración...');
 
     await obtenerPerfilActual();
-    await Promise.all([cargarUsuarios(), cargarIglesias(), cargarSolicitudes()]);
+    await Promise.all([cargarUsuarios(), cargarIglesias(), cargarSolicitudes(), cargarInscripciones()]);
     configurarEventos();
 }
 
@@ -436,6 +436,27 @@ function renderizarTablaIglesias(iglesias) {
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                 </button>
+                ${i.enlaceInscripcion ? `
+                <button class="btn btn-sm" onclick="copiarEnlaceDeIglesia(${i.id})" title="Copiar enlace de inscripción de integrantes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                </button>
+                <button class="btn btn-sm" onclick="desactivarEnlaceInscripcion(${i.id})" title="Desactivar enlace de inscripción">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                    </svg>
+                </button>` : `
+                <button class="btn btn-sm" onclick="generarEnlaceInscripcion(${i.id})" title="Habilitar inscripción de integrantes por enlace">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <line x1="19" y1="8" x2="19" y2="14"></line>
+                        <line x1="16" y1="11" x2="22" y2="11"></line>
+                    </svg>
+                </button>`}
                 ${i.id === APP_CONFIG.id ? '' : `
                 <button class="btn btn-sm btn-secondary" onclick="cambiarIglesia(${i.id})" title="Trabajar sobre esta iglesia">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
