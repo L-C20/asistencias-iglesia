@@ -2447,8 +2447,18 @@ input::placeholder { color: var(--text-light); }
 
     /* Tabla del reporte: la sección ya dice el instrumento, esa columna sobra;
        el nombre queda fijo a la izquierda mientras se desplazan los días */
-    #tablaDetalle th:nth-child(2),
-    #tablaDetalle .celda-detalle { display: none; }
+    /* No se oculta con display:none: las filas de sección y de total ocupan
+       dos columnas (colspan) y, sin ella, se correrían los días una columna */
+    #tablaDetalle thead th:nth-child(2),
+    #tablaDetalle .celda-detalle {
+        width: 0;
+        max-width: 0;
+        padding: 0;
+        border: 0;
+        overflow: hidden;
+        font-size: 0;
+        line-height: 0;
+    }
     #tablaDetalle th:first-child,
     #tablaDetalle .celda-nombre,
     #tablaDetalle .seccion-rep-cabecera td:first-child,
