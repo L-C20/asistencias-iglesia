@@ -117,10 +117,10 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
                 fila.innerHTML = `
                     <div class="miembro-info">
                         <div class="miembro-nombre">${miembro.nombre || 'Sin nombre'}</div>
-                        ${miembro.dni || miembro.fecha_nacimiento ? `<div class="miembro-datos">${[
-                            miembro.dni ? 'DNI ' + formatearDni(miembro.dni) : '',
-                            miembro.fecha_nacimiento ? 'Nac. ' + formatearFechaNacimiento(miembro.fecha_nacimiento) : ''
-                        ].filter(Boolean).join(' · ')}</div>` : ''}
+                        <div class="miembro-datos">
+                            <span><b>DNI</b> ${formatearDni(miembro.dni) || '<em>sin cargar</em>'}</span>
+                            <span><b>Nacimiento</b> ${formatearFechaNacimiento(miembro.fecha_nacimiento) || '<em>sin cargar</em>'}</span>
+                        </div>
                     </div>
                     <div class="celda-acciones">
                         <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}); return false;" title="Editar">

@@ -2648,8 +2648,13 @@ input::placeholder { color: var(--text-light); }
 
 /* DNI y nacimiento bajo el nombre en la lista de integrantes */
 .miembro-datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px var(--sp-4);
     font-size: var(--fs-sm);
     font-weight: 400;
-    color: var(--text-3);
-    margin-top: 1px;
+    color: var(--text-2);
+    margin-top: 2px;
 }
+.miembro-datos b { font-weight: 600; color: var(--text-3); margin-right: 4px; }
+.miembro-datos em { color: var(--text-light); font-style: italic; }

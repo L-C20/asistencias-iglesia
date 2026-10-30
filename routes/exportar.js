@@ -37,7 +37,8 @@ async function armarDatos(iglesiaId, grupo, tipoEvento, fechas) {
   if (!infoGrupo || !cfg.grupos.some(g => g.id === grupo)) throw new Error('Grupo inválido');
 
   const miembros = (await db.query(
-    `SELECT m.id, m.nombre, CASE WHEN m.grupo = 'coro' THEN m.voz ELSE m.instrumento END AS seccion
+    `SELECT m.id, m.nombre, CASE WHEN m.grupo = 'coro' THEN m.voz ELSE m.instrumento END AS seccion,
+       m.dni, TO_CHAR(m.fecha_nacimiento, 'DD/MM/YYYY') AS nacimiento
      FROM miembros m WHERE m.iglesia_id = $1 AND m.grupo = $2 AND m.activo = true ORDER BY m.nombre`,
     [iglesiaId, grupo]
   )).rows;
@@ -101,6 +102,9 @@ async function armarDatos(iglesiaId, grupo, tipoEvento, fechas) {
   };
 }
 
+// 30123456 -> 30.123.456
+const dniConPuntos = dni => (dni ? String(dni).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '');
+
 function textoSubtotal(c) {
   const partes = [];
   if (c.P) partes.push(`${c.P} P`);
@@ -121,7 +125,7 @@ async function generarExcel(datos, res) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Asistencia', { views: [{ state: 'frozen', xSplit: 2, ySplit: 5 }] });
 
-  const nCols = 2 + datos.fechas.length;
+  const nCols = 4 + datos.fechas.length;
   const RELLENO = {
     P: 'FFDCFCE7', A: 'FFFEE2E2', AJ: 'FFFEF3C7',
     cabecera: 'FFF2F4F7', seccion: 'FFF9FAFB', total: 'FFEAECF0'
@@ -144,24 +148,26 @@ async function generarExcel(datos, res) {
 
   // Cabecera (fila 5)
   const cab = ws.getRow(5);
-  cab.values = ['Nombre y Apellido', datos.grupo.categoria, ...datos.fechas.map(etiquetaFecha)];
+  cab.values = ['Nombre y Apellido', datos.grupo.categoria, 'DNI', 'Nacimiento', ...datos.fechas.map(etiquetaFecha)];
   cab.eachCell(c => { c.font = { bold: true, size: 10 }; c.fill = relleno(RELLENO.cabecera); c.border = borde; c.alignment = { horizontal: 'center', vertical: 'middle' }; });
   cab.getCell(1).alignment = { horizontal: 'left' };
   cab.getCell(2).alignment = { horizontal: 'left' };
+  cab.getCell(3).alignment = { horizontal: 'left' };
+  cab.getCell(4).alignment = { horizontal: 'left' };
 
   let fila = 6;
   datos.secciones.forEach(s => {
     const r = ws.getRow(fila++);
-    r.values = [`${s.nombre} (${s.miembros.length})`, '', ...s.subtotales.map(textoSubtotal)];
+    r.values = [`${s.nombre} (${s.miembros.length})`, '', '', '', ...s.subtotales.map(textoSubtotal)];
     r.eachCell({ includeEmpty: true }, c => { c.font = { bold: true, size: 10 }; c.fill = relleno(RELLENO.seccion); c.border = borde; c.alignment = { horizontal: 'center' }; });
     r.getCell(1).alignment = { horizontal: 'left' };
 
     s.miembros.forEach(m => {
       const rm = ws.getRow(fila++);
-      rm.values = [m.nombre, m.seccion || '', ...datos.fechas.map(f => datos.estado(m, f) || '—')];
+      rm.values = [m.nombre, m.seccion || '', dniConPuntos(m.dni), m.nacimiento || '', ...datos.fechas.map(f => datos.estado(m, f) || '—')];
       rm.eachCell({ includeEmpty: true }, (c, i) => {
         c.border = borde;
-        if (i > 2) {
+        if (i > 4) {
           c.alignment = { horizontal: 'center' };
           const e = c.value;
           if (RELLENO[e]) { c.fill = relleno(RELLENO[e]); c.font = { bold: true, color: { argb: e === 'P' ? 'FF067647' : e === 'A' ? 'FFB42318' : 'FFB54708' } }; }
@@ -172,7 +178,7 @@ async function generarExcel(datos, res) {
   });
 
   const rt = ws.getRow(fila++);
-  rt.values = [`Total (${datos.miembros.length})`, '', ...datos.totales.map(textoSubtotal)];
+  rt.values = [`Total (${datos.miembros.length})`, '', '', '', ...datos.totales.map(textoSubtotal)];
   rt.eachCell({ includeEmpty: true }, c => { c.font = { bold: true }; c.fill = relleno(RELLENO.total); c.border = borde; c.alignment = { horizontal: 'center' }; });
   rt.getCell(1).alignment = { horizontal: 'left' };
 
@@ -190,7 +196,9 @@ async function generarExcel(datos, res) {
 
   ws.getColumn(1).width = 30;
   ws.getColumn(2).width = 16;
-  for (let i = 3; i <= nCols; i++) ws.getColumn(i).width = 16;
+  ws.getColumn(3).width = 13;
+  ws.getColumn(4).width = 13;
+  for (let i = 5; i <= nCols; i++) ws.getColumn(i).width = 16;
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo(datos, 'xlsx')}"`);
@@ -210,10 +218,13 @@ function generarPdf(datos, res) {
   const x0 = doc.page.margins.left;
   const anchoUtil = doc.page.width - doc.page.margins.left - doc.page.margins.right;
   const altoFila = 18;
-  const anchoNombre = 190;
-  const anchoSeccion = 90;
-  const anchoFecha = (anchoUtil - anchoNombre - anchoSeccion) / Math.max(datos.fechas.length, 1);
-  const colX = i => x0 + anchoNombre + anchoSeccion + i * anchoFecha;
+  const anchoNombre = 165;
+  const anchoSeccion = 80;
+  const anchoDni = 62;
+  const anchoNacimiento = 62;
+  const anchoDatos = anchoNombre + anchoSeccion + anchoDni + anchoNacimiento;
+  const anchoFecha = (anchoUtil - anchoDatos) / Math.max(datos.fechas.length, 1);
+  const colX = i => x0 + anchoDatos + i * anchoFecha;
 
   let y;
 
@@ -235,6 +246,8 @@ function generarPdf(datos, res) {
     doc.font('Helvetica-Bold').fontSize(8).fillColor(COLOR.gris);
     doc.text('NOMBRE Y APELLIDO', x0 + 6, y + 5, { width: anchoNombre - 12 });
     doc.text(datos.grupo.categoria.toUpperCase(), x0 + anchoNombre + 6, y + 5, { width: anchoSeccion - 12 });
+    doc.text('DNI', x0 + anchoNombre + anchoSeccion + 6, y + 5, { width: anchoDni - 8 });
+    doc.text('NACIMIENTO', x0 + anchoNombre + anchoSeccion + anchoDni + 6, y + 5, { width: anchoNacimiento - 8 });
     datos.fechas.forEach((f, i) => doc.text(etiquetaFecha(f).toUpperCase(), colX(i), y + 5, { width: anchoFecha, align: 'center' }));
     y += altoFila;
   };
@@ -263,6 +276,8 @@ function generarPdf(datos, res) {
       asegurarEspacio(altoFila);
       doc.font('Helvetica').fontSize(9).fillColor(COLOR.texto).text(m.nombre, x0 + 6, y + 5, { width: anchoNombre - 12, lineBreak: false, ellipsis: true });
       doc.fillColor(COLOR.gris).fontSize(8).text(m.seccion || '', x0 + anchoNombre + 6, y + 5, { width: anchoSeccion - 12, lineBreak: false, ellipsis: true });
+      doc.text(dniConPuntos(m.dni), x0 + anchoNombre + anchoSeccion + 6, y + 5, { width: anchoDni - 8, lineBreak: false });
+      doc.text(m.nacimiento || '', x0 + anchoNombre + anchoSeccion + anchoDni + 6, y + 5, { width: anchoNacimiento - 8, lineBreak: false });
       datos.fechas.forEach((f, i) => {
         const e = datos.estado(m, f);
         const cx = colX(i) + anchoFecha / 2;
