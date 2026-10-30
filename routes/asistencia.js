@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../database');
 const { verifyToken } = require('../middleware/auth');
-const { grupoValidoEn, columnaSeccion } = require('../config');
+const { grupoValidoEn, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
 const router = express.Router();
 
 // Todo lo que se lee o escribe acá pertenece a la iglesia del usuario logueado
@@ -9,6 +9,21 @@ const router = express.Router();
 
 // La "sección" de un integrante es su instrumento (orquesta) o su cuerda (coro)
 const SECCION_SQL = "CASE WHEN m.grupo = 'coro' THEN m.voz ELSE m.instrumento END AS seccion";
+
+// Datos personales de un integrante; la fecha sale como texto YYYY-MM-DD
+const PERSONALES_SQL = "m.dni, TO_CHAR(m.fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento";
+
+// DNI y fecha de nacimiento son opcionales, pero si vienen tienen que ser válidos.
+// Devuelve { dni, fecha } o { error }.
+function datosPersonales(body) {
+  const dniCrudo = String(body.dni ?? '').trim();
+  const fechaCruda = String(body.fecha_nacimiento ?? '').trim();
+  const dni = dniCrudo ? normalizarDni(dniCrudo) : null;
+  const fecha = fechaCruda ? normalizarFechaNacimiento(fechaCruda) : null;
+  if (dniCrudo && !dni) return { error: 'El DNI debe tener entre 6 y 9 dígitos' };
+  if (fechaCruda && !fecha) return { error: 'La fecha de nacimiento no es válida' };
+  return { dni, fecha };
+}
 
 async function grupoHabilitado(iglesiaId, grupo) {
   const r = await db.query('SELECT * FROM iglesias WHERE id = $1', [iglesiaId]);
@@ -32,7 +47,7 @@ router.get('/miembros/:grupo', verifyToken, async (req, res) => {
     }
 
     const result = await db.query(
-      `SELECT m.id, m.nombre, m.grupo, ${SECCION_SQL}
+      `SELECT m.id, m.nombre, m.grupo, ${SECCION_SQL}, ${PERSONALES_SQL}
        FROM miembros m
        WHERE m.iglesia_id = $1 AND m.grupo = $2 AND m.activo = true
        ORDER BY m.nombre`,
@@ -198,11 +213,14 @@ router.post('/miembro/nuevo', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Grupo inválido' });
     }
 
+    const personales = datosPersonales(req.body);
+    if (personales.error) return res.status(400).json({ error: personales.error });
+
     const result = await db.query(
-      `INSERT INTO miembros (nombre, grupo, ${columnaSeccion(grupo)}, iglesia_id)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO miembros (nombre, grupo, ${columnaSeccion(grupo)}, iglesia_id, dni, fecha_nacimiento)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, nombre, grupo, $3::text AS seccion`,
-      [nombre, grupo, seccion, req.user.iglesia_id]
+      [nombre, grupo, seccion, req.user.iglesia_id, personales.dni, personales.fecha]
     );
 
     res.json({
@@ -219,7 +237,7 @@ router.post('/miembro/nuevo', verifyToken, async (req, res) => {
 router.get('/miembro/:id', verifyToken, async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT m.id, m.nombre, m.grupo, ${SECCION_SQL} FROM miembros m WHERE m.id = $1 AND m.iglesia_id = $2`,
+      `SELECT m.id, m.nombre, m.grupo, ${SECCION_SQL}, ${PERSONALES_SQL} FROM miembros m WHERE m.id = $1 AND m.iglesia_id = $2`,
       [req.params.id, req.user.iglesia_id]
     );
 
@@ -245,6 +263,9 @@ router.put('/miembro/:id', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Nombre es requerido' });
     }
 
+    const personales = datosPersonales(req.body);
+    if (personales.error) return res.status(400).json({ error: personales.error });
+
     // La columna depende del grupo al que pertenece el integrante
     const actual = await db.query('SELECT grupo FROM miembros WHERE id = $1 AND iglesia_id = $2', [id, req.user.iglesia_id]);
     if (actual.rows.length === 0) {
@@ -252,10 +273,11 @@ router.put('/miembro/:id', verifyToken, async (req, res) => {
     }
 
     const result = await db.query(
-      `UPDATE miembros SET nombre = $1, ${columnaSeccion(actual.rows[0].grupo)} = $2
+      `UPDATE miembros SET nombre = $1, ${columnaSeccion(actual.rows[0].grupo)} = $2,
+         dni = $5, fecha_nacimiento = $6
        WHERE id = $3 AND iglesia_id = $4
        RETURNING id, nombre, grupo, $2::text AS seccion`,
-      [nombre, seccion, id, req.user.iglesia_id]
+      [nombre, seccion, id, req.user.iglesia_id, personales.dni, personales.fecha]
     );
 
     res.json({

@@ -117,6 +117,10 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
                 fila.innerHTML = `
                     <div class="miembro-info">
                         <div class="miembro-nombre">${miembro.nombre || 'Sin nombre'}</div>
+                        ${miembro.dni || miembro.fecha_nacimiento ? `<div class="miembro-datos">${[
+                            miembro.dni ? 'DNI ' + formatearDni(miembro.dni) : '',
+                            miembro.fecha_nacimiento ? 'Nac. ' + formatearFechaNacimiento(miembro.fecha_nacimiento) : ''
+                        ].filter(Boolean).join(' · ')}</div>` : ''}
                     </div>
                     <div class="celda-acciones">
                         <button class="btn btn-sm btn-secondary" type="button" onclick="editarMiembroFunc(${miembro.id}); return false;" title="Editar">
@@ -184,6 +188,8 @@ function abrirModalAgregarMiembro() {
     document.getElementById('btnGuardarTexto').textContent = 'Agregar';
 
     document.getElementById('nombreNuevo').value = '';
+    document.getElementById('dniNuevo').value = '';
+    document.getElementById('nacimientoNuevo').value = '';
     armarSelectSeccion(grupoMiembros);
 
     modal.classList.add('show');
@@ -217,6 +223,8 @@ async function editarMiembroFunc(miembroId) {
         if (!modal) return;
 
         document.getElementById('nombreNuevo').value = miembro.nombre;
+        document.getElementById('dniNuevo').value = miembro.dni || '';
+        document.getElementById('nacimientoNuevo').value = miembro.fecha_nacimiento || '';
         armarSelectSeccion(miembro.grupo, miembro.seccion || '');
 
         modal.classList.add('show');
@@ -233,6 +241,8 @@ async function guardarNuevoMiembro(e) {
     
     const nombre = document.getElementById('nombreNuevo').value.trim();
     const seccion = document.getElementById('seccionNuevo').value;
+    const dni = document.getElementById('dniNuevo').value.trim();
+    const fecha_nacimiento = document.getElementById('nacimientoNuevo').value;
     const categoria = grupoInfo(miembroEnEdicion ? miembroEnEdicion.grupo : grupoMiembros).categoria.toLowerCase();
 
     if (!nombre) {
@@ -256,7 +266,7 @@ async function guardarNuevoMiembro(e) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ nombre, seccion })
+                body: JSON.stringify({ nombre, seccion, dni, fecha_nacimiento })
             });
 
             const data = await response.json();
@@ -279,7 +289,7 @@ async function guardarNuevoMiembro(e) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ nombre, grupo: grupoMiembros, seccion })
+                body: JSON.stringify({ nombre, grupo: grupoMiembros, seccion, dni, fecha_nacimiento })
             });
 
             const data = await response.json();

@@ -206,6 +206,12 @@ async function migrarAIglesias() {
     await pool.query(`ALTER TABLE iglesias ADD COLUMN token_inscripcion VARCHAR(20)`);
   } catch (e) { /* ya existe */ }
 
+  // Datos personales de los integrantes (y de quienes se inscriben por enlace)
+  for (const tabla of ['miembros', 'inscripciones']) {
+    await pool.query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS dni VARCHAR(15)`);
+    await pool.query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS fecha_nacimiento DATE`);
+  }
+
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_iglesia ON miembros(iglesia_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_usuarios_iglesia ON usuarios(iglesia_id)`);
 

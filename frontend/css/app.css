@@ -2645,3 +2645,11 @@ input::placeholder { color: var(--text-light); }
 .encuesta-aviso svg { width: 40px; height: 40px; }
 .encuesta-aviso-ok { border-color: var(--green-200); color: var(--green-700); }
 .encuesta-aviso-cerrado { border-color: #fecdca; color: var(--red-700); background: var(--red-50); }
+
+/* DNI y nacimiento bajo el nombre en la lista de integrantes */
+.miembro-datos {
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    color: var(--text-3);
+    margin-top: 1px;
+}

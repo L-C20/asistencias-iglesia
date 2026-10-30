@@ -49,6 +49,16 @@
                     <label for="inscripcionSeccion" id="etiquetaSeccion">Instrumento</label>
                     <select id="inscripcionSeccion" required></select>
                 </div>
+                <div class="encuesta-fila">
+                    <div class="form-group">
+                        <label for="inscripcionDni">Documento de identidad</label>
+                        <input type="text" id="inscripcionDni" inputmode="numeric" maxlength="12" placeholder="Sin puntos" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inscripcionNacimiento">Fecha de nacimiento</label>
+                        <input type="date" id="inscripcionNacimiento" min="1900-01-01" required>
+                    </div>
+                </div>
             </section>
 
             <button type="submit" class="btn btn-primary encuesta-enviar" id="inscripcionEnviar">Enviar inscripción</button>

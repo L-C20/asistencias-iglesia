@@ -6,7 +6,7 @@
 const express = require('express');
 const db = require('../database');
 const { verifyToken, verificarAdmin } = require('../middleware/auth');
-const { configDeIglesia, columnaSeccion } = require('../config');
+const { configDeIglesia, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
 const router = express.Router();
 
 // Tope de pendientes por iglesia, para que un enlace filtrado no llene la tabla
@@ -54,18 +54,27 @@ router.post('/formulario/:token', async (req, res) => {
     const grupo = config.grupos.find(g => g.id === req.body.grupo);
     const seccion = grupo && grupo.secciones.find(s => s === req.body.seccion);
 
+    const dni = normalizarDni(req.body.dni);
+    const fechaNacimiento = normalizarFechaNacimiento(req.body.fecha_nacimiento);
+
     if (nombre.split(' ').length < 2) return res.status(400).json({ error: 'Indique su nombre y apellido' });
     if (!grupo) return res.status(400).json({ error: 'Seleccione el grupo en el que participa' });
     if (!seccion) return res.status(400).json({ error: `Seleccione su ${grupo.categoria.toLowerCase()}` });
+    if (!dni) return res.status(400).json({ error: 'Indique su documento de identidad (entre 6 y 9 dígitos, sin puntos)' });
+    if (!fechaNacimiento) return res.status(400).json({ error: 'Indique una fecha de nacimiento válida' });
 
     const repetido = await db.query(
       `SELECT 1 FROM miembros WHERE iglesia_id = $1 AND grupo = $2 AND activo = true AND LOWER(nombre) = LOWER($3)
        UNION ALL
-       SELECT 1 FROM inscripciones WHERE iglesia_id = $1 AND grupo = $2 AND LOWER(nombre) = LOWER($3)`,
-      [fila.id, grupo.id, nombre]
+       SELECT 1 FROM inscripciones WHERE iglesia_id = $1 AND grupo = $2 AND LOWER(nombre) = LOWER($3)
+       UNION ALL
+       SELECT 1 FROM miembros WHERE iglesia_id = $1 AND activo = true AND dni = $4
+       UNION ALL
+       SELECT 1 FROM inscripciones WHERE iglesia_id = $1 AND dni = $4`,
+      [fila.id, grupo.id, nombre, dni]
     );
     if (repetido.rows.length > 0) {
-      return res.status(409).json({ error: 'Ya figura una inscripción con ese nombre. No es necesario volver a enviarla.' });
+      return res.status(409).json({ error: 'Ya figura una inscripción con ese nombre o documento. No es necesario volver a enviarla.' });
     }
 
     const pendientes = await db.query('SELECT COUNT(*) AS n FROM inscripciones WHERE iglesia_id = $1', [fila.id]);
@@ -74,8 +83,8 @@ router.post('/formulario/:token', async (req, res) => {
     }
 
     await db.query(
-      'INSERT INTO inscripciones (iglesia_id, nombre, grupo, seccion) VALUES ($1, $2, $3, $4)',
-      [fila.id, nombre, grupo.id, seccion]
+      'INSERT INTO inscripciones (iglesia_id, nombre, grupo, seccion, dni, fecha_nacimiento) VALUES ($1, $2, $3, $4, $5, $6)',
+      [fila.id, nombre, grupo.id, seccion, dni, fechaNacimiento]
     );
     console.log(`🙋 Inscripción: ${nombre} (${grupo.nombre} · ${seccion}) en ${fila.nombre}`);
     res.json({ success: true, iglesia: fila.nombre });
@@ -92,7 +101,7 @@ router.get('/', verifyToken, verificarAdmin, async (req, res) => {
   try {
     const [pendientes, iglesia] = await Promise.all([
       db.query(
-        `SELECT id, nombre, grupo, seccion, fecha_creacion FROM inscripciones
+        `SELECT id, nombre, grupo, seccion, dni, TO_CHAR(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento, fecha_creacion FROM inscripciones
          WHERE iglesia_id = $1 ORDER BY fecha_creacion`,
         [req.user.iglesia_id]
       ),
@@ -114,18 +123,18 @@ router.post('/:id/aprobar', verifyToken, verificarAdmin, async (req, res) => {
   try {
     await client.query('BEGIN');
     const r = await client.query(
-      'DELETE FROM inscripciones WHERE id = $1 AND iglesia_id = $2 RETURNING nombre, grupo, seccion',
+      'DELETE FROM inscripciones WHERE id = $1 AND iglesia_id = $2 RETURNING nombre, grupo, seccion, dni, fecha_nacimiento::text AS fecha_nacimiento',
       [req.params.id, req.user.iglesia_id]
     );
     if (r.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'La inscripción ya no existe' });
     }
-    const { nombre, grupo, seccion } = r.rows[0];
+    const { nombre, grupo, seccion, dni, fecha_nacimiento } = r.rows[0];
     const miembro = await client.query(
-      `INSERT INTO miembros (nombre, grupo, ${columnaSeccion(grupo)}, iglesia_id)
-       VALUES ($1, $2, $3, $4) RETURNING id, nombre, grupo`,
-      [nombre, grupo, seccion, req.user.iglesia_id]
+      `INSERT INTO miembros (nombre, grupo, ${columnaSeccion(grupo)}, iglesia_id, dni, fecha_nacimiento)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, nombre, grupo`,
+      [nombre, grupo, seccion, req.user.iglesia_id, dni, fecha_nacimiento]
     );
     await client.query('COMMIT');
     res.json({ success: true, miembro: miembro.rows[0] });

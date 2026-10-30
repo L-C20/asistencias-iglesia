@@ -5,6 +5,17 @@
 let inscripcionesPendientes = [];
 let tokenInscripcion = null;
 
+// 30123456 -> 30.123.456
+function formatearDni(dni) {
+    return dni ? String(dni).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+}
+
+// 1990-05-12 -> 12/05/1990
+function formatearFechaNacimiento(fecha) {
+    const [a, m, d] = String(fecha || '').split('-');
+    return a && m && d ? `${d}/${m}/${a}` : '';
+}
+
 function enlaceDeInscripcion(token) {
     return `${location.origin}/unirse/${token}`;
 }
@@ -54,6 +65,8 @@ function renderizarInscripciones() {
             <td class="celda-nombre">${escaparHtml(i.nombre)}</td>
             <td class="celda-detalle"><span class="badge badge-grupo">${i.grupo === 'coro' ? 'Coro' : 'Orquesta'}</span></td>
             <td class="celda-detalle">${escaparHtml(i.seccion) || '—'}</td>
+            <td class="celda-detalle">${formatearDni(i.dni) || '—'}</td>
+            <td class="celda-detalle">${formatearFechaNacimiento(i.fecha_nacimiento) || '—'}</td>
             <td class="celda-acciones">
                 <button class="btn btn-sm btn-primary" onclick="aprobarInscripcion(${i.id})" title="Aprobar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

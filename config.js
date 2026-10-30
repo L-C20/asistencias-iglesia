@@ -81,7 +81,23 @@ function nuevoCodigo() {
   return Array.from(require('crypto').randomBytes(10), b => ALFABETO_CODIGO[b % 32]).join('');
 }
 
+// DNI: solo los dígitos, entre 6 y 9 ("30.123.456" -> "30123456"); null si no sirve
+function normalizarDni(valor) {
+  const digitos = String(valor ?? '').replace(/[.\s-]/g, '');
+  return /^\d{6,9}$/.test(digitos) ? digitos : null;
+}
+
+// "YYYY-MM-DD" real, no futura y no anterior a 1900; null si no sirve
+function normalizarFechaNacimiento(valor) {
+  const texto = String(valor ?? '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return null;
+  const fecha = new Date(texto + 'T00:00:00Z');
+  if (Number.isNaN(fecha.getTime()) || fecha.toISOString().slice(0, 10) !== texto) return null;
+  if (fecha > new Date() || fecha.getUTCFullYear() < 1900) return null;
+  return texto;
+}
+
 module.exports = {
-  nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
+  normalizarDni, normalizarFechaNacimiento, nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
   DIAS_CULTO_POR_DEFECTO, NOMBRES_DIA, normalizarDiasCulto
 };

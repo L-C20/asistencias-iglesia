@@ -75,11 +75,17 @@ async function enviarInscripcion(evento) {
     const datos = {
         nombre: el('inscripcionNombre').value.trim(),
         grupo: grupo && grupo.id,
-        seccion: el('inscripcionSeccion').value
+        seccion: el('inscripcionSeccion').value,
+        dni: el('inscripcionDni').value.replace(/[.\s-]/g, ''),
+        fecha_nacimiento: el('inscripcionNacimiento').value
     };
 
     if (datos.nombre.split(/\s+/).length < 2) return mostrarError('Indique su nombre y apellido');
     if (!datos.seccion) return mostrarError(`Seleccione su ${grupo.categoria.toLowerCase()}`);
+
+    if (!/^\d{6,9}$/.test(datos.dni)) return mostrarError('Indique su documento de identidad (entre 6 y 9 dígitos, sin puntos)');
+    if (!datos.fecha_nacimiento) return mostrarError('Indique su fecha de nacimiento');
+    if (datos.fecha_nacimiento > new Date().toISOString().slice(0, 10)) return mostrarError('La fecha de nacimiento no puede ser futura');
 
     const boton = el('inscripcionEnviar');
     enviando = true;
