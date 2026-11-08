@@ -42,6 +42,23 @@ window.actualizarHeaderTabla = function() {
 
     headEl.innerHTML = html + '</tr>';
 
+    // Quién cargó cada fecha (solo el super administrador recibe el dato)
+    const bloqueCargas = document.getElementById('cargasSemana');
+    const listaCargas = document.getElementById('cargasSemanaLista');
+    const cargas = window.cargasReporte && window.cargasReporte[tipoEventoActual];
+    if (bloqueCargas && listaCargas) {
+        const filas = fechasCulto.filter(f => cargas && cargas[f]).map(fecha => {
+            const dia = new Date(fecha + 'T00:00:00');
+            const etiqueta = `${DIAS_ABREVIADOS[dia.getDay()]} ${String(dia.getDate()).padStart(2, '0')}/${String(dia.getMonth() + 1).padStart(2, '0')}`;
+            const quienes = cargas[fecha].map(c => c.quien
+                ? `${escaparHtml(c.quien)} <span class="carga-cuando">· ${c.cuando || ''}</span>`
+                : '<span class="carga-cuando">Sin dato (cargada antes de este control)</span>').join('<br>');
+            return `<div class="nota-semana"><span class="nota-semana-dia">${etiqueta}</span><span class="nota-semana-texto">${quienes}</span></div>`;
+        });
+        bloqueCargas.hidden = filas.length === 0;
+        listaCargas.innerHTML = filas.join('');
+    }
+
     const bloque = document.getElementById('notasSemana');
     const cont = document.getElementById('notasSemanaLista');
     if (bloque && cont) {

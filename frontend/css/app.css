@@ -2658,3 +2658,5 @@ input::placeholder { color: var(--text-light); }
 }
 .miembro-datos b { font-weight: 600; color: var(--text-3); margin-right: 4px; }
 .miembro-datos em { color: var(--text-light); font-style: italic; }
+
+.carga-cuando { color: var(--text-3); }

@@ -101,11 +101,12 @@ router.post('/registrar-lote', verifyToken, async (req, res) => {
     const params = [];
     registros.forEach((r, i) => {
       const b = i * 6;
-      valores.push(`($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5}, $${b + 6})`);
+      valores.push(`($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5}, $${b + 6}, $${registros.length * 6 + 1}, NOW() AT TIME ZONE 'UTC')`);
       params.push(Number(r.miembro_id), tipo_evento, fecha, r.presente === true, r.justificado === true, r.nota || null);
     });
+    params.push(req.user.id);
     await client.query(
-      `INSERT INTO registro_asistencia (miembro_id, tipo_evento, fecha, presente, justificado, nota) VALUES ${valores.join(', ')}`,
+      `INSERT INTO registro_asistencia (miembro_id, tipo_evento, fecha, presente, justificado, nota, registrado_por, fecha_registro) VALUES ${valores.join(', ')}`,
       params
     );
 

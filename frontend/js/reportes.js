@@ -108,6 +108,8 @@ window.abrirReporteEvento = function(tipo) {
         .then(r => r.ok ? r.json() : {})
         .then(d => {
             window.descripcionesReporte = (d && d.descripciones) || {};
+            // Solo llega para el super administrador
+            window.cargasReporte = (d && d.cargas) || null;
             if (window.actualizarHeaderTabla) window.actualizarHeaderTabla();
         })
         .catch(() => { window.descripcionesReporte = {}; });

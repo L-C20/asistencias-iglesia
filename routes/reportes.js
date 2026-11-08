@@ -105,7 +105,34 @@ router.get('/fechas/:grupo', verifyToken, async (req, res) => {
         const descripciones = {};
         notas.rows.forEach(r => ((descripciones[r.tipo_evento] = descripciones[r.tipo_evento] || {})[r.fecha] = r.descripcion));
 
-        res.json({ ...porTipo, descripciones });
+        const respuesta = { ...porTipo, descripciones };
+
+        // Quién cargó la asistencia de cada fecha y cuándo: solo el super administrador
+        if (req.user.rol === 'superadmin') {
+            const cargas = await db.query(`
+                SELECT ra.tipo_evento, TO_CHAR(ra.fecha, 'YYYY-MM-DD') AS fecha,
+                       COALESCE(NULLIF(u.nombre_completo, ''), u.usuario) AS quien,
+                       ra.registrado_por IS NOT NULL AS conocido,
+                       TO_CHAR(MAX(ra.fecha_registro) AT TIME ZONE 'UTC' AT TIME ZONE 'America/Argentina/Buenos_Aires', 'DD/MM/YYYY HH24:MI') AS cuando
+                FROM registro_asistencia ra
+                JOIN miembros m ON m.id = ra.miembro_id
+                LEFT JOIN usuarios u ON u.id = ra.registrado_por
+                WHERE m.iglesia_id = $1 AND m.grupo = $2
+                GROUP BY ra.tipo_evento, ra.fecha, u.nombre_completo, u.usuario, ra.registrado_por
+                ORDER BY MAX(ra.fecha_registro)
+            `, [iglesiaId, req.params.grupo]);
+            const porFecha = {};
+            cargas.rows.forEach(r => {
+                const tipo = (porFecha[r.tipo_evento] = porFecha[r.tipo_evento] || {});
+                (tipo[r.fecha] = tipo[r.fecha] || []).push({
+                    quien: r.conocido ? (r.quien || 'Usuario eliminado') : null,
+                    cuando: r.conocido ? r.cuando : null
+                });
+            });
+            respuesta.cargas = porFecha;
+        }
+
+        res.json(respuesta);
     } catch (error) {
         console.error('❌ Error en fechas:', error.message);
         res.status(500).json({ error: error.message });

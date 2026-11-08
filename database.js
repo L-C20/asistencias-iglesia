@@ -206,6 +206,10 @@ async function migrarAIglesias() {
     await pool.query(`ALTER TABLE iglesias ADD COLUMN token_inscripcion VARCHAR(20)`);
   } catch (e) { /* ya existe */ }
 
+  // Quién cargó cada asistencia y cuándo (en UTC); lo anterior queda sin dato
+  await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN IF NOT EXISTS registrado_por INTEGER`);
+  await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN IF NOT EXISTS fecha_registro TIMESTAMP`);
+
   // Datos personales de los integrantes (y de quienes se inscriben por enlace)
   for (const tabla of ['miembros', 'inscripciones']) {
     await pool.query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS dni VARCHAR(15)`);
