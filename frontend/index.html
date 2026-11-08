@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Asistencia</title>
     <link rel="stylesheet" href="css/app.css">
+    <!-- La sesión dura mientras la pestaña o la aplicación siga abierta: al volver a
+         entrar se pide usuario y contraseña. sessionStorage sobrevive a recargar la
+         página pero no a cerrarla, y así se distingue "recargar" de "volver a entrar". -->
+    <script>
+        (function () {
+            try {
+                if (!sessionStorage.getItem('sesionActiva')) {
+                    ['token', 'usuario', 'usuarioRol', 'usuarioNombre'].forEach(function (k) { localStorage.removeItem(k); });
+                }
+            } catch (e) { /* sin almacenamiento: el login se pide igual */ }
+        })();
+    </script>
     <!-- VARIABLES GLOBALES NECESARIAS -->
     <script>
         // Función de error global; app.js la reemplaza por una versión con toast

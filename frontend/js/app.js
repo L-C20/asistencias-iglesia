@@ -165,6 +165,7 @@ async function handleLogin(e) {
         if (response.ok && data.token) {
             token = data.token;
             localStorage.setItem('token', token);
+            try { sessionStorage.setItem('sesionActiva', '1'); } catch (e) { /* se pedirá de nuevo al reabrir */ }
             localStorage.setItem('usuario', data.user?.usuario || usuario);
             localStorage.setItem('usuarioRol', data.rol || 'operario');
             localStorage.setItem('usuarioNombre', data.nombre_completo || usuario);
