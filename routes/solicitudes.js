@@ -5,6 +5,7 @@
 
 const express = require('express');
 const db = require('../database');
+const mov = require('../movimientos');
 const { verifyToken, verificarSuperadmin } = require('../middleware/auth');
 const { nuevoCodigo, normalizarGrupos, normalizarDiasCulto, GRUPOS_DISPONIBLES, NOMBRES_DIA } = require('../config');
 const router = express.Router();
@@ -111,6 +112,7 @@ router.post('/formulario/:token', async (req, res) => {
     }
 
     console.log(`📝 Solicitud completada: ${iglesiaNombre} (${solicitante})`);
+    await mov.registrar({ quien: 'Formulario de alta', categoria: 'altas', accion: 'Recibió una solicitud de alta', detalle: `${iglesiaNombre} · ${solicitante}` });
     res.json({ success: true });
   } catch (error) {
     console.error('Error guardando solicitud:', error);
@@ -149,6 +151,7 @@ router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
       'INSERT INTO solicitudes (token, etiqueta) VALUES ($1, $2) RETURNING *',
       [token, etiqueta]
     );
+    await mov.registrar({ quien: req.user, categoria: 'altas', accion: 'Generó un enlace de alta', detalle: etiqueta });
     res.status(201).json(comoSolicitud(r.rows[0]));
   } catch (error) {
     console.error('Error generando enlace:', error);
@@ -174,6 +177,7 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
       [estado, iglesiaId, req.params.id]
     );
     if (r.rows.length === 0) return res.status(404).json({ error: 'Solicitud no encontrada' });
+    await mov.registrar({ quien: req.user, iglesiaId: iglesiaId, categoria: 'altas', accion: estado === 'aprobada' ? 'Aprobó una solicitud de alta' : 'Rechazó una solicitud de alta', detalle: r.rows[0].iglesia_nombre || r.rows[0].etiqueta || '' });
     res.json(comoSolicitud(r.rows[0]));
   } catch (error) {
     console.error('Error actualizando solicitud:', error);
@@ -184,8 +188,9 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
 // Borra el enlace o la solicitud - DELETE /api/solicitudes/:id
 router.delete('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
   try {
-    const r = await db.query('DELETE FROM solicitudes WHERE id = $1 RETURNING id', [req.params.id]);
+    const r = await db.query('DELETE FROM solicitudes WHERE id = $1 RETURNING id, etiqueta, iglesia_nombre', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ error: 'Solicitud no encontrada' });
+    await mov.registrar({ quien: req.user, categoria: 'altas', accion: 'Eliminó una solicitud o enlace de alta', detalle: r.rows[0].iglesia_nombre || r.rows[0].etiqueta || '' });
     res.json({ success: true });
   } catch (error) {
     console.error('Error eliminando solicitud:', error);

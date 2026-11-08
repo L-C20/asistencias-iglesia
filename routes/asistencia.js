@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../database');
+const mov = require('../movimientos');
 const { verifyToken } = require('../middleware/auth');
 const { grupoValidoEn, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
 const router = express.Router();
@@ -129,6 +130,10 @@ router.post('/registrar-lote', verifyToken, async (req, res) => {
 
     await client.query('COMMIT');
     console.log(`💾 Lote guardado: ${tipo_evento} ${fecha} (${registros.length} registros)`);
+    await mov.registrar({
+      quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'asistencia', accion: 'Guardó asistencia',
+      detalle: `${mov.NOMBRES_EVENTO[tipo_evento] || tipo_evento}${grupo ? ' · ' + (mov.NOMBRES_GRUPO[grupo] || grupo) : ''} · ${mov.fechaCorta(fecha)} · ${registros.length} integrantes`
+    });
     res.json({ success: true, guardados: registros.length });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -160,6 +165,10 @@ router.delete('/evento/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res)
     );
 
     console.log(`🗑️ Evento eliminado: ${tipoEvento} ${fecha} (${result.rowCount} registros)`);
+    await mov.registrar({
+      quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'asistencia', accion: 'Eliminó un evento',
+      detalle: `${mov.NOMBRES_EVENTO[tipoEvento] || tipoEvento} · ${mov.NOMBRES_GRUPO[grupo] || grupo} · ${mov.fechaCorta(fecha)} · ${result.rowCount} registros`
+    });
     res.json({ success: true, eliminados: result.rowCount });
   } catch (error) {
     console.error('Error eliminando evento:', error);
@@ -224,6 +233,7 @@ router.post('/miembro/nuevo', verifyToken, async (req, res) => {
       [nombre, grupo, seccion, req.user.iglesia_id, personales.dni, personales.fecha]
     );
 
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'integrantes', accion: 'Agregó un integrante', detalle: `${nombre} · ${mov.NOMBRES_GRUPO[grupo] || grupo}${seccion ? ' · ' + seccion : ''}` });
     res.json({
       success: true,
       miembro: result.rows[0]
@@ -281,6 +291,7 @@ router.put('/miembro/:id', verifyToken, async (req, res) => {
       [nombre, seccion, id, req.user.iglesia_id, personales.dni, personales.fecha]
     );
 
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'integrantes', accion: 'Editó un integrante', detalle: `${nombre}${seccion ? ' · ' + seccion : ''}` });
     res.json({
       success: true,
       miembro: result.rows[0]
@@ -305,6 +316,7 @@ router.delete('/miembro/:id', verifyToken, async (req, res) => {
     const result = await db.query('DELETE FROM miembros WHERE id = $1 RETURNING id, nombre', [id]);
 
     console.log('✅ Miembro eliminado:', result.rows[0].nombre);
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'integrantes', accion: 'Eliminó un integrante', detalle: result.rows[0].nombre });
 
     res.json({
       success: true,

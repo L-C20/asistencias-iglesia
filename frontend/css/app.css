@@ -2660,3 +2660,25 @@ input::placeholder { color: var(--text-light); }
 .miembro-datos em { color: var(--text-light); font-style: italic; }
 
 .carga-cuando { color: var(--text-3); }
+
+/* ---------- Movimientos del sistema ---------- */
+.filtros-movimientos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+}
+.filtros-movimientos select,
+.filtros-movimientos input { flex: 1 1 160px; min-width: 0; }
+
+.movimiento-fecha { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tabla-movimientos td { font-size: var(--fs-sm); vertical-align: top; }
+
+.paginacion-movimientos {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    margin-top: var(--sp-3);
+}
+.paginacion-movimientos .ayuda-campo { margin: 0; text-align: center; }

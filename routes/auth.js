@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../database');
+const mov = require('../movimientos');
 const { verifyToken, verificarSuperadmin } = require('../middleware/auth');
 const { configDeIglesia } = require('../config');
 const router = express.Router();
@@ -47,12 +48,14 @@ router.post('/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      await mov.registrar({ quien: usuario, categoria: 'sesion', accion: 'Intento de ingreso fallido', detalle: 'El usuario no existe' });
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
     const user = result.rows[0];
 
     if (!(await passwordCoincide(password, user.password))) {
+      await mov.registrar({ quien: { id: user.id, usuario: user.usuario }, iglesiaId: user.iglesia_id, categoria: 'sesion', accion: 'Intento de ingreso fallido', detalle: 'Contraseña incorrecta' });
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
@@ -69,6 +72,8 @@ router.post('/login', async (req, res) => {
       await db.query('UPDATE usuarios SET password = $1 WHERE id = $2', [hash, user.id]);
       console.log('🔐 Contraseña migrada a hash para:', user.usuario);
     }
+
+    await mov.registrar({ quien: { id: user.id, usuario: user.usuario }, iglesiaId: user.iglesia_id, categoria: 'sesion', accion: 'Inició sesión' });
 
     res.json({
       success: true,
@@ -107,6 +112,7 @@ router.post('/cambiar-iglesia/:id', verifyToken, verificarSuperadmin, async (req
       return res.status(404).json({ error: 'Iglesia no encontrada' });
     }
     const user = { id: req.user.id, usuario: req.user.usuario, rol: req.user.rol };
+    await mov.registrar({ quien: req.user, iglesiaId: iglesia.rows[0].id, categoria: 'sesion', accion: 'Cambió de iglesia', detalle: `Pasó a trabajar sobre ${iglesia.rows[0].nombre}` });
     res.json({ success: true, token: firmarToken(user, iglesia.rows[0].id), iglesia: configDeIglesia(iglesia.rows[0]) });
   } catch (error) {
     console.error('Error cambiando de iglesia:', error);

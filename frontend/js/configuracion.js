@@ -11,6 +11,7 @@ async function inicializarConfiguracion() {
 
     await obtenerPerfilActual();
     await Promise.all([cargarUsuarios(), cargarIglesias(), cargarSolicitudes(), cargarInscripciones()]);
+    cargarMovimientos(1);
     configurarEventos();
 }
 
@@ -52,6 +53,8 @@ function actualizarVisibilidadPorRol() {
     if (seccionIglesias) seccionIglesias.hidden = !esSuperadmin;
     const seccionSolicitudes = document.getElementById('seccionSolicitudes');
     if (seccionSolicitudes) seccionSolicitudes.hidden = !esSuperadmin;
+    const seccionMovimientos = document.getElementById('seccionMovimientos');
+    if (seccionMovimientos) seccionMovimientos.hidden = !esSuperadmin;
 
     // El super administrador ve los usuarios de la iglesia que tiene elegida
     const tituloUsuarios = document.getElementById('tituloUsuarios');

@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
+const mov = require('../movimientos');
 const { verifyToken, verificarSuperadmin, puedeVerTodas } = require('../middleware/auth');
 const { nuevoCodigo, configDeIglesia, normalizarGrupos, normalizarDiasCulto, DIAS_CULTO_POR_DEFECTO } = require('../config');
 const router = express.Router();
@@ -104,6 +105,7 @@ router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
 
     await client.query('COMMIT');
     console.log(`⛪ Iglesia creada: ${nombre} (${grupos.join(', ')}) · admin: ${adminUsuario}`);
+    await mov.registrar({ quien: req.user, iglesiaId: iglesia.rows[0].id, categoria: 'iglesias', accion: 'Creó una iglesia', detalle: `${nombre} · administrador: ${adminUsuario}` });
     res.status(201).json({ success: true, iglesia: configDeIglesia(iglesia.rows[0]) });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -145,6 +147,7 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Iglesia no encontrada' });
     }
+    await mov.registrar({ quien: req.user, iglesiaId: result.rows[0].id, categoria: 'iglesias', accion: 'Modificó una iglesia', detalle: result.rows[0].nombre });
     res.json({ success: true, iglesia: configDeIglesia(result.rows[0]) });
   } catch (error) {
     console.error('Error actualizando iglesia:', error);
@@ -161,6 +164,7 @@ router.post('/:id/enlace-inscripcion', verifyToken, verificarSuperadmin, async (
       [nuevoCodigo(), req.params.id]
     );
     if (r.rows.length === 0) return res.status(404).json({ error: 'Iglesia no encontrada' });
+    await mov.registrar({ quien: req.user, iglesiaId: Number(req.params.id), categoria: 'iglesias', accion: 'Generó el enlace de inscripción' });
     res.json({ success: true, token: r.rows[0].token_inscripcion });
   } catch (error) {
     console.error('Error generando enlace de inscripción:', error);
@@ -173,6 +177,7 @@ router.delete('/:id/enlace-inscripcion', verifyToken, verificarSuperadmin, async
   try {
     const r = await db.query('UPDATE iglesias SET token_inscripcion = NULL WHERE id = $1 RETURNING id', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ error: 'Iglesia no encontrada' });
+    await mov.registrar({ quien: req.user, iglesiaId: Number(req.params.id), categoria: 'iglesias', accion: 'Desactivó el enlace de inscripción' });
     res.json({ success: true });
   } catch (error) {
     console.error('Error desactivando enlace de inscripción:', error);
@@ -224,6 +229,7 @@ router.delete('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
     await client.query('COMMIT');
 
     console.log(`🗑️ Iglesia eliminada: ${datos.nombre} (${datos.integrantes} integrantes, ${datos.usuarios} usuarios, ${datos.registros} registros)`);
+    await mov.registrar({ quien: req.user, iglesiaNombre: datos.nombre, categoria: 'iglesias', accion: 'Eliminó una iglesia', detalle: `${datos.nombre} · ${datos.integrantes} integrantes, ${datos.usuarios} usuarios, ${datos.registros} registros de asistencia` });
     res.json({ success: true, ...datos });
   } catch (error) {
     await client.query('ROLLBACK');

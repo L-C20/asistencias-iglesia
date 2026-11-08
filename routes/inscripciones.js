@@ -5,6 +5,7 @@
 
 const express = require('express');
 const db = require('../database');
+const mov = require('../movimientos');
 const { verifyToken, verificarAdmin } = require('../middleware/auth');
 const { configDeIglesia, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
 const router = express.Router();
@@ -87,6 +88,7 @@ router.post('/formulario/:token', async (req, res) => {
       [fila.id, nombre, grupo.id, seccion, dni, fechaNacimiento]
     );
     console.log(`🙋 Inscripción: ${nombre} (${grupo.nombre} · ${seccion}) en ${fila.nombre}`);
+    await mov.registrar({ quien: 'Inscripción por enlace', iglesiaId: fila.id, categoria: 'inscripciones', accion: 'Recibió una inscripción', detalle: `${nombre} · ${grupo.nombre} · ${seccion}` });
     res.json({ success: true, iglesia: fila.nombre });
   } catch (error) {
     console.error('Error guardando inscripción:', error);
@@ -137,6 +139,7 @@ router.post('/:id/aprobar', verifyToken, verificarAdmin, async (req, res) => {
       [nombre, grupo, seccion, req.user.iglesia_id, dni, fecha_nacimiento]
     );
     await client.query('COMMIT');
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'inscripciones', accion: 'Aprobó una inscripción', detalle: `${nombre} · ${mov.NOMBRES_GRUPO[grupo] || grupo}${seccion ? ' · ' + seccion : ''}` });
     res.json({ success: true, miembro: miembro.rows[0] });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -151,10 +154,11 @@ router.post('/:id/aprobar', verifyToken, verificarAdmin, async (req, res) => {
 router.delete('/:id', verifyToken, verificarAdmin, async (req, res) => {
   try {
     const r = await db.query(
-      'DELETE FROM inscripciones WHERE id = $1 AND iglesia_id = $2 RETURNING id',
+      'DELETE FROM inscripciones WHERE id = $1 AND iglesia_id = $2 RETURNING id, nombre',
       [req.params.id, req.user.iglesia_id]
     );
     if (r.rows.length === 0) return res.status(404).json({ error: 'La inscripción ya no existe' });
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'inscripciones', accion: 'Rechazó una inscripción', detalle: r.rows[0].nombre });
     res.json({ success: true });
   } catch (error) {
     console.error('Error rechazando inscripción:', error);

@@ -151,6 +151,23 @@ async function initializeDatabase() {
     `);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_inscripciones_iglesia ON inscripciones(iglesia_id)`);
 
+    // Registro de movimientos (quién hizo qué y cuándo); solo lo ve el super administrador
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS movimientos (
+        id SERIAL PRIMARY KEY,
+        fecha TIMESTAMP NOT NULL,
+        usuario_id INTEGER,
+        usuario VARCHAR(120),
+        iglesia_id INTEGER,
+        iglesia_nombre VARCHAR(255),
+        categoria VARCHAR(20) NOT NULL,
+        accion VARCHAR(80) NOT NULL,
+        detalle VARCHAR(500)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_movimientos_fecha ON movimientos(fecha DESC)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_movimientos_iglesia ON movimientos(iglesia_id)`);
+
     console.log('✓ Base de datos inicializada correctamente');
   } catch (error) {
     console.error('Error inicializando BD:', error.message);

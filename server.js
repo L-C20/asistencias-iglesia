@@ -12,6 +12,7 @@ const iglesiasRouter = require('./routes/iglesias');
 const exportarRouter = require('./routes/exportar');
 const solicitudesRouter = require('./routes/solicitudes');
 const inscripcionesRouter = require('./routes/inscripciones');
+const movimientosRouter = require('./routes/movimientos');
 const { initializeDatabase, seedDatabase } = require('./database');
 
 if (!process.env.JWT_SECRET) {
@@ -36,6 +37,7 @@ app.use('/api/iglesias', iglesiasRouter);
 app.use('/api/exportar', exportarRouter);
 app.use('/api/solicitudes', solicitudesRouter);
 app.use('/api/inscripciones', inscripcionesRouter);
+app.use('/api/movimientos', movimientosRouter);
 
 // Ruta raíz - servir login
 app.get('/', (req, res) => {

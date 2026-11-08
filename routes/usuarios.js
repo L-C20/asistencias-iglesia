@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
+const mov = require('../movimientos');
 const { verifyToken, verificarAdmin } = require('../middleware/auth');
 const crypto = require('crypto');
 const router = express.Router();
@@ -103,6 +104,7 @@ router.post('/crear', verifyToken, verificarAdmin, async (req, res) => {
     );
 
     console.log('✅ Usuario creado:', usuario);
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'usuarios', accion: 'Creó un usuario', detalle: `${usuario} · ${rol === 'admin' ? 'Admin' : 'Monitor'}` });
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('❌ Error en POST /crear:', error.message);
@@ -170,6 +172,12 @@ router.put('/:id', verifyToken, verificarAdmin, async (req, res) => {
     );
 
     console.log('✅ Usuario actualizado');
+    const partes = [];
+    if (usuario !== undefined && usuario !== objetivo.usuario) partes.push(`nuevo nombre: ${result.rows[0].usuario}`);
+    if (rol !== undefined && rol !== objetivo.rol && objetivo.id !== req.user.id) partes.push(`rol: ${rol === 'admin' ? 'Admin' : 'Monitor'}`);
+    if (activo !== undefined) partes.push(activo ? 'activado' : 'desactivado');
+    if (req.body.ver_todas_iglesias !== undefined && req.user.rol === 'superadmin') partes.push(req.body.ver_todas_iglesias === true ? 'supervisión general: sí' : 'supervisión general: no');
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'usuarios', accion: 'Modificó un usuario', detalle: `${objetivo.usuario}${partes.length ? ' · ' + partes.join(' · ') : ''}` });
     res.json(result.rows[0]);
   } catch (error) {
     console.error('❌ Error en PUT /:id:', error.message);
@@ -192,6 +200,7 @@ router.delete('/:id', verifyToken, verificarAdmin, async (req, res) => {
     const result = await db.query('DELETE FROM usuarios WHERE id = $1 RETURNING id, usuario', [id]);
 
     console.log('✅ Usuario eliminado');
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'usuarios', accion: 'Eliminó un usuario', detalle: result.rows[0].usuario });
     res.json({ mensaje: 'Usuario eliminado', usuario: result.rows[0].usuario });
   } catch (error) {
     console.error('❌ Error en DELETE /:id:', error.message);
@@ -213,6 +222,7 @@ router.post('/:id/resetear-password', verifyToken, verificarAdmin, async (req, r
     await db.query('UPDATE usuarios SET password = $1 WHERE id = $2', [hash, id]);
 
     console.log('✅ Contraseña reseteada');
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'usuarios', accion: 'Reseteó una contraseña', detalle: objetivo.usuario });
     res.json({
       mensaje: 'Contraseña reseteada',
       usuario: objetivo.usuario,
@@ -242,6 +252,7 @@ router.put('/:id/password', verifyToken, verificarAdmin, async (req, res) => {
     await db.query('UPDATE usuarios SET password = $1 WHERE id = $2', [hash, id]);
 
     console.log('🔑 Contraseña definida por admin para:', objetivo.usuario);
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'usuarios', accion: 'Cambió una contraseña', detalle: objetivo.usuario });
     res.json({ success: true });
   } catch (error) {
     console.error('❌ Error en PUT /:id/password:', error.message);
