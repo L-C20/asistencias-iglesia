@@ -191,6 +191,9 @@ function aplicarConfigEnPantalla() {
     if (fin) {
         document.querySelectorAll('.sidebar-menu li[data-grupo]').forEach(li => li.remove());
         let tituloPuesto = false;
+        // Orquesta y Coro forman el ministerio de Alabanza; sin ellos, no va el título
+        const alabanza = document.getElementById('menuTituloAlabanza');
+        if (alabanza) alabanza.hidden = !APP_CONFIG.grupos.some(g => !g.ministerio);
         APP_CONFIG.grupos.forEach(g => {
             // Los ministerios van agrupados bajo su propio título
             if (g.ministerio && !tituloPuesto) {
