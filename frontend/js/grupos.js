@@ -155,7 +155,7 @@ function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFI
     cont.innerHTML = '';
     if (!hayVariosGrupos(grupos)) return;
     const { alabanza, resto } = organizarGrupos(grupos);
-    const filas = [['Alabanza', alabanza], [alabanza.length ? 'Otros ministerios' : 'Ministerios', resto]];
+    const filas = [['Alabanza', alabanza], ['Ministerios', resto]];
     filas.filter(([, lista]) => lista.length).forEach(([rotulo, lista]) => {
         const fila = document.createElement('div');
         fila.className = 'selector-fila';
@@ -183,6 +183,61 @@ function botonGrupo(g, activo, alCambiar) {
         alCambiar(g.id);
     });
     return b;
+}
+
+// ===== MENÚ LATERAL: ÍTEMS QUE SE DESPLIEGAN =====
+// Lo que se dejó abierto sigue abierto aunque el menú se vuelva a armar
+const menuAbiertos = new Set();
+
+function itemDesplegable(clave, nombre, icono, hijos) {
+    const li = document.createElement('li');
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'menu-desplegar';
+    boton.innerHTML = `${icono}<span>${escaparHtml(nombre)}</span>
+        <svg class="menu-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>`;
+    const lista = document.createElement('ul');
+    lista.className = 'menu-hijos';
+    hijos.forEach(h => lista.appendChild(h));
+
+    const mostrar = abierto => {
+        lista.hidden = !abierto;
+        boton.setAttribute('aria-expanded', String(abierto));
+    };
+    mostrar(menuAbiertos.has(clave));
+    boton.addEventListener('click', () => {
+        const abrir = lista.hidden;
+        if (abrir) menuAbiertos.add(clave); else menuAbiertos.delete(clave);
+        mostrar(abrir);
+    });
+
+    li.append(boton, lista);
+    return li;
+}
+
+// Las dos cosas que se pueden hacer con un grupo
+function accionesDeGrupo(g) {
+    const accion = (texto, alTocar, datos = {}) => {
+        const li = document.createElement('li');
+        const item = document.createElement('div');
+        item.className = 'sidebar-menu-item menu-accion';
+        item.innerHTML = `<span>${texto}</span>`;
+        Object.assign(item.dataset, datos);
+        item.addEventListener('click', alTocar);
+        li.appendChild(item);
+        return li;
+    };
+    return [
+        accion('Registrar asistencia', () => irAAsistencia(g.id)),
+        accion('Integrantes', () => cambiarTab('miembros', g.id), { tab: 'miembros', grupo: g.id })
+    ];
+}
+
+function itemDeGrupo(g) {
+    const li = itemDesplegable(g.id, g.nombre, iconoGrupo(g.id), accionesDeGrupo(g));
+    li.dataset.grupo = g.id;
+    marcarColor(li, g);
+    return li;
 }
 
 // Nombre de la iglesia, ítems del menú y tarjetas de Inicio
@@ -221,7 +276,7 @@ function aplicarConfigEnPantalla() {
     // Menú lateral: un ítem por grupo, antes de Reportes
     const fin = document.getElementById('menuGruposFin');
     if (fin) {
-        document.querySelectorAll('.sidebar-menu li[data-grupo]').forEach(li => li.remove());
+        document.querySelectorAll('.sidebar-menu > li[data-grupo]').forEach(li => li.remove());
         const agregar = (grupo, contenido, clase) => {
             const li = document.createElement('li');
             li.dataset.grupo = grupo; // la marca para rearmar el menú
@@ -230,25 +285,20 @@ function aplicarConfigEnPantalla() {
             fin.before(li);
             return li;
         };
-        const agregarGrupo = (g, clase) => marcarColor(agregar(g.id,
-            `<div class="sidebar-menu-item" data-tab="miembros" data-grupo="${g.id}" onclick="cambiarTab('miembros', '${g.id}')">
-                ${iconoGrupo(g.id)}
-                <span>${escaparHtml(g.nombre)}</span>
-            </div>`, clase), g);
 
         agregar('', 'Ministerios', 'menu-titulo');
 
-        // Alabanza va primero, con Orquesta y Coro debajo
+        // Alabanza va primero; al abrirlo aparecen Orquesta y Coro
         const { propio, musicales, resto } = organizarGrupos();
         if (musicales.length) {
-            if (propio) {
-                agregarGrupo(propio);
-            } else {
-                agregar('', `<div class="menu-rama"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONO_MINISTERIO}</svg><span>Alabanza</span></div>`);
-            }
-            musicales.forEach(g => agregarGrupo(g, 'menu-sub'));
+            const rama = itemDesplegable('alabanza', propio ? propio.nombre : 'Alabanza',
+                `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONO_MINISTERIO}</svg>`,
+                [...(propio ? accionesDeGrupo(propio) : []), ...musicales.map(itemDeGrupo)]);
+            rama.dataset.grupo = '';
+            if (propio) marcarColor(rama, propio);
+            fin.before(rama);
         }
-        resto.forEach(g => agregarGrupo(g));
+        resto.forEach(g => fin.before(itemDeGrupo(g)));
         if (typeof cerrarSidebarAlHacerClick === 'function') cerrarSidebarAlHacerClick();
     }
 
@@ -276,7 +326,7 @@ function aplicarConfigEnPantalla() {
             : '';
         // Sin Alabanza no hace falta separar nada
         tarjetas.innerHTML = alabanza.length
-            ? bloque('Alabanza', alabanza) + bloque('Otros ministerios', resto)
+            ? bloque('Alabanza', alabanza) + bloque('Ministerios', resto)
             : bloque('', resto);
     }
 }

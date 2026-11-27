@@ -331,34 +331,53 @@ svg { flex-shrink: 0; }
     transition: background .15s ease, color .15s ease;
 }
 
-/* Alabanza: encabeza a Orquesta y Coro; no se toca */
-.menu-rama {
+/* Ítems que se despliegan: Alabanza y cada grupo o ministerio */
+.menu-desplegar {
     display: flex;
     align-items: center;
     gap: var(--sp-3);
+    width: 100%;
     padding: 7px var(--sp-2);
+    font-family: inherit;
     font-size: var(--fs-base);
-    font-weight: 600;
-    color: #fff;
+    font-weight: 500;
+    text-align: left;
+    color: var(--menu-texto);
+    background: transparent;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
 }
-.menu-rama svg {
+.menu-desplegar:hover { background: var(--menu-hover); color: #fff; }
+.menu-desplegar:focus-visible { outline: 2px solid var(--menu-dorado); outline-offset: -2px; }
+.menu-desplegar span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-desplegar > svg:not(.menu-flecha) {
     box-sizing: border-box;
     flex-shrink: 0;
     width: 32px;
     height: 32px;
     padding: 7px;
     border-radius: 9px;
-    background: rgba(212, 179, 120, .2);
-    color: var(--menu-dorado);
+    background: rgba(255, 255, 255, .06);
+    color: #a8a49b;
 }
+.menu-flecha { flex-shrink: 0; width: 16px; height: 16px; opacity: .6; transition: transform .15s ease; }
+.menu-desplegar[aria-expanded="true"] { color: #fff; font-weight: 600; }
+.menu-desplegar[aria-expanded="true"] .menu-flecha { transform: rotate(90deg); }
 
-/* Los que dependen de otro van corridos, unidos por una línea */
-.sidebar-menu li.menu-sub {
-    margin: 0 0 0 23px;
-    padding-left: var(--sp-2);
+/* Lo desplegado va corrido, unido por una línea */
+.sidebar-menu .menu-hijos {
+    list-style: none;
+    margin: 2px 0 4px 23px;
+    padding: 0 0 0 var(--sp-2);
     border-left: 1px solid rgba(255, 255, 255, .16);
 }
-.sidebar-menu li.menu-sub .sidebar-menu-item.active::before { left: -10px; width: 3px; }
+.sidebar-menu-item.menu-accion { min-height: 40px; padding: 0 var(--sp-3); font-size: var(--fs-sm); }
+.sidebar-menu-item.menu-accion.active::before { left: -10px; }
+
+/* Se resalta el camino hasta donde estás, aunque esté cerrado */
+.sidebar-menu li:has(> .menu-hijos .active) > .menu-desplegar { color: #fff; font-weight: 600; }
+.sidebar-menu li:has(> .menu-hijos .active) > .menu-desplegar > svg:not(.menu-flecha) { background: var(--menu-dorado); color: var(--menu-fondo); }
 
 .sidebar-menu-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -406,6 +425,12 @@ svg { flex-shrink: 0; }
 .sidebar-menu li.con-color .sidebar-menu-item.active { background: color-mix(in srgb, var(--color-grupo) 26%, transparent); }
 .sidebar-menu li.con-color .sidebar-menu-item.active svg { background: var(--color-grupo); color: #fff; }
 .sidebar-menu li.con-color .sidebar-menu-item.active::before { background: color-mix(in srgb, var(--color-grupo) 70%, #fff); }
+
+.sidebar-menu li.con-color > .menu-desplegar > svg:not(.menu-flecha) {
+    background: color-mix(in srgb, var(--color-grupo) 30%, transparent);
+    color: color-mix(in srgb, var(--color-grupo) 45%, #fff);
+}
+.sidebar-menu li.con-color:has(> .menu-hijos .active) > .menu-desplegar > svg:not(.menu-flecha) { background: var(--color-grupo); color: #fff; }
 
 .sidebar-footer {
     padding: var(--sp-3);
