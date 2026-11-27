@@ -154,29 +154,46 @@ function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFI
     cont.hidden = !hayVariosGrupos(grupos);
     cont.innerHTML = '';
     if (!hayVariosGrupos(grupos)) return;
-    const { alabanza, resto } = organizarGrupos(grupos);
-    const filas = [['Alabanza', alabanza], ['Ministerios', resto]];
-    filas.filter(([, lista]) => lista.length).forEach(([rotulo, lista]) => {
-        const fila = document.createElement('div');
-        fila.className = 'selector-fila';
-        fila.setAttribute('role', 'group');
-        fila.setAttribute('aria-label', rotulo);
-        const titulo = document.createElement('span');
-        titulo.className = 'selector-rotulo';
-        titulo.textContent = rotulo;
-        const botones = document.createElement('div');
-        botones.className = 'selector-botones';
-        lista.forEach(g => botones.appendChild(botonGrupo(g, activo, alCambiar)));
-        fila.append(titulo, botones);
-        cont.appendChild(fila);
-    });
+    const { propio, alabanza, resto } = organizarGrupos(grupos);
+    const fila = (clase, nombre, botones) => {
+        const caja = document.createElement('div');
+        caja.className = clase;
+        caja.setAttribute('role', 'group');
+        caja.setAttribute('aria-label', nombre);
+        botones.forEach(b => caja.appendChild(b));
+        cont.appendChild(caja);
+    };
+    const deAlabanza = () => alabanza.map(g =>
+        botonGrupo(g, activo, alCambiar, g === propio ? 'Reunión general' : g.nombre));
+
+    const rotulo = document.createElement('span');
+    rotulo.className = 'selector-rotulo';
+    rotulo.textContent = 'Ministerios';
+    cont.appendChild(rotulo);
+
+    // Sin otros ministerios, alcanza con elegir dentro de Alabanza
+    if (!resto.length) {
+        rotulo.textContent = 'Alabanza';
+        fila('selector-botones', 'Alabanza', deAlabanza());
+        return;
+    }
+
+    // Alabanza es un ministerio más; si está elegido, abajo se elige Orquesta o Coro
+    const enAlabanza = alabanza.some(g => g.id === activo);
+    const principales = resto.map(g => botonGrupo(g, activo, alCambiar));
+    if (alabanza.length) {
+        const boton = botonGrupo(propio || { id: alabanza[0].id }, enAlabanza ? (propio || alabanza[0]).id : activo, alCambiar, 'Alabanza');
+        principales.unshift(boton);
+    }
+    fila('selector-botones', 'Ministerios', principales);
+    if (enAlabanza && alabanza.length > 1) fila('selector-botones selector-sub', 'Alabanza', deAlabanza());
 }
 
-function botonGrupo(g, activo, alCambiar) {
+function botonGrupo(g, activo, alCambiar, texto = g.nombre) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'selector-grupo-btn' + (g.id === activo ? ' activo' : '');
-    b.textContent = g.nombre;
+    b.textContent = texto;
     marcarColor(b, g);
     b.addEventListener('click', () => {
         if (g.id === activo) return;
@@ -320,13 +337,28 @@ function aplicarConfigEnPantalla() {
                 </span>
             </button>
         `;
-        const { alabanza, resto } = organizarGrupos();
-        const bloque = (titulo, lista) => lista.length
-            ? `${titulo ? `<h4 class="cards-titulo">${titulo}</h4>` : ''}${lista.map(tarjeta).join('')}`
-            : '';
-        // Sin Alabanza no hace falta separar nada
-        tarjetas.innerHTML = alabanza.length
-            ? bloque('Alabanza', alabanza) + bloque('Ministerios', resto)
-            : bloque('', resto);
+        // Alabanza es una sola tarjeta, con Orquesta y Coro adentro
+        const { propio, alabanza, resto } = organizarGrupos();
+        const tarjetaAlabanza = () => `
+            <div class="card-grupo card-alabanza ${propio ? 'con-color' : ''}" ${propio ? `style="--color-grupo: ${propio.color}"` : ''}>
+                <div class="card-grupo-cabecera">
+                    <div class="card-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${ICONO_MINISTERIO}</svg></div>
+                    <div>
+                        <h3>${escaparHtml(propio ? propio.nombre : 'Alabanza')}</h3>
+                        <p class="card-count">Registrar asistencia</p>
+                    </div>
+                </div>
+                <div class="card-alabanza-opciones">
+                    ${alabanza.map(g => `
+                        <button type="button" class="btn btn-primary card-accion" onclick="irAAsistencia('${g.id}'); return false;">
+                            ${iconoGrupo(g.id, 18)}
+                            <span class="opcion-nombre">${escaparHtml(g === propio ? 'Reunión general' : g.nombre)}</span>
+                            <span class="opcion-conteo" id="conteo-${g.id}">— integrantes</span>
+                        </button>`).join('')}
+                </div>
+            </div>`;
+        tarjetas.innerHTML = '<h4 class="cards-titulo">Ministerios</h4>'
+            + (alabanza.length ? tarjetaAlabanza() : '')
+            + resto.map(tarjeta).join('');
     }
 }

@@ -618,17 +618,17 @@ svg { flex-shrink: 0; }
 .asistencia-header h2 { font-size: var(--fs-xl); }
 
 /* Botonera Orquesta | Coro (solo cuando la iglesia tiene más de un grupo) */
-/* La botonera va en filas: una para Alabanza y otra para el resto */
+/* La botonera: los ministerios y, debajo, lo que hay dentro de Alabanza */
 .selector-grupo {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--sp-3);
+    gap: 6px;
 }
-.selector-fila { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-width: 100%; }
 .selector-botones {
     display: flex;
     flex-wrap: wrap;
+    max-width: 100%;
     padding: 3px;
     background: var(--gray-100);
     border-radius: var(--r-md);
@@ -2880,7 +2880,21 @@ input::placeholder { color: var(--text-light); }
 .muestra-color input:checked + span { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--color-grupo); }
 .muestra-color input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 6px; }
 
-/* Separadores "Alabanza" / "Otros ministerios" */
+/* La segunda fila depende de la primera: va corrida y unida por una línea */
+.selector-sub { margin-left: var(--sp-3); border-left: 2px solid var(--brand-500); }
+
+/* Tarjeta de Alabanza: no se toca entera, se elige adentro */
+.card-grupo.card-alabanza { cursor: default; }
+.card-grupo.card-alabanza:hover { transform: none; box-shadow: var(--sh-sm); }
+.card-alabanza-opciones { display: flex; flex-direction: column; gap: var(--sp-2); }
+.card-alabanza .card-accion { width: 100%; justify-content: flex-start; font-family: inherit; cursor: pointer; pointer-events: auto; }
+.card-grupo.card-alabanza:hover .card-accion { background: var(--brand-600); border-color: var(--brand-600); }
+.card-grupo.card-alabanza .card-accion:hover { background: var(--brand-700); border-color: var(--brand-700); }
+.card-alabanza .card-accion svg { flex-shrink: 0; }
+.card-alabanza .opcion-nombre { flex: 1; text-align: left; }
+.card-alabanza .opcion-conteo { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
+
+/* Título del apartado */
 .cards-titulo,
 .selector-rotulo {
     font-size: 11px;
