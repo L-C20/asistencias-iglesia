@@ -2908,3 +2908,6 @@ input::placeholder { color: var(--text-light); }
 }
 .cards-titulo { grid-column: 1 / -1; margin: var(--sp-2) 0 calc(-1 * var(--sp-1)); }
 .cards-titulo:first-child { margin-top: 0; }
+
+/* El punto de color queda al lado del nombre */
+#ministeriosTableBody .celda-nombre { white-space: nowrap; }

@@ -213,6 +213,8 @@ async function migrarAIglesias() {
     )
   `);
   await pool.query(`ALTER TABLE ministerios ADD COLUMN IF NOT EXISTS color VARCHAR(7)`);
+  // Color de Alabanza (Orquesta y Coro) en cada iglesia; vacío usa el celeste
+  await pool.query(`ALTER TABLE iglesias ADD COLUMN IF NOT EXISTS color_alabanza VARCHAR(7)`);
   // El grupo de un integrante ya no es solo orquesta o coro: también "m<id>"
   await pool.query(`ALTER TABLE miembros DROP CONSTRAINT IF EXISTS miembros_grupo_check`);
 

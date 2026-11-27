@@ -125,13 +125,13 @@ function iconoGrupo(id, tam = 20) {
     return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${tam > 24 ? 1.5 : 2}">${ICONOS_GRUPO[id] || (esMinisterio(id) ? ICONO_MINISTERIO : ICONOS_GRUPO.orquesta)}</svg>`;
 }
 
-// Alabanza (con Orquesta y Coro) va en celeste
+// Color de Alabanza si el servidor no mandara el de la iglesia
 const COLOR_ALABANZA = '#0284C7';
 
-// Cada ministerio se pinta con su color; orquesta y coro, con el de Alabanza
+// Cada grupo trae su color; Orquesta y Coro, el de Alabanza
 function marcarColor(elemento, grupo) {
     elemento.classList.add('con-color');
-    elemento.style.setProperty('--color-grupo', grupo.ministerio ? grupo.color : COLOR_ALABANZA);
+    elemento.style.setProperty('--color-grupo', grupo.color || COLOR_ALABANZA);
 }
 
 // Orquesta y Coro forman parte del ministerio de Alabanza. Si además se creó un
@@ -184,7 +184,7 @@ function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFI
     const enAlabanza = alabanza.some(g => g.id === activo);
     const principales = resto.map(g => botonGrupo(g, activo, alCambiar));
     if (alabanza.length) {
-        const boton = botonGrupo(propio || { id: alabanza[0].id }, enAlabanza ? (propio || alabanza[0]).id : activo, alCambiar, 'Alabanza');
+        const boton = botonGrupo(propio || { id: alabanza[0].id, color: alabanza[0].color }, enAlabanza ? (propio || alabanza[0]).id : activo, alCambiar, 'Alabanza');
         principales.unshift(boton);
     }
     fila('selector-botones', 'Ministerios', principales);
@@ -314,7 +314,7 @@ function aplicarConfigEnPantalla() {
                 `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONO_MINISTERIO}</svg>`,
                 [...(propio ? accionesDeGrupo(propio) : []), ...musicales.map(itemDeGrupo)]);
             rama.dataset.grupo = '';
-            marcarColor(rama, propio || { color: COLOR_ALABANZA });
+            marcarColor(rama, propio || musicales[0]);
             fin.before(rama);
         }
         resto.forEach(g => fin.before(itemDeGrupo(g)));
@@ -353,7 +353,7 @@ function aplicarConfigEnPantalla() {
             ? reunion(g, 'Reunión general')
             : { grupo: g.id, texto: g.nombre, icono: iconoGrupo(g.id, 18) });
         tarjetas.innerHTML = '<h4 class="cards-titulo">Ministerios</h4>'
-            + (alabanza.length ? tarjeta(propio ? propio.nombre : 'Alabanza', propio ? propio.color : COLOR_ALABANZA, deAlabanza) : '')
+            + (alabanza.length ? tarjeta(propio ? propio.nombre : 'Alabanza', (propio || alabanza[0])?.color, deAlabanza) : '')
             + resto.map(g => tarjeta(g.nombre, g.color, [reunion(g)])).join('');
     }
 }

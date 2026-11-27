@@ -62,6 +62,9 @@ function colorDeMinisterio(m) {
   return m.color || COLORES_MINISTERIO[m.id % COLORES_MINISTERIO.length];
 }
 
+// Orquesta y Coro forman Alabanza y comparten su color
+const COLOR_ALABANZA = '#0284C7';
+
 // Un ministerio visto como un grupo más
 function grupoDeMinisterio(m) {
   return {
@@ -78,6 +81,7 @@ function grupoDeMinisterio(m) {
 function configDeIglesia(fila) {
   const grupos = normalizarGrupos(fila.grupos);
   const dias = normalizarDiasCulto(fila.dias_culto);
+  const colorAlabanza = fila.color_alabanza || COLOR_ALABANZA;
   return {
     id: fila.id,
     nombre: fila.nombre,
@@ -85,7 +89,7 @@ function configDeIglesia(fila) {
     anciano: fila.anciano || '',
     activa: fila.activa !== false,
     grupos: [
-      ...(grupos.length ? grupos : ['orquesta']).map(id => GRUPOS_DISPONIBLES[id]),
+      ...(grupos.length ? grupos : ['orquesta']).map(id => ({ ...GRUPOS_DISPONIBLES[id], color: colorAlabanza })),
       ...(fila.ministerios || []).map(grupoDeMinisterio)
     ],
     diasCulto: dias.length ? dias : DIAS_CULTO_POR_DEFECTO,
@@ -129,6 +133,6 @@ function normalizarFechaNacimiento(valor) {
 }
 
 module.exports = {
-  ministeriosSQL, SELECT_IGLESIA, colorDeMinisterio, normalizarDni, normalizarFechaNacimiento, nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
+  ministeriosSQL, SELECT_IGLESIA, colorDeMinisterio, COLOR_ALABANZA, normalizarDni, normalizarFechaNacimiento, nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
   DIAS_CULTO_POR_DEFECTO, NOMBRES_DIA, normalizarDiasCulto
 };

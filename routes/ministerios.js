@@ -7,7 +7,7 @@ const express = require('express');
 const db = require('../database');
 const mov = require('../movimientos');
 const { verifyToken, verificarSuperadmin } = require('../middleware/auth');
-const { colorDeMinisterio } = require('../config');
+const { colorDeMinisterio, normalizarGrupos, configDeIglesia, GRUPOS_DISPONIBLES, COLOR_ALABANZA } = require('../config');
 const router = express.Router();
 
 const MAXIMO_SUBGRUPOS = 30;
@@ -45,9 +45,60 @@ router.get('/', verifyToken, verificarSuperadmin, async (req, res) => {
       JOIN iglesias i ON i.id = mi.iglesia_id
       ORDER BY mi.nombre, i.nombre
     `);
-    res.json(r.rows.map(f => ({ ...f, color: colorDeMinisterio(f), integrantes: Number(f.integrantes) })));
+    const ministerios = r.rows.map(f => ({ ...f, color: colorDeMinisterio(f), integrantes: Number(f.integrantes) }));
+    res.json([...await alabanzaPorIglesia(ministerios), ...ministerios]);
   } catch (error) {
     console.error('Error listando ministerios:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// Alabanza no es un registro aparte: es la Orquesta y el Coro de cada iglesia.
+// Las que crearon su propio ministerio "Alabanza" ya lo tienen en la lista.
+async function alabanzaPorIglesia(ministerios) {
+  const r = await db.query(`
+    SELECT i.id, i.nombre, i.grupos, i.color_alabanza,
+      (SELECT COUNT(*) FROM miembros m
+        WHERE m.iglesia_id = i.id AND m.activo = true
+          AND m.grupo = ANY(string_to_array(i.grupos, ','))) AS integrantes
+    FROM iglesias i
+    ORDER BY i.nombre
+  `);
+  const conPropio = new Set(ministerios.filter(m => m.nombre.trim().toLowerCase() === 'alabanza').map(m => m.iglesia_id));
+  return r.rows.filter(i => !conPropio.has(i.id)).map(i => {
+    const grupos = configDeIglesia({ ...i, ministerios: [] }).grupos;
+    return {
+      alabanza: true,
+      nombre: 'Alabanza',
+      iglesia_id: i.id,
+      iglesia: i.nombre,
+      grupos: grupos.map(g => g.id),
+      secciones: grupos.map(g => g.nombre),
+      color: i.color_alabanza || COLOR_ALABANZA,
+      integrantes: Number(i.integrantes)
+    };
+  });
+}
+
+// Color de Alabanza y si la iglesia tiene Orquesta, Coro o ambos
+// PUT /api/ministerios/alabanza/:iglesiaId  Body: { color, grupos: [] }
+router.put('/alabanza/:iglesiaId', verifyToken, verificarSuperadmin, async (req, res) => {
+  try {
+    const grupos = normalizarGrupos(req.body.grupos);
+    if (grupos.length === 0) return res.status(400).json({ error: 'Alabanza necesita Orquesta, Coro o ambos' });
+
+    // Quitar un grupo solo lo oculta: sus integrantes y su asistencia se conservan
+    const r = await db.query(
+      `UPDATE iglesias SET grupos = $1, color_alabanza = COALESCE($2, color_alabanza)
+       WHERE id = $3 RETURNING id`,
+      [grupos.join(','), limpiarColor(req.body.color), Number(req.params.iglesiaId) || 0]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ error: 'Iglesia no encontrada' });
+
+    await mov.registrar({ quien: req.user, iglesiaId: r.rows[0].id, categoria: 'iglesias', accion: 'Modificó Alabanza', detalle: grupos.map(g => GRUPOS_DISPONIBLES[g].nombre).join(' y ') });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error modificando Alabanza:', error);
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });

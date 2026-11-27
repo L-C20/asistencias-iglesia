@@ -570,7 +570,7 @@
                                     Nuevo Ministerio
                                 </button>
                             </div>
-                            <p class="ayuda-campo">Además de Orquesta y Coro. Cada ministerio tiene sus integrantes y toma asistencia en reuniones de cualquier fecha.</p>
+                            <p class="ayuda-campo">Alabanza reúne a la Orquesta y el Coro. Los demás ministerios tienen sus integrantes y toman asistencia en reuniones de cualquier fecha.</p>
 
                             <div class="tabla-miembros">
                                 <table class="tabla-datos">
@@ -763,6 +763,36 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalMinisterio')">Cancelar</button>
                     <button type="submit" class="btn btn-primary" id="btnGuardarMinisterio">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ALABANZA (solo super administrador) -->
+    <div id="modalAlabanza" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="tituloModalAlabanza">Editar Alabanza</span>
+                <button class="modal-close" onclick="cerrarModal('modalAlabanza')">&times;</button>
+            </div>
+            <form onsubmit="guardarAlabanza(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Incluye</label>
+                        <p class="ayuda-campo">Si quitás uno, deja de mostrarse. Sus integrantes y su asistencia se conservan.</p>
+                        <div class="casillas-grupos">
+                            <label class="casilla"><input type="checkbox" name="alabanzaGrupo" value="orquesta"><span>Orquesta</span></label>
+                            <label class="casilla"><input type="checkbox" name="alabanzaGrupo" value="coro"><span>Coro</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <div class="paleta-colores" id="alabanzaColores"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalAlabanza')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarAlabanza">Guardar</button>
                 </div>
             </form>
         </div>

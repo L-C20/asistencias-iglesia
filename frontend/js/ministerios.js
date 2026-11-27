@@ -4,6 +4,12 @@
 
 let ministeriosCargados = [];
 let ministerioEnEdicion = null;
+let iglesiaAlabanza = null;
+
+const ICONO_EDITAR = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+</svg>`;
 
 // La misma lista que usa el servidor (config.js)
 const COLORES_MINISTERIO = [
@@ -45,10 +51,10 @@ function agregarSubgrupo(valor = '', enfocar = false) {
     if (enfocar) input.focus();
 }
 
-function renderizarPaleta(elegido) {
-    document.getElementById('ministerioColores').innerHTML = COLORES_MINISTERIO.map(([valor, nombre]) => `
+function renderizarPaleta(elegido, contenedor = 'ministerioColores', campo = 'ministerioColor', colores = COLORES_MINISTERIO) {
+    document.getElementById(contenedor).innerHTML = colores.map(([valor, nombre]) => `
         <label class="muestra-color" title="${nombre}" style="--color-grupo: ${valor}">
-            <input type="radio" name="ministerioColor" value="${valor}" aria-label="${nombre}" ${valor === elegido ? 'checked' : ''}>
+            <input type="radio" name="${campo}" value="${valor}" aria-label="${nombre}" ${valor === elegido ? 'checked' : ''}>
             <span></span>
         </label>`).join('');
 }
@@ -87,18 +93,19 @@ function renderizarMinisterios() {
             <td class="celda-detalle">${m.secciones.length ? m.secciones.map(escaparHtml).join(' · ') : '—'}</td>
             <td class="celda-detalle">${m.integrantes}</td>
             <td class="celda-acciones">
+                ${m.alabanza ? `
+                <button class="btn btn-sm" onclick="abrirModalAlabanza(${m.iglesia_id})" title="Editar Alabanza" aria-label="Editar Alabanza">
+                    ${ICONO_EDITAR}
+                </button>` : `
                 <button class="btn btn-sm" onclick="abrirModalMinisterio(${m.id})" title="Editar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
+                    ${ICONO_EDITAR}
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="eliminarMinisterio(${m.id})" title="Eliminar ministerio">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
-                </button>
+                </button>`}
             </td>
         </tr>`).join('');
 }
@@ -115,7 +122,7 @@ function abrirModalMinisterio(id) {
     document.getElementById('ministerioSubgrupos').innerHTML = '';
     if (m) m.secciones.forEach(s => agregarSubgrupo(s));
     // Para uno nuevo se propone un color que todavía no esté en uso
-    const usados = new Set(ministeriosCargados.map(x => x.color));
+    const usados = new Set(ministeriosCargados.filter(x => !x.alabanza).map(x => x.color));
     renderizarPaleta(m ? m.color : (COLORES_MINISTERIO.find(([c]) => !usados.has(c)) || COLORES_MINISTERIO[0])[0]);
     document.getElementById('bloqueMinisterioIglesias').hidden = !!m;
     document.getElementById('ministerioIglesias').innerHTML = iglesiasCargadas.map(i => `
@@ -204,6 +211,50 @@ async function eliminarMinisterio(id) {
         await refrescarTrasCambiarMinisterios();
     } catch (e) {
         mostrarToast(e.message, 'error');
+    }
+}
+
+// ===== ALABANZA =====
+// Su color y si la iglesia tiene Orquesta, Coro o ambos
+function abrirModalAlabanza(iglesiaId) {
+    const modal = document.getElementById('modalAlabanza');
+    const fila = ministeriosCargados.find(m => m.alabanza && m.iglesia_id === iglesiaId);
+    if (!modal || !fila) return;
+    iglesiaAlabanza = iglesiaId;
+
+    document.getElementById('tituloModalAlabanza').textContent = `Editar Alabanza · ${fila.iglesia}`;
+    document.querySelectorAll('input[name="alabanzaGrupo"]').forEach(c => { c.checked = fila.grupos.includes(c.value); });
+    renderizarPaleta(fila.color, 'alabanzaColores', 'alabanzaColor', [['#0284C7', 'Azul claro'], ...COLORES_MINISTERIO]);
+    document.getElementById('btnGuardarAlabanza').disabled = false;
+    modal.classList.add('show');
+}
+
+async function guardarAlabanza(evento) {
+    evento.preventDefault();
+    const grupos = [...document.querySelectorAll('input[name="alabanzaGrupo"]:checked')].map(c => c.value);
+    const color = document.querySelector('input[name="alabanzaColor"]:checked')?.value;
+    if (!grupos.length) return mostrarToast('Alabanza necesita Orquesta, Coro o ambos', 'error');
+
+    const boton = document.getElementById('btnGuardarAlabanza');
+    boton.disabled = true;
+    try {
+        const r = await fetch(`${API_URL}/ministerios/alabanza/${iglesiaAlabanza}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ grupos, color })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'No se pudo guardar Alabanza');
+
+        cerrarModal('modalAlabanza');
+        mostrarToast('Alabanza guardada', 'success');
+        await refrescarTrasCambiarMinisterios();
+    } catch (e) {
+        mostrarToast(e.message, 'error');
+        boton.disabled = false;
     }
 }
 
