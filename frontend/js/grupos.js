@@ -125,11 +125,13 @@ function iconoGrupo(id, tam = 20) {
     return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${tam > 24 ? 1.5 : 2}">${ICONOS_GRUPO[id] || (esMinisterio(id) ? ICONO_MINISTERIO : ICONOS_GRUPO.orquesta)}</svg>`;
 }
 
-// Cada ministerio se pinta con su color; orquesta y coro quedan como siempre
+// Alabanza (con Orquesta y Coro) va en celeste
+const COLOR_ALABANZA = '#0284C7';
+
+// Cada ministerio se pinta con su color; orquesta y coro, con el de Alabanza
 function marcarColor(elemento, grupo) {
-    if (!grupo.ministerio) return;
     elemento.classList.add('con-color');
-    elemento.style.setProperty('--color-grupo', grupo.color);
+    elemento.style.setProperty('--color-grupo', grupo.ministerio ? grupo.color : COLOR_ALABANZA);
 }
 
 // Orquesta y Coro forman parte del ministerio de Alabanza. Si además se creó un
@@ -312,7 +314,7 @@ function aplicarConfigEnPantalla() {
                 `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONO_MINISTERIO}</svg>`,
                 [...(propio ? accionesDeGrupo(propio) : []), ...musicales.map(itemDeGrupo)]);
             rama.dataset.grupo = '';
-            if (propio) marcarColor(rama, propio);
+            marcarColor(rama, propio || { color: COLOR_ALABANZA });
             fin.before(rama);
         }
         resto.forEach(g => fin.before(itemDeGrupo(g)));
@@ -351,7 +353,7 @@ function aplicarConfigEnPantalla() {
             ? reunion(g, 'Reunión general')
             : { grupo: g.id, texto: g.nombre, icono: iconoGrupo(g.id, 18) });
         tarjetas.innerHTML = '<h4 class="cards-titulo">Ministerios</h4>'
-            + (alabanza.length ? tarjeta(propio ? propio.nombre : 'Alabanza', propio?.color, deAlabanza) : '')
+            + (alabanza.length ? tarjeta(propio ? propio.nombre : 'Alabanza', propio ? propio.color : COLOR_ALABANZA, deAlabanza) : '')
             + resto.map(g => tarjeta(g.nombre, g.color, [reunion(g)])).join('');
     }
 }
