@@ -593,8 +593,17 @@ svg { flex-shrink: 0; }
 .asistencia-header h2 { font-size: var(--fs-xl); }
 
 /* Botonera Orquesta | Coro (solo cuando la iglesia tiene más de un grupo) */
+/* La botonera va en filas: una para Alabanza y otra para el resto */
 .selector-grupo {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+}
+.selector-fila { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-width: 100%; }
+.selector-botones {
+    display: flex;
+    flex-wrap: wrap;
     padding: 3px;
     background: var(--gray-100);
     border-radius: var(--r-md);
@@ -2794,7 +2803,6 @@ input::placeholder { color: var(--text-light); }
 .paginacion-movimientos .ayuda-campo { margin: 0; text-align: center; }
 
 /* ---------- Ministerios: con varios grupos la botonera pasa a otra línea ---------- */
-.selector-grupo { flex-wrap: wrap; max-width: 100%; }
 .selector-grupo[hidden] { display: none; }
 .radio-option[hidden], .tarjeta-evento[hidden] { display: none; }
 
@@ -2846,3 +2854,15 @@ input::placeholder { color: var(--text-light); }
 }
 .muestra-color input:checked + span { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--color-grupo); }
 .muestra-color input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 6px; }
+
+/* Separadores "Alabanza" / "Otros ministerios" */
+.cards-titulo,
+.selector-rotulo {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+.cards-titulo { grid-column: 1 / -1; margin: var(--sp-2) 0 calc(-1 * var(--sp-1)); }
+.cards-titulo:first-child { margin-top: 0; }

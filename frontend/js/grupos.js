@@ -132,6 +132,21 @@ function marcarColor(elemento, grupo) {
     elemento.style.setProperty('--color-grupo', grupo.color);
 }
 
+// Orquesta y Coro forman parte del ministerio de Alabanza. Si además se creó un
+// ministerio "Alabanza" con asistencia propia, es el que los encabeza.
+function organizarGrupos(grupos = APP_CONFIG.grupos) {
+    const musicales = grupos.filter(g => !g.ministerio);
+    const propio = musicales.length
+        ? grupos.find(g => g.ministerio && g.nombre.trim().toLowerCase() === 'alabanza') || null
+        : null;
+    return {
+        propio,
+        musicales,
+        alabanza: propio ? [propio, ...musicales] : musicales,
+        resto: grupos.filter(g => g.ministerio && g !== propio)
+    };
+}
+
 // Botonera Orquesta | Coro. Solo se muestra cuando hay más de un grupo.
 function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFIG.grupos) {
     const cont = document.getElementById(contenedorId);
@@ -139,18 +154,35 @@ function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFI
     cont.hidden = !hayVariosGrupos(grupos);
     cont.innerHTML = '';
     if (!hayVariosGrupos(grupos)) return;
-    grupos.forEach(g => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'selector-grupo-btn' + (g.id === activo ? ' activo' : '');
-        b.textContent = g.nombre;
-        marcarColor(b, g);
-        b.addEventListener('click', () => {
-            if (g.id === activo) return;
-            alCambiar(g.id);
-        });
-        cont.appendChild(b);
+    const { alabanza, resto } = organizarGrupos(grupos);
+    const filas = [['Alabanza', alabanza], [alabanza.length ? 'Otros ministerios' : 'Ministerios', resto]];
+    filas.filter(([, lista]) => lista.length).forEach(([rotulo, lista]) => {
+        const fila = document.createElement('div');
+        fila.className = 'selector-fila';
+        fila.setAttribute('role', 'group');
+        fila.setAttribute('aria-label', rotulo);
+        const titulo = document.createElement('span');
+        titulo.className = 'selector-rotulo';
+        titulo.textContent = rotulo;
+        const botones = document.createElement('div');
+        botones.className = 'selector-botones';
+        lista.forEach(g => botones.appendChild(botonGrupo(g, activo, alCambiar)));
+        fila.append(titulo, botones);
+        cont.appendChild(fila);
     });
+}
+
+function botonGrupo(g, activo, alCambiar) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'selector-grupo-btn' + (g.id === activo ? ' activo' : '');
+    b.textContent = g.nombre;
+    marcarColor(b, g);
+    b.addEventListener('click', () => {
+        if (g.id === activo) return;
+        alCambiar(g.id);
+    });
+    return b;
 }
 
 // Nombre de la iglesia, ítems del menú y tarjetas de Inicio
@@ -206,28 +238,24 @@ function aplicarConfigEnPantalla() {
 
         agregar('', 'Ministerios', 'menu-titulo');
 
-        // Orquesta y Coro forman parte del ministerio de Alabanza, que va primero
-        const deAlabanza = APP_CONFIG.grupos.filter(g => !g.ministerio);
-        let ministerios = APP_CONFIG.grupos.filter(g => g.ministerio);
-        if (deAlabanza.length) {
-            // Si además se creó un ministerio "Alabanza" con asistencia propia, es ese
-            const propio = ministerios.find(g => g.nombre.trim().toLowerCase() === 'alabanza');
+        // Alabanza va primero, con Orquesta y Coro debajo
+        const { propio, musicales, resto } = organizarGrupos();
+        if (musicales.length) {
             if (propio) {
                 agregarGrupo(propio);
-                ministerios = ministerios.filter(g => g !== propio);
             } else {
                 agregar('', `<div class="menu-rama"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONO_MINISTERIO}</svg><span>Alabanza</span></div>`);
             }
-            deAlabanza.forEach(g => agregarGrupo(g, 'menu-sub'));
+            musicales.forEach(g => agregarGrupo(g, 'menu-sub'));
         }
-        ministerios.forEach(g => agregarGrupo(g));
+        resto.forEach(g => agregarGrupo(g));
         if (typeof cerrarSidebarAlHacerClick === 'function') cerrarSidebarAlHacerClick();
     }
 
     // Tarjetas de Inicio para registrar asistencia
     const tarjetas = document.getElementById('tarjetasGrupos');
     if (tarjetas) {
-        tarjetas.innerHTML = APP_CONFIG.grupos.map(g => `
+        const tarjeta = g => `
             <button class="card-grupo ${g.ministerio ? 'con-color' : ''}" ${g.ministerio ? `style="--color-grupo: ${g.color}"` : ''} onclick="irAAsistencia('${g.id}'); return false;" type="button">
                 <div class="card-grupo-cabecera">
                     <div class="card-icon">${iconoGrupo(g.id, 48)}</div>
@@ -241,6 +269,14 @@ function aplicarConfigEnPantalla() {
                     Registrar asistencia
                 </span>
             </button>
-        `).join('');
+        `;
+        const { alabanza, resto } = organizarGrupos();
+        const bloque = (titulo, lista) => lista.length
+            ? `${titulo ? `<h4 class="cards-titulo">${titulo}</h4>` : ''}${lista.map(tarjeta).join('')}`
+            : '';
+        // Sin Alabanza no hace falta separar nada
+        tarjetas.innerHTML = alabanza.length
+            ? bloque('Alabanza', alabanza) + bloque('Otros ministerios', resto)
+            : bloque('', resto);
     }
 }
