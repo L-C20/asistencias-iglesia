@@ -35,12 +35,25 @@ window.cargarReporteGrupo = function(grupo) {
 
     // Con más de un grupo: botonera Orquesta | Coro y subtítulo con el elegido
     renderSelectorGrupo('selectorGrupoReportes', grupoReporte, g => {
+        // Al pasar entre un ministerio y orquesta o coro cambia el tipo de evento
+        if (esMinisterio(g)) tipoEventoActual = 'reunion';
+        else if (tipoEventoActual === 'reunion') tipoEventoActual = 'santo_culto';
         cargarReporteGrupo(g);
         const detalle = document.getElementById('vistaDetalle');
         if (detalle && detalle.style.display !== 'none') abrirReporteEvento(tipoEventoActual);
     }, gruposVisibles);
-    const tarjetaBautismo = document.getElementById('tarjetaBautismo');
-    if (tarjetaBautismo) tarjetaBautismo.hidden = !registraBautismos();
+    // Un ministerio solo tiene reuniones
+    const ministerio = esMinisterio(grupoReporte);
+    const visibles = {
+        tarjetaCulto: !ministerio,
+        tarjetaEnsayo: !ministerio,
+        tarjetaBautismo: !ministerio && registraBautismos(),
+        tarjetaReunion: ministerio
+    };
+    Object.entries(visibles).forEach(([id, visible]) => {
+        const tarjeta = document.getElementById(id);
+        if (tarjeta) tarjeta.hidden = !visible;
+    });
 
     const sub = document.getElementById('reportesSubtitulo');
     if (sub) sub.textContent = hayVariosGrupos(gruposVisibles) ? `Análisis de asistencia · ${grupoInfo(grupoReporte).nombre}` : 'Análisis de asistencia';
@@ -67,6 +80,8 @@ window.cargarReporteGrupo = function(grupo) {
         if (el1) el1.textContent = d.santo_culto || 0;
         if (el2) el2.textContent = d.ensayo || 0;
         if (el3) el3.textContent = d.bautismo || 0;
+        const el4 = document.getElementById('countReunion');
+        if (el4) el4.textContent = d.reunion || 0;
         
         console.log('✅ Conteos mostrados');
     })
@@ -82,7 +97,8 @@ window.abrirReporteEvento = function(tipo) {
     const nombres = {
         'santo_culto': 'Santo Culto',
         'ensayo': 'Ensayos',
-        'bautismo': 'Bautismo'
+        'bautismo': 'Bautismo',
+        'reunion': 'Reuniones'
     };
     
     const vT = document.getElementById('vistaTarjetas');
@@ -161,7 +177,7 @@ function mostrarMensajeTabla(msg) {
 
 // ===== ELIMINAR UN EVENTO COMPLETO =====
 window.eliminarEvento = async function(fecha) {
-    const nombres = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo' };
+    const nombres = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo', reunion: 'Reunión' };
     const registros = datosReporte.filter(d => d.fecha && d.fecha.split('T')[0] === fecha).length;
     const [y, m, d] = fecha.split('-');
 

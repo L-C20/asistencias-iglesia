@@ -2682,3 +2682,8 @@ input::placeholder { color: var(--text-light); }
     margin-top: var(--sp-3);
 }
 .paginacion-movimientos .ayuda-campo { margin: 0; text-align: center; }
+
+/* ---------- Ministerios: con varios grupos la botonera pasa a otra línea ---------- */
+.selector-grupo { flex-wrap: wrap; max-width: 100%; }
+.selector-grupo[hidden] { display: none; }
+.radio-option[hidden], .tarjeta-evento[hidden] { display: none; }

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken, verificarVerTodas, iglesiaConsultada } = require('../middleware/auth');
-const { configDeIglesia } = require('../config');
+const { configDeIglesia, ministeriosSQL } = require('../config');
 const db = require('../database');
 
 // Todas las consultas se limitan a la iglesia del usuario logueado, salvo que
@@ -23,6 +23,7 @@ router.get('/iglesias', verifyToken, verificarVerTodas, async (req, res) => {
         const result = await db.query(`
             SELECT
                 i.*,
+                ${ministeriosSQL('i')},
                 (SELECT COUNT(*) FROM miembros m WHERE m.iglesia_id = i.id AND m.activo = true) AS integrantes,
                 COUNT(DISTINCT (ra.fecha, ra.tipo_evento)) AS eventos,
                 TO_CHAR(MAX(ra.fecha), 'YYYY-MM-DD') AS ultima_fecha,
@@ -64,13 +65,13 @@ router.get('/conteos/:grupo', verifyToken, async (req, res) => {
             SELECT ra.tipo_evento, COUNT(DISTINCT ra.fecha) AS total
             FROM registro_asistencia ra
             JOIN miembros m ON m.id = ra.miembro_id
-            WHERE ra.tipo_evento IN ('santo_culto', 'ensayo', 'bautismo')
+            WHERE ra.tipo_evento IN ('santo_culto', 'ensayo', 'bautismo', 'reunion')
               AND m.iglesia_id = $1
               AND m.grupo = $2
             GROUP BY ra.tipo_evento
         `, [iglesiaId, grupo]);
 
-        const conteos = { santo_culto: 0, ensayo: 0, bautismo: 0 };
+        const conteos = { santo_culto: 0, ensayo: 0, bautismo: 0, reunion: 0 };
         result.rows.forEach(row => { conteos[row.tipo_evento] = Number(row.total); });
 
         res.json(conteos);

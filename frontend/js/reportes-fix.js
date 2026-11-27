@@ -133,11 +133,11 @@ window.generarTablaHorizontal = function({ filas, registros, integrantes, busque
         // Con búsqueda activa se abren las secciones que coinciden
         const abierta = busqueda || seccionesAbiertas.has(instrumento);
 
-        html += `<tbody class="seccion-rep ${abierta ? 'abierta' : ''}" data-instrumento="${instrumento}">`;
+        html += `<tbody class="seccion-rep ${abierta ? 'abierta' : ''}" data-instrumento="${escaparHtml(instrumento)}">`;
         html += `<tr class="seccion-rep-cabecera" onclick="toggleSeccionReporte(this.parentElement)">`;
         html += `<td colspan="2"><div class="seccion-rep-titulo">
                     <svg class="seccion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    <span class="seccion-nombre">${instrumento}</span>
+                    <span class="seccion-nombre">${escaparHtml(instrumento)}</span>
                     <span class="seccion-rep-n">${todos.length}</span>
                  </div></td>`;
         fechasCulto.forEach(fecha => {
@@ -149,7 +149,7 @@ window.generarTablaHorizontal = function({ filas, registros, integrantes, busque
             const nombreCompleto = `${miembro.nombre}${miembro.apellido ? ' ' + miembro.apellido : ''}`;
             html += '<tr class="miembro-fila">';
             html += `<td class="celda-nombre">${nombreCompleto}</td>`;
-            html += `<td class="celda-detalle">${miembro.seccion || '—'}</td>`;
+            html += `<td class="celda-detalle">${escaparHtml(miembro.seccion) || '—'}</td>`;
             fechasCulto.forEach(fecha => {
                 const registro = registros.find(d => d.id == miembro.id && d.fecha.split('T')[0] === fecha);
                 const estado = estadoDe(registro);

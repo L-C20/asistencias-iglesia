@@ -98,7 +98,9 @@ function ordenarSecciones(grupoId, claves) {
 
 // Agrupa integrantes por sección; los que no tienen van a "Sin <categoría>"
 function agruparPorSeccion(grupoId, lista) {
-    const sinSeccion = `Sin ${grupoInfo(grupoId).categoria.toLowerCase()}`;
+    // Un ministerio sin subgrupos es una sola lista
+    const info = grupoInfo(grupoId);
+    const sinSeccion = info.secciones.length ? `Sin ${info.categoria.toLowerCase()}` : 'Integrantes';
     const g = {};
     lista.forEach(m => {
         const k = m.seccion || sinSeccion;
@@ -112,8 +114,15 @@ const ICONOS_GRUPO = {
     coro: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line>'
 };
 
+// Los ministerios comparten un ícono de personas
+const ICONO_MINISTERIO = '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>';
+
+function esMinisterio(id) {
+    return /^m\d+$/.test(id || '');
+}
+
 function iconoGrupo(id, tam = 20) {
-    return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${tam > 24 ? 1.5 : 2}">${ICONOS_GRUPO[id] || ICONOS_GRUPO.orquesta}</svg>`;
+    return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${tam > 24 ? 1.5 : 2}">${ICONOS_GRUPO[id] || (esMinisterio(id) ? ICONO_MINISTERIO : ICONOS_GRUPO.orquesta)}</svg>`;
 }
 
 // Botonera Orquesta | Coro. Solo se muestra cuando hay más de un grupo.
@@ -162,7 +171,10 @@ function aplicarConfigEnPantalla() {
     }
 
     const ARTICULO = { orquesta: 'la', coro: 'el' };
-    const listaGrupos = APP_CONFIG.grupos.map(g => `${ARTICULO[g.id] || 'el'} ${g.nombre.toLowerCase()}`).join(' y ');
+    // Con ministerios la enumeración se hace larga: se habla de la iglesia
+    const listaGrupos = APP_CONFIG.grupos.some(g => g.ministerio)
+        ? 'la iglesia'
+        : APP_CONFIG.grupos.map(g => `${ARTICULO[g.id] || 'el'} ${g.nombre.toLowerCase()}`).join(' y ');
     set('inicioSubtitulo', `Resumen de la actividad de ${listaGrupos}`);
     set('statIntegrantesHint', `activos en ${listaGrupos}`);
 
@@ -175,7 +187,7 @@ function aplicarConfigEnPantalla() {
             li.dataset.grupo = g.id;
             li.innerHTML = `<div class="sidebar-menu-item" data-tab="miembros" data-grupo="${g.id}" onclick="cambiarTab('miembros', '${g.id}')">
                 ${iconoGrupo(g.id)}
-                <span>${g.nombre}</span>
+                <span>${escaparHtml(g.nombre)}</span>
             </div>`;
             fin.before(li);
         });
@@ -190,7 +202,7 @@ function aplicarConfigEnPantalla() {
                 <div class="card-grupo-cabecera">
                     <div class="card-icon">${iconoGrupo(g.id, 48)}</div>
                     <div>
-                        <h3>${g.nombre}</h3>
+                        <h3>${escaparHtml(g.nombre)}</h3>
                         <p id="conteo-${g.id}" class="card-count">— integrantes</p>
                     </div>
                 </div>

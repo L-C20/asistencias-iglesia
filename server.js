@@ -13,6 +13,7 @@ const exportarRouter = require('./routes/exportar');
 const solicitudesRouter = require('./routes/solicitudes');
 const inscripcionesRouter = require('./routes/inscripciones');
 const movimientosRouter = require('./routes/movimientos');
+const ministeriosRouter = require('./routes/ministerios');
 const { initializeDatabase, seedDatabase } = require('./database');
 
 if (!process.env.JWT_SECRET) {
@@ -38,6 +39,7 @@ app.use('/api/exportar', exportarRouter);
 app.use('/api/solicitudes', solicitudesRouter);
 app.use('/api/inscripciones', inscripcionesRouter);
 app.use('/api/movimientos', movimientosRouter);
+app.use('/api/ministerios', ministeriosRouter);
 
 // Ruta raíz - servir login
 app.get('/', (req, res) => {

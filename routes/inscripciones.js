@@ -7,7 +7,7 @@ const express = require('express');
 const db = require('../database');
 const mov = require('../movimientos');
 const { verifyToken, verificarAdmin } = require('../middleware/auth');
-const { configDeIglesia, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
+const { configDeIglesia, SELECT_IGLESIA, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
 const router = express.Router();
 
 // Tope de pendientes por iglesia, para que un enlace filtrado no llene la tabla
@@ -19,7 +19,7 @@ function limpiarNombre(valor) {
 
 async function iglesiaDelEnlace(token) {
   const r = await db.query(
-    'SELECT * FROM iglesias WHERE token_inscripcion IS NOT NULL AND UPPER(token_inscripcion) = UPPER($1)',
+    `${SELECT_IGLESIA} WHERE ig.token_inscripcion IS NOT NULL AND UPPER(ig.token_inscripcion) = UPPER($1)`,
     [token]
   );
   const fila = r.rows[0];
@@ -60,7 +60,8 @@ router.post('/formulario/:token', async (req, res) => {
 
     if (nombre.split(' ').length < 2) return res.status(400).json({ error: 'Indique su nombre y apellido' });
     if (!grupo) return res.status(400).json({ error: 'Seleccione el grupo en el que participa' });
-    if (!seccion) return res.status(400).json({ error: `Seleccione su ${grupo.categoria.toLowerCase()}` });
+    // Un ministerio sin subgrupos no pide nada más
+    if (grupo.secciones.length && !seccion) return res.status(400).json({ error: `Seleccione su ${grupo.categoria.toLowerCase()}` });
     if (!dni) return res.status(400).json({ error: 'Indique su documento de identidad (entre 6 y 9 dígitos, sin puntos)' });
     if (!fechaNacimiento) return res.status(400).json({ error: 'Indique una fecha de nacimiento válida' });
 
@@ -85,10 +86,10 @@ router.post('/formulario/:token', async (req, res) => {
 
     await db.query(
       'INSERT INTO inscripciones (iglesia_id, nombre, grupo, seccion, dni, fecha_nacimiento) VALUES ($1, $2, $3, $4, $5, $6)',
-      [fila.id, nombre, grupo.id, seccion, dni, fechaNacimiento]
+      [fila.id, nombre, grupo.id, seccion || null, dni, fechaNacimiento]
     );
-    console.log(`🙋 Inscripción: ${nombre} (${grupo.nombre} · ${seccion}) en ${fila.nombre}`);
-    await mov.registrar({ quien: 'Inscripción por enlace', iglesiaId: fila.id, categoria: 'inscripciones', accion: 'Recibió una inscripción', detalle: `${nombre} · ${grupo.nombre} · ${seccion}` });
+    console.log(`🙋 Inscripción: ${nombre} (${grupo.nombre}) en ${fila.nombre}`);
+    await mov.registrar({ quien: 'Inscripción por enlace', iglesiaId: fila.id, categoria: 'inscripciones', accion: 'Recibió una inscripción', detalle: `${nombre} · ${grupo.nombre}${seccion ? ' · ' + seccion : ''}` });
     res.json({ success: true, iglesia: fila.nombre });
   } catch (error) {
     console.error('Error guardando inscripción:', error);
@@ -139,7 +140,7 @@ router.post('/:id/aprobar', verifyToken, verificarAdmin, async (req, res) => {
       [nombre, grupo, seccion, req.user.iglesia_id, dni, fecha_nacimiento]
     );
     await client.query('COMMIT');
-    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'inscripciones', accion: 'Aprobó una inscripción', detalle: `${nombre} · ${mov.NOMBRES_GRUPO[grupo] || grupo}${seccion ? ' · ' + seccion : ''}` });
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'inscripciones', accion: 'Aprobó una inscripción', detalle: `${nombre} · ${await mov.nombreGrupo(grupo)}${seccion ? ' · ' + seccion : ''}` });
     res.json({ success: true, miembro: miembro.rows[0] });
   } catch (error) {
     await client.query('ROLLBACK');

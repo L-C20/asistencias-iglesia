@@ -63,7 +63,7 @@ function renderizarInscripciones() {
     tbody.innerHTML = inscripcionesPendientes.map(i => `
         <tr>
             <td class="celda-nombre">${escaparHtml(i.nombre)}</td>
-            <td class="celda-detalle"><span class="badge badge-grupo">${i.grupo === 'coro' ? 'Coro' : 'Orquesta'}</span></td>
+            <td class="celda-detalle"><span class="badge badge-grupo">${escaparHtml(grupoInfo(i.grupo).nombre)}</span></td>
             <td class="celda-detalle">${escaparHtml(i.seccion) || '—'}</td>
             <td class="celda-detalle">${formatearDni(i.dni) || '—'}</td>
             <td class="celda-detalle">${formatearFechaNacimiento(i.fecha_nacimiento) || '—'}</td>

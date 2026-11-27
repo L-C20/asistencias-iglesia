@@ -10,7 +10,7 @@ async function inicializarConfiguracion() {
     console.log('⚙️ Inicializando configuración...');
 
     await obtenerPerfilActual();
-    await Promise.all([cargarUsuarios(), cargarIglesias(), cargarSolicitudes(), cargarInscripciones()]);
+    await Promise.all([cargarUsuarios(), cargarIglesias(), cargarSolicitudes(), cargarInscripciones(), cargarMinisterios()]);
     cargarMovimientos(1);
     configurarEventos();
 }
@@ -53,6 +53,8 @@ function actualizarVisibilidadPorRol() {
     if (seccionIglesias) seccionIglesias.hidden = !esSuperadmin;
     const seccionSolicitudes = document.getElementById('seccionSolicitudes');
     if (seccionSolicitudes) seccionSolicitudes.hidden = !esSuperadmin;
+    const seccionMinisterios = document.getElementById('seccionMinisterios');
+    if (seccionMinisterios) seccionMinisterios.hidden = !esSuperadmin;
     const seccionMovimientos = document.getElementById('seccionMovimientos');
     if (seccionMovimientos) seccionMovimientos.hidden = !esSuperadmin;
 
@@ -428,7 +430,7 @@ function renderizarTablaIglesias(iglesias) {
             </td>
             <td class="celda-detalle">${escaparHtml(i.departamento) || '—'}</td>
             <td class="celda-detalle">${escaparHtml(i.anciano) || '—'}</td>
-            <td class="celda-detalle">${i.grupos.map(g => `<span class="badge badge-grupo">${g.nombre}</span>`).join('')}</td>
+            <td class="celda-detalle">${i.grupos.map(g => `<span class="badge badge-grupo">${escaparHtml(g.nombre)}</span>`).join('')}</td>
             <td class="celda-detalle">${(i.diasCulto || []).map(d => NOMBRES_DIA[d].slice(0, 3)).join(' · ') || '—'}</td>
             <td class="celda-detalle">${i.integrantes}</td>
             <td class="celda-detalle">${i.usuarios}</td>

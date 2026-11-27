@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../database');
 const mov = require('../movimientos');
 const { verifyToken, verificarSuperadmin, puedeVerTodas } = require('../middleware/auth');
-const { nuevoCodigo, configDeIglesia, normalizarGrupos, normalizarDiasCulto, DIAS_CULTO_POR_DEFECTO } = require('../config');
+const { nuevoCodigo, SELECT_IGLESIA, ministeriosSQL, configDeIglesia, normalizarGrupos, normalizarDiasCulto, DIAS_CULTO_POR_DEFECTO } = require('../config');
 const router = express.Router();
 
 const LARGO_MINIMO_PASSWORD = 6;
@@ -12,7 +12,7 @@ const LARGO_MINIMO_PASSWORD = 6;
 // la lista de todas para poder cambiar - GET /api/iglesias/actual
 router.get('/actual', verifyToken, async (req, res) => {
   try {
-    const actual = await db.query('SELECT * FROM iglesias WHERE id = $1', [req.user.iglesia_id]);
+    const actual = await db.query(`${SELECT_IGLESIA} WHERE ig.id = $1`, [req.user.iglesia_id]);
     if (actual.rows.length === 0) {
       return res.status(404).json({ error: 'Iglesia no encontrada' });
     }
@@ -42,6 +42,7 @@ router.get('/', verifyToken, verificarSuperadmin, async (req, res) => {
   try {
     const result = await db.query(`
       SELECT i.*,
+        ${ministeriosSQL('i')},
         (SELECT COUNT(*) FROM usuarios u WHERE u.iglesia_id = i.id) AS usuarios,
         (SELECT COUNT(*) FROM miembros m WHERE m.iglesia_id = i.id AND m.activo = true) AS integrantes
       FROM iglesias i
@@ -220,6 +221,7 @@ router.delete('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
       `DELETE FROM registro_asistencia
        WHERE miembro_id IN (SELECT id FROM miembros WHERE iglesia_id = $1)`, [id]);
     await client.query('DELETE FROM inscripciones WHERE iglesia_id = $1', [id]);
+    await client.query('DELETE FROM ministerios WHERE iglesia_id = $1', [id]);
     await client.query('DELETE FROM eventos WHERE iglesia_id = $1', [id]);
     await client.query('DELETE FROM miembros WHERE iglesia_id = $1', [id]);
     await client.query('DELETE FROM usuarios WHERE iglesia_id = $1', [id]);

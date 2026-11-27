@@ -3,14 +3,14 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const db = require('../database');
 const { verifyToken, iglesiaConsultada } = require('../middleware/auth');
-const { GRUPOS_DISPONIBLES, configDeIglesia } = require('../config');
+const { SELECT_IGLESIA, configDeIglesia } = require('../config');
 const router = express.Router();
 
 // Descarga en Excel o PDF de lo que se ve en el detalle del reporte: una
 // columna por fecha, secciones con subtotales, total general y notas.
 // GET /api/exportar/:grupo?tipo_evento=santo_culto&fechas=2026-09-15,2026-09-19&formato=xlsx|pdf
 
-const NOMBRES_EVENTO = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo' };
+const NOMBRES_EVENTO = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo', reunion: 'Reunión' };
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 function etiquetaFecha(iso) {
@@ -30,11 +30,11 @@ function estadoDe(r) {
 
 // Arma la estructura común a los dos formatos
 async function armarDatos(iglesiaId, grupo, tipoEvento, fechas) {
-  const iglesia = await db.query('SELECT * FROM iglesias WHERE id = $1', [iglesiaId]);
+  const iglesia = await db.query(`${SELECT_IGLESIA} WHERE ig.id = $1`, [iglesiaId]);
   if (iglesia.rows.length === 0) throw new Error('Iglesia no encontrada');
   const cfg = configDeIglesia(iglesia.rows[0]);
-  const infoGrupo = GRUPOS_DISPONIBLES[grupo];
-  if (!infoGrupo || !cfg.grupos.some(g => g.id === grupo)) throw new Error('Grupo inválido');
+  const infoGrupo = cfg.grupos.find(g => g.id === grupo);
+  if (!infoGrupo) throw new Error('Grupo inválido');
 
   const miembros = (await db.query(
     `SELECT m.id, m.nombre, CASE WHEN m.grupo = 'coro' THEN m.voz ELSE m.instrumento END AS seccion,
@@ -63,7 +63,8 @@ async function armarDatos(iglesiaId, grupo, tipoEvento, fechas) {
   registros.forEach(r => { porClave[`${r.miembro_id}|${r.fecha}`] = r; });
 
   // secciones en el orden del grupo
-  const sinSeccion = `Sin ${infoGrupo.categoria.toLowerCase()}`;
+  // Un ministerio sin subgrupos es una sola lista
+  const sinSeccion = infoGrupo.secciones.length ? `Sin ${infoGrupo.categoria.toLowerCase()}` : 'Integrantes';
   const porSeccion = {};
   miembros.forEach(m => {
     const k = m.seccion || sinSeccion;

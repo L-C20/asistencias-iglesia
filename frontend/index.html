@@ -206,7 +206,7 @@
                                 Eventos registrados
                             </div>
                             <div class="stat-value" id="statEventos">—</div>
-                            <div class="stat-hint">cultos, ensayos y bautismos</div>
+                            <div class="stat-hint">fechas con asistencia</div>
                             <span class="stat-link">Ver reportes →</span>
                         </button>
 
@@ -345,13 +345,19 @@
                     <!-- Vista de Cards -->
                     <div id="vistaTarjetas" style="display: block;">
                         <div class="tarjetas-grid">
-                            <div class="tarjeta-evento" onclick="abrirReporteEvento('santo_culto')">
+                            <div class="tarjeta-evento" id="tarjetaCulto" onclick="abrirReporteEvento('santo_culto')">
                                 <h3>Santo Culto</h3>
                                 <p class="evento-count" id="countSantoCulto">-</p>
                                 <p class="stat-hint">fechas registradas</p>
                                 <span class="ver-mas">Ver →</span>
                             </div>
-                            <div class="tarjeta-evento" onclick="abrirReporteEvento('ensayo')">
+                            <div class="tarjeta-evento" id="tarjetaReunion" onclick="abrirReporteEvento('reunion')" hidden>
+                                <h3>Reuniones</h3>
+                                <p class="evento-count" id="countReunion">-</p>
+                                <p class="stat-hint">fechas registradas</p>
+                                <span class="ver-mas">Ver →</span>
+                            </div>
+                            <div class="tarjeta-evento" id="tarjetaEnsayo" onclick="abrirReporteEvento('ensayo')">
                                 <h3>Ensayos</h3>
                                 <p class="evento-count" id="countEnsayo">-</p>
                                 <p class="stat-hint">fechas registradas</p>
@@ -545,6 +551,37 @@
                             </div>
                         </div>
 
+                        <!-- SECCIÓN MINISTERIOS (solo super administrador) -->
+                        <div class="config-section" id="seccionMinisterios" hidden>
+                            <div class="section-header">
+                                <h3>Ministerios</h3>
+                                <button class="btn btn-primary" onclick="abrirModalMinisterio()">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 5v14M5 12h14"></path>
+                                    </svg>
+                                    Nuevo Ministerio
+                                </button>
+                            </div>
+                            <p class="ayuda-campo">Además de Orquesta y Coro. Cada ministerio tiene sus integrantes y toma asistencia en reuniones de cualquier fecha.</p>
+
+                            <div class="tabla-miembros">
+                                <table class="tabla-datos">
+                                    <thead>
+                                        <tr>
+                                            <th>Ministerio</th>
+                                            <th>Iglesia</th>
+                                            <th>Subgrupos</th>
+                                            <th>Integrantes</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ministeriosTableBody">
+                                        <tr><td colspan="5" class="tabla-vacia">Cargando ministerios…</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- SECCIÓN SOLICITUDES DE ALTA (solo super administrador) -->
                         <div class="config-section" id="seccionSolicitudes" hidden>
                             <div class="section-header">
@@ -681,6 +718,37 @@
 
             </div>
         </div>
+
+    <!-- MODAL MINISTERIO (solo super administrador) -->
+    <div id="modalMinisterio" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="tituloModalMinisterio">Nuevo ministerio</span>
+                <button class="modal-close" onclick="cerrarModal('modalMinisterio')">&times;</button>
+            </div>
+            <form onsubmit="guardarMinisterio(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="ministerioNombre">Nombre del ministerio</label>
+                        <input type="text" id="ministerioNombre" maxlength="60" placeholder="Jóvenes, Ujieres…" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ministerioSubgrupos">Subgrupos <span class="opcional">(opcional)</span></label>
+                        <textarea id="ministerioSubgrupos" rows="3" placeholder="Uno por línea"></textarea>
+                        <p class="ayuda-campo">Sirven para ordenar a los integrantes. Si lo dejás vacío, es una sola lista.</p>
+                    </div>
+                    <div class="form-group" id="bloqueMinisterioIglesias">
+                        <label>Iglesias que lo tienen</label>
+                        <div class="casillas-grupos" id="ministerioIglesias"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalMinisterio')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarMinisterio">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- MODAL GENERAR ENLACE DE SOLICITUD (solo super administrador) -->
     <div id="modalEnlace" class="modal">
@@ -955,6 +1023,13 @@
                                 <span class="radio-text">Santo Culto</span>
                             </span>
                         </label>
+                        <label class="radio-option" hidden>
+                            <input type="radio" name="tipoEvento" value="reunion" onchange="renderOpcionesFecha()">
+                            <span class="radio-label">
+                                <span class="radio-circle"></span>
+                                <span class="radio-text">Reunión</span>
+                            </span>
+                        </label>
                         <label class="radio-option">
                             <input type="radio" name="tipoEvento" value="ensayo" onchange="renderOpcionesFecha()">
                             <span class="radio-label">
@@ -1069,6 +1144,7 @@
     <script src="js/solicitudes.js"></script>
     <script src="js/inscripciones.js"></script>
     <script src="js/movimientos.js"></script>
+    <script src="js/ministerios.js"></script>
     <script src="js/configuracion.js"></script>
     <script src="js/app.js"></script>
 </body>

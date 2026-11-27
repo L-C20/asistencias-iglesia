@@ -45,7 +45,7 @@ function renderizarPanelTotales() {
     cont.innerHTML =
         tarjeta('Iglesias', iglesiasResumen.length, `${activas.length} activas`) +
         tarjeta('Integrantes', integrantes, 'en todas las iglesias') +
-        tarjeta('Eventos registrados', eventos, 'cultos, ensayos y bautismos') +
+        tarjeta('Eventos registrados', eventos, 'fechas con asistencia') +
         tarjeta('Presentismo', promedio === null ? '—' : `${promedio}%`, 'promedio entre iglesias');
 }
 
@@ -70,7 +70,7 @@ function renderizarPanelIglesias() {
                 ${i.activa ? '' : '<span class="badge badge-danger">baja</span>'}
             </td>
             <td class="celda-detalle">${escaparHtml(i.departamento) || '—'}</td>
-            <td class="celda-detalle">${i.grupos.map(g => `<span class="badge badge-grupo">${g.nombre}</span>`).join('')}</td>
+            <td class="celda-detalle">${i.grupos.map(g => `<span class="badge badge-grupo">${escaparHtml(g.nombre)}</span>`).join('')}</td>
             <td class="celda-detalle">${i.integrantes}</td>
             <td class="celda-detalle">${i.eventos}</td>
             <td class="celda-detalle">${fecha}</td>
@@ -99,7 +99,7 @@ function verReportesDe(iglesiaId, grupo) {
     // null = la propia; con valor, las consultas de reportes llevan ?iglesia_id=
     iglesiaConsultada = iglesiaId === APP_CONFIG.id
         ? null
-        : { id: iglesiaId, nombre: iglesia.nombre, grupos: iglesia.grupos, diasCulto: iglesia.diasCulto };
+        : { id: iglesiaId, nombre: iglesia.nombre, grupos: iglesia.grupos, diasCulto: iglesia.diasCulto, bautismos: iglesia.bautismos };
     volverATarjetas();
     cargarReporteGrupo(grupo);
 }

@@ -23,6 +23,7 @@ async function irAAsistencia(grupo) {
     }
 
     document.getElementById('formConfigurarEvento').reset();
+    mostrarTiposDeEvento(grupo);
     modal.classList.add('show');
 
     // Qué fechas ya tienen asistencia cargada (para marcarlas en los botones) y sus notas
@@ -32,6 +33,18 @@ async function irAAsistencia(grupo) {
         if (r.ok) fechasConDatos = await r.json();
     } catch (e) { /* sin esto los botones igual funcionan */ }
     renderOpcionesFecha();
+}
+
+// Un ministerio toma asistencia en reuniones; orquesta y coro, en cultos,
+// ensayos y bautismos (estos solo si la iglesia los registra)
+function mostrarTiposDeEvento(grupo) {
+    const ministerio = esMinisterio(grupo);
+    document.querySelectorAll('input[name="tipoEvento"]').forEach(radio => {
+        const opcion = radio.closest('.radio-option');
+        const esReunion = radio.value === 'reunion';
+        opcion.hidden = esReunion !== ministerio || (radio.value === 'bautismo' && !APP_CONFIG.bautismos);
+    });
+    document.querySelector(`input[name="tipoEvento"][value="${ministerio ? 'reunion' : 'santo_culto'}"]`).checked = true;
 }
 
 // Nota ya guardada (o en borrador) para un evento y fecha
@@ -44,7 +57,7 @@ function descripcionGuardada(tipo, fecha) {
 
 // El campo "Evento" es para ocasiones especiales del culto; en ensayos y
 // bautismos no hay nada que anotar, así que no se muestra
-const TIPOS_SIN_NOTA = ['bautismo', 'ensayo'];
+const TIPOS_SIN_NOTA = ['bautismo', 'ensayo', 'reunion'];
 
 // El campo "Evento" del modal sigue a la fecha elegida
 function actualizarDescripcionModal() {
@@ -287,7 +300,7 @@ function borrarBorrador() {
 
 // ===== ENCABEZADO: QUÉ EVENTO Y QUÉ DÍA SE ESTÁ REGISTRANDO =====
 function mostrarEncabezadoEvento() {
-    const nombres = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo' };
+    const nombres = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo', reunion: 'Reunión' };
     const sobre = document.getElementById('sobretituloAsistencia');
     const titulo = document.getElementById('tituloAsistencia');
     const sub = document.getElementById('fechaAsistencia');

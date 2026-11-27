@@ -168,6 +168,12 @@ async function initializeDatabase() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_movimientos_fecha ON movimientos(fecha DESC)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_movimientos_iglesia ON movimientos(iglesia_id)`);
 
+    // Datos personales de los integrantes (y de quienes se inscriben por enlace)
+    for (const tabla of ['miembros', 'inscripciones']) {
+      await pool.query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS dni VARCHAR(15)`);
+      await pool.query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS fecha_nacimiento DATE`);
+    }
+
     console.log('✓ Base de datos inicializada correctamente');
   } catch (error) {
     console.error('Error inicializando BD:', error.message);
@@ -196,6 +202,19 @@ async function migrarAIglesias() {
       await pool.query(`ALTER TABLE ${tabla} ADD COLUMN iglesia_id INTEGER REFERENCES iglesias(id)`);
     } catch (e) { /* ya existe */ }
   }
+  // Ministerios propios de cada iglesia, además de orquesta y coro
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ministerios (
+      id SERIAL PRIMARY KEY,
+      iglesia_id INTEGER NOT NULL REFERENCES iglesias(id),
+      nombre VARCHAR(60) NOT NULL,
+      secciones JSONB NOT NULL DEFAULT '[]',
+      fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  // El grupo de un integrante ya no es solo orquesta o coro: también "m<id>"
+  await pool.query(`ALTER TABLE miembros DROP CONSTRAINT IF EXISTS miembros_grupo_check`);
+
   // Días de culto de cada iglesia; las que ya existían siguen con dom/mar/sáb
   try {
     await pool.query(`ALTER TABLE iglesias ADD COLUMN dias_culto VARCHAR(20) DEFAULT '0,2,6'`);
@@ -226,12 +245,6 @@ async function migrarAIglesias() {
   // Quién cargó cada asistencia y cuándo (en UTC); lo anterior queda sin dato
   await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN IF NOT EXISTS registrado_por INTEGER`);
   await pool.query(`ALTER TABLE registro_asistencia ADD COLUMN IF NOT EXISTS fecha_registro TIMESTAMP`);
-
-  // Datos personales de los integrantes (y de quienes se inscriben por enlace)
-  for (const tabla of ['miembros', 'inscripciones']) {
-    await pool.query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS dni VARCHAR(15)`);
-    await pool.query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS fecha_nacimiento DATE`);
-  }
 
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_miembros_iglesia ON miembros(iglesia_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_usuarios_iglesia ON usuarios(iglesia_id)`);

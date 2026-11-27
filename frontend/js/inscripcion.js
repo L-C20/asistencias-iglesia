@@ -5,6 +5,7 @@
 const TOKEN_INSCRIPCION = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() || '');
 
 const el = id => document.getElementById(id);
+const escapar = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let gruposIglesia = [];
 
 function mostrarCerrada(mensaje) {
@@ -31,10 +32,14 @@ function grupoElegido() {
 function cargarSecciones() {
     const grupo = grupoElegido();
     if (!grupo) return;
+    const select = el('inscripcionSeccion');
+    const tieneSecciones = grupo.secciones.length > 0;
+    select.closest('.form-group').hidden = !tieneSecciones;
+    select.required = tieneSecciones;
     el('etiquetaSeccion').textContent = grupo.categoria;
-    el('inscripcionSeccion').innerHTML =
-        `<option value="">Seleccione…</option>` +
-        grupo.secciones.map(s => `<option value="${s}">${s}</option>`).join('');
+    select.innerHTML = '';
+    select.add(new Option('Seleccione…', ''));
+    grupo.secciones.forEach(s => select.add(new Option(s, s)));
 }
 
 async function abrirFormulario() {
@@ -53,7 +58,7 @@ async function abrirFormulario() {
         el('bloqueGrupo').hidden = gruposIglesia.length === 1;
         el('inscripcionGrupos').innerHTML = gruposIglesia.map((g, i) => `
             <label class="casilla">
-                <input type="radio" name="grupo" value="${g.id}" ${i === 0 ? 'checked' : ''}> <span>${g.nombre}</span>
+                <input type="radio" name="grupo" value="${g.id}" ${i === 0 ? 'checked' : ''}> <span>${escapar(g.nombre)}</span>
             </label>`).join('');
         el('inscripcionGrupos').addEventListener('change', cargarSecciones);
         cargarSecciones();
@@ -81,7 +86,7 @@ async function enviarInscripcion(evento) {
     };
 
     if (datos.nombre.split(/\s+/).length < 2) return mostrarError('Indique su nombre y apellido');
-    if (!datos.seccion) return mostrarError(`Seleccione su ${grupo.categoria.toLowerCase()}`);
+    if (grupo.secciones.length && !datos.seccion) return mostrarError(`Seleccione su ${grupo.categoria.toLowerCase()}`);
 
     if (!/^\d{6,9}$/.test(datos.dni)) return mostrarError('Indique su documento de identidad (entre 6 y 9 dígitos, sin puntos)');
     if (!datos.fecha_nacimiento) return mostrarError('Indique su fecha de nacimiento');

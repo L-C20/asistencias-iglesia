@@ -103,7 +103,7 @@ async function cargarMiembrosPorFiltro(grupo, filtro = '') {
                 <svg class="seccion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
-                <span class="seccion-nombre">${instrumento}</span>
+                <span class="seccion-nombre">${escaparHtml(instrumento)}</span>
                 <span class="seccion-contador">${porInstrumento[instrumento].length}</span>
             `;
 
@@ -158,6 +158,8 @@ function armarSelectSeccion(grupo, seleccionada = '') {
     if (label) label.textContent = `${info.categoria}:`;
 
     const select = document.getElementById('seccionNuevo');
+    // Un ministerio sin subgrupos no tiene nada que elegir
+    select.closest('.form-group').hidden = !info.secciones.length && !seleccionada;
     select.innerHTML = `<option value="">-- Seleccionar ${info.categoria.toLowerCase()} --</option>`;
     info.secciones.forEach(s => {
         const option = document.createElement('option');
@@ -243,15 +245,16 @@ async function guardarNuevoMiembro(e) {
     const seccion = document.getElementById('seccionNuevo').value;
     const dni = document.getElementById('dniNuevo').value.trim();
     const fecha_nacimiento = document.getElementById('nacimientoNuevo').value;
-    const categoria = grupoInfo(miembroEnEdicion ? miembroEnEdicion.grupo : grupoMiembros).categoria.toLowerCase();
+    const infoGrupoMiembro = grupoInfo(miembroEnEdicion ? miembroEnEdicion.grupo : grupoMiembros);
+    const categoria = infoGrupoMiembro.categoria.toLowerCase();
 
     if (!nombre) {
         mostrarError('El nombre es requerido');
         return;
     }
 
-    if (!seccion) {
-        mostrarError(`Elegí ${categoria === 'cuerda' ? 'la cuerda' : 'el instrumento'}`);
+    if (!seccion && infoGrupoMiembro.secciones.length) {
+        mostrarError(`Elegí ${categoria === 'cuerda' ? 'la cuerda' : 'el ' + categoria}`);
         return;
     }
 

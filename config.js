@@ -46,6 +46,25 @@ function normalizarGrupos(valor) {
   return ORDEN_GRUPOS.filter(g => limpios.includes(g));
 }
 
+// Consulta de iglesias que incluye sus ministerios; todo lo que use
+// configDeIglesia para validar o mostrar grupos tiene que partir de acá
+function ministeriosSQL(alias) {
+  return `(SELECT COALESCE(json_agg(json_build_object('id', mi.id, 'nombre', mi.nombre, 'secciones', mi.secciones) ORDER BY mi.nombre), '[]'::json)
+           FROM ministerios mi WHERE mi.iglesia_id = ${alias}.id) AS ministerios`;
+}
+const SELECT_IGLESIA = `SELECT ig.*, ${ministeriosSQL('ig')} FROM iglesias ig`;
+
+// Un ministerio visto como un grupo más
+function grupoDeMinisterio(m) {
+  return {
+    id: `m${m.id}`,
+    nombre: m.nombre,
+    categoria: 'Subgrupo',
+    secciones: Array.isArray(m.secciones) ? m.secciones : [],
+    ministerio: true
+  };
+}
+
 // Lo que el frontend necesita saber de una iglesia para armar sus pantallas
 function configDeIglesia(fila) {
   const grupos = normalizarGrupos(fila.grupos);
@@ -56,7 +75,10 @@ function configDeIglesia(fila) {
     departamento: fila.departamento || '',
     anciano: fila.anciano || '',
     activa: fila.activa !== false,
-    grupos: (grupos.length ? grupos : ['orquesta']).map(id => GRUPOS_DISPONIBLES[id]),
+    grupos: [
+      ...(grupos.length ? grupos : ['orquesta']).map(id => GRUPOS_DISPONIBLES[id]),
+      ...(fila.ministerios || []).map(grupoDeMinisterio)
+    ],
     diasCulto: dias.length ? dias : DIAS_CULTO_POR_DEFECTO,
     // No todas las iglesias registran bautismos
     bautismos: fila.bautismos === true
@@ -98,6 +120,6 @@ function normalizarFechaNacimiento(valor) {
 }
 
 module.exports = {
-  normalizarDni, normalizarFechaNacimiento, nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
+  ministeriosSQL, SELECT_IGLESIA, normalizarDni, normalizarFechaNacimiento, nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
   DIAS_CULTO_POR_DEFECTO, NOMBRES_DIA, normalizarDiasCulto
 };

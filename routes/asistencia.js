@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../database');
 const mov = require('../movimientos');
 const { verifyToken } = require('../middleware/auth');
-const { grupoValidoEn, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
+const { grupoValidoEn, SELECT_IGLESIA, columnaSeccion, normalizarDni, normalizarFechaNacimiento } = require('../config');
 const router = express.Router();
 
 // Todo lo que se lee o escribe acá pertenece a la iglesia del usuario logueado
@@ -27,7 +27,7 @@ function datosPersonales(body) {
 }
 
 async function grupoHabilitado(iglesiaId, grupo) {
-  const r = await db.query('SELECT * FROM iglesias WHERE id = $1', [iglesiaId]);
+  const r = await db.query(`${SELECT_IGLESIA} WHERE ig.id = $1`, [iglesiaId]);
   return r.rows.length > 0 && grupoValidoEn(r.rows[0], grupo);
 }
 
@@ -72,11 +72,20 @@ router.post('/registrar-lote', verifyToken, async (req, res) => {
     return res.status(400).json({ error: 'Datos incompletos' });
   }
 
-  if (!(await eventoHabilitado(req.user.iglesia_id, tipo_evento))) {
-    return res.status(400).json({ error: 'Esta iglesia no registra bautismos' });
-  }
-
   const ids = registros.map(r => Number(r.miembro_id));
+
+  try {
+    if (!(await eventoHabilitado(req.user.iglesia_id, tipo_evento))) {
+      return res.status(400).json({ error: 'Esta iglesia no registra bautismos' });
+    }
+    // Los ministerios toman asistencia en reuniones; orquesta y coro, no
+    if (grupo && (/^m\d+$/.test(grupo) !== (tipo_evento === 'reunion'))) {
+      return res.status(400).json({ error: 'Ese tipo de evento no corresponde a este grupo' });
+    }
+  } catch (error) {
+    console.error('Error validando el evento:', error);
+    return res.status(500).json({ error: 'Error en el servidor' });
+  }
 
   const client = await db.pool.connect();
   try {
@@ -132,7 +141,7 @@ router.post('/registrar-lote', verifyToken, async (req, res) => {
     console.log(`💾 Lote guardado: ${tipo_evento} ${fecha} (${registros.length} registros)`);
     await mov.registrar({
       quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'asistencia', accion: 'Guardó asistencia',
-      detalle: `${mov.NOMBRES_EVENTO[tipo_evento] || tipo_evento}${grupo ? ' · ' + (mov.NOMBRES_GRUPO[grupo] || grupo) : ''} · ${mov.fechaCorta(fecha)} · ${registros.length} integrantes`
+      detalle: `${mov.NOMBRES_EVENTO[tipo_evento] || tipo_evento}${grupo ? ' · ' + (await mov.nombreGrupo(grupo)) : ''} · ${mov.fechaCorta(fecha)} · ${registros.length} integrantes`
     });
     res.json({ success: true, guardados: registros.length });
   } catch (error) {
@@ -167,7 +176,7 @@ router.delete('/evento/:grupo/:fecha/:tipoEvento', verifyToken, async (req, res)
     console.log(`🗑️ Evento eliminado: ${tipoEvento} ${fecha} (${result.rowCount} registros)`);
     await mov.registrar({
       quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'asistencia', accion: 'Eliminó un evento',
-      detalle: `${mov.NOMBRES_EVENTO[tipoEvento] || tipoEvento} · ${mov.NOMBRES_GRUPO[grupo] || grupo} · ${mov.fechaCorta(fecha)} · ${result.rowCount} registros`
+      detalle: `${mov.NOMBRES_EVENTO[tipoEvento] || tipoEvento} · ${await mov.nombreGrupo(grupo)} · ${mov.fechaCorta(fecha)} · ${result.rowCount} registros`
     });
     res.json({ success: true, eliminados: result.rowCount });
   } catch (error) {
@@ -233,7 +242,7 @@ router.post('/miembro/nuevo', verifyToken, async (req, res) => {
       [nombre, grupo, seccion, req.user.iglesia_id, personales.dni, personales.fecha]
     );
 
-    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'integrantes', accion: 'Agregó un integrante', detalle: `${nombre} · ${mov.NOMBRES_GRUPO[grupo] || grupo}${seccion ? ' · ' + seccion : ''}` });
+    await mov.registrar({ quien: req.user, iglesiaId: req.user.iglesia_id, categoria: 'integrantes', accion: 'Agregó un integrante', detalle: `${nombre} · ${await mov.nombreGrupo(grupo)}${seccion ? ' · ' + seccion : ''}` });
     res.json({
       success: true,
       miembro: result.rows[0]

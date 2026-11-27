@@ -5,7 +5,7 @@
 
 const db = require('./database');
 
-const NOMBRES_EVENTO = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo' };
+const NOMBRES_EVENTO = { santo_culto: 'Santo Culto', ensayo: 'Ensayo', bautismo: 'Bautismo', reunion: 'Reunión' };
 const NOMBRES_GRUPO = { orquesta: 'Orquesta', coro: 'Coro' };
 
 // Categorías para filtrar en el panel
@@ -18,6 +18,18 @@ const CATEGORIAS = {
   iglesias: 'Iglesias',
   altas: 'Solicitudes de alta'
 };
+
+// Nombre legible de un grupo; los ministerios ("m12") se buscan en la base
+async function nombreGrupo(grupo) {
+  const ministerio = /^m(\d+)$/.exec(grupo || '');
+  if (!ministerio) return NOMBRES_GRUPO[grupo] || grupo;
+  try {
+    const r = await db.query('SELECT nombre FROM ministerios WHERE id = $1', [ministerio[1]]);
+    return r.rows[0]?.nombre || 'Ministerio';
+  } catch (error) {
+    return 'Ministerio';
+  }
+}
 
 // 2026-11-08 -> 08/11/2026
 function fechaCorta(fecha) {
@@ -41,4 +53,4 @@ async function registrar({ quien, iglesiaId = null, iglesiaNombre = null, catego
   }
 }
 
-module.exports = { registrar, CATEGORIAS, NOMBRES_EVENTO, NOMBRES_GRUPO, fechaCorta };
+module.exports = { registrar, CATEGORIAS, NOMBRES_EVENTO, nombreGrupo, fechaCorta };
