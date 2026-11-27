@@ -331,6 +331,35 @@ svg { flex-shrink: 0; }
     transition: background .15s ease, color .15s ease;
 }
 
+/* Alabanza: encabeza a Orquesta y Coro; no se toca */
+.menu-rama {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: 7px var(--sp-2);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: #fff;
+}
+.menu-rama svg {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 7px;
+    border-radius: 9px;
+    background: rgba(212, 179, 120, .2);
+    color: var(--menu-dorado);
+}
+
+/* Los que dependen de otro van corridos, unidos por una línea */
+.sidebar-menu li.menu-sub {
+    margin: 0 0 0 23px;
+    padding-left: var(--sp-2);
+    border-left: 1px solid rgba(255, 255, 255, .16);
+}
+.sidebar-menu li.menu-sub .sidebar-menu-item.active::before { left: -10px; width: 3px; }
+
 .sidebar-menu-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Cada ícono va en su propio cuadrito */

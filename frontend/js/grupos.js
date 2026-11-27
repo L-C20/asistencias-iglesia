@@ -190,29 +190,37 @@ function aplicarConfigEnPantalla() {
     const fin = document.getElementById('menuGruposFin');
     if (fin) {
         document.querySelectorAll('.sidebar-menu li[data-grupo]').forEach(li => li.remove());
-        let tituloPuesto = false;
-        // Orquesta y Coro forman el ministerio de Alabanza; sin ellos, no va el título
-        const alabanza = document.getElementById('menuTituloAlabanza');
-        if (alabanza) alabanza.hidden = !APP_CONFIG.grupos.some(g => !g.ministerio);
-        APP_CONFIG.grupos.forEach(g => {
-            // Los ministerios van agrupados bajo su propio título
-            if (g.ministerio && !tituloPuesto) {
-                const titulo = document.createElement('li');
-                titulo.dataset.grupo = '';
-                titulo.className = 'menu-titulo';
-                titulo.textContent = 'Ministerios';
-                fin.before(titulo);
-                tituloPuesto = true;
-            }
+        const agregar = (grupo, contenido, clase) => {
             const li = document.createElement('li');
-            li.dataset.grupo = g.id;
-            marcarColor(li, g);
-            li.innerHTML = `<div class="sidebar-menu-item" data-tab="miembros" data-grupo="${g.id}" onclick="cambiarTab('miembros', '${g.id}')">
+            li.dataset.grupo = grupo; // la marca para rearmar el menú
+            if (clase) li.className = clase;
+            li.innerHTML = contenido;
+            fin.before(li);
+            return li;
+        };
+        const agregarGrupo = (g, clase) => marcarColor(agregar(g.id,
+            `<div class="sidebar-menu-item" data-tab="miembros" data-grupo="${g.id}" onclick="cambiarTab('miembros', '${g.id}')">
                 ${iconoGrupo(g.id)}
                 <span>${escaparHtml(g.nombre)}</span>
-            </div>`;
-            fin.before(li);
-        });
+            </div>`, clase), g);
+
+        agregar('', 'Ministerios', 'menu-titulo');
+
+        // Orquesta y Coro forman parte del ministerio de Alabanza, que va primero
+        const deAlabanza = APP_CONFIG.grupos.filter(g => !g.ministerio);
+        let ministerios = APP_CONFIG.grupos.filter(g => g.ministerio);
+        if (deAlabanza.length) {
+            // Si además se creó un ministerio "Alabanza" con asistencia propia, es ese
+            const propio = ministerios.find(g => g.nombre.trim().toLowerCase() === 'alabanza');
+            if (propio) {
+                agregarGrupo(propio);
+                ministerios = ministerios.filter(g => g !== propio);
+            } else {
+                agregar('', `<div class="menu-rama"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONO_MINISTERIO}</svg><span>Alabanza</span></div>`);
+            }
+            deAlabanza.forEach(g => agregarGrupo(g, 'menu-sub'));
+        }
+        ministerios.forEach(g => agregarGrupo(g));
         if (typeof cerrarSidebarAlHacerClick === 'function') cerrarSidebarAlHacerClick();
     }
 
