@@ -2883,16 +2883,19 @@ input::placeholder { color: var(--text-light); }
 /* La segunda fila depende de la primera: va corrida y unida por una línea */
 .selector-sub { margin-left: var(--sp-3); border-left: 2px solid var(--brand-500); }
 
-/* Tarjeta de Alabanza: no se toca entera, se elige adentro */
-.card-grupo.card-alabanza { cursor: default; }
-.card-grupo.card-alabanza:hover { transform: none; box-shadow: var(--sh-sm); }
-.card-alabanza-opciones { display: flex; flex-direction: column; gap: var(--sp-2); }
-.card-alabanza .card-accion { width: 100%; justify-content: flex-start; font-family: inherit; cursor: pointer; pointer-events: auto; }
-.card-grupo.card-alabanza:hover .card-accion { background: var(--brand-600); border-color: var(--brand-600); }
-.card-grupo.card-alabanza .card-accion:hover { background: var(--brand-700); border-color: var(--brand-700); }
-.card-alabanza .card-accion svg { flex-shrink: 0; }
-.card-alabanza .opcion-nombre { flex: 1; text-align: left; }
-.card-alabanza .opcion-conteo { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
+/* Tarjetas de ministerios: no se tocan enteras, se elige adentro */
+.card-grupo.card-ministerio { cursor: default; }
+.card-grupo.card-ministerio:hover { transform: none; box-shadow: var(--sh-sm); }
+.card-opciones { display: flex; flex-direction: column; gap: var(--sp-2); }
+.card-ministerio .card-accion { width: 100%; justify-content: flex-start; font-family: inherit; cursor: pointer; pointer-events: auto; }
+.card-grupo.card-ministerio:hover .card-accion { background: var(--brand-600); border-color: var(--brand-600); }
+/* Con color propio, el botón lo conserva; al pasar el mouse solo se oscurece */
+.card-grupo.card-ministerio.con-color .card-accion,
+.card-grupo.card-ministerio.con-color:hover .card-accion { background: var(--color-grupo); border-color: var(--color-grupo); }
+.card-grupo.card-ministerio .card-accion:hover { filter: brightness(.9); }
+.card-ministerio .card-accion svg { flex-shrink: 0; }
+.card-ministerio .opcion-nombre { flex: 1; text-align: left; }
+.card-ministerio .opcion-conteo { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
 
 /* Título del apartado */
 .cards-titulo,

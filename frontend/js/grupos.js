@@ -322,43 +322,36 @@ function aplicarConfigEnPantalla() {
     // Tarjetas de Inicio para registrar asistencia
     const tarjetas = document.getElementById('tarjetasGrupos');
     if (tarjetas) {
-        const tarjeta = g => `
-            <button class="card-grupo ${g.ministerio ? 'con-color' : ''}" ${g.ministerio ? `style="--color-grupo: ${g.color}"` : ''} onclick="irAAsistencia('${g.id}'); return false;" type="button">
-                <div class="card-grupo-cabecera">
-                    <div class="card-icon">${iconoGrupo(g.id, 48)}</div>
-                    <div>
-                        <h3>${escaparHtml(g.nombre)}</h3>
-                        <p id="conteo-${g.id}" class="card-count">— integrantes</p>
-                    </div>
-                </div>
-                <span class="btn btn-primary card-accion">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                    Registrar asistencia
-                </span>
-            </button>
-        `;
-        // Alabanza es una sola tarjeta, con Orquesta y Coro adentro
+        // Una tarjeta por ministerio, todas iguales: adentro va un botón por cada
+        // asistencia que se puede tomar
         const { propio, alabanza, resto } = organizarGrupos();
-        const tarjetaAlabanza = () => `
-            <div class="card-grupo card-alabanza ${propio ? 'con-color' : ''}" ${propio ? `style="--color-grupo: ${propio.color}"` : ''}>
+        const tarjeta = (nombre, color, opciones) => `
+            <div class="card-grupo card-ministerio ${color ? 'con-color' : ''}" ${color ? `style="--color-grupo: ${color}"` : ''}>
                 <div class="card-grupo-cabecera">
                     <div class="card-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${ICONO_MINISTERIO}</svg></div>
                     <div>
-                        <h3>${escaparHtml(propio ? propio.nombre : 'Alabanza')}</h3>
+                        <h3>${escaparHtml(nombre)}</h3>
                         <p class="card-count">Registrar asistencia</p>
                     </div>
                 </div>
-                <div class="card-alabanza-opciones">
-                    ${alabanza.map(g => `
-                        <button type="button" class="btn btn-primary card-accion" onclick="irAAsistencia('${g.id}'); return false;">
-                            ${iconoGrupo(g.id, 18)}
-                            <span class="opcion-nombre">${escaparHtml(g === propio ? 'Reunión general' : g.nombre)}</span>
-                            <span class="opcion-conteo" id="conteo-${g.id}">— integrantes</span>
+                <div class="card-opciones">
+                    ${opciones.map(({ grupo, texto, icono }) => `
+                        <button type="button" class="btn btn-primary card-accion" onclick="irAAsistencia('${grupo}'); return false;">
+                            ${icono}
+                            <span class="opcion-nombre">${escaparHtml(texto)}</span>
+                            <span class="opcion-conteo" id="conteo-${grupo}">— integrantes</span>
                         </button>`).join('')}
                 </div>
             </div>`;
+        const ICONO_REUNION = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>';
+        // Los ministerios toman asistencia en reuniones
+        const reunion = (g, texto = 'Reunión') => ({ grupo: g.id, texto, icono: ICONO_REUNION });
+
+        const deAlabanza = alabanza.map(g => g === propio
+            ? reunion(g, 'Reunión general')
+            : { grupo: g.id, texto: g.nombre, icono: iconoGrupo(g.id, 18) });
         tarjetas.innerHTML = '<h4 class="cards-titulo">Ministerios</h4>'
-            + (alabanza.length ? tarjetaAlabanza() : '')
-            + resto.map(tarjeta).join('');
+            + (alabanza.length ? tarjeta(propio ? propio.nombre : 'Alabanza', propio?.color, deAlabanza) : '')
+            + resto.map(g => tarjeta(g.nombre, g.color, [reunion(g)])).join('');
     }
 }
