@@ -50,10 +50,19 @@ function initApp() {
             if (saludo) saludo.textContent = `Bienvenido, ${nombre.trim().split(/\s+/)[0]}`;
         }
 
+        // Quién está usando la app, al pie del menú
+        const ROLES = { superadmin: 'Super administrador', admin: 'Administrador', operario: 'Monitor' };
+        const nombreMenu = (usuarioNombre || localStorage.getItem('usuario') || '').trim();
+        const poner = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
+        poner('menuUsuarioNombre', nombreMenu);
+        poner('menuUsuarioInicial', nombreMenu.charAt(0).toUpperCase());
+        poner('menuUsuarioRol', ROLES[usuarioRol] || '');
+
         // Ocultar Configuración si NO es admin
         const configTab = document.querySelector('.sidebar-menu-item[data-tab="configuracion"]');
         if (configTab) {
-            configTab.style.display = ['admin', 'superadmin'].includes(usuarioRol) ? '' : 'none';
+            // Se oculta el bloque entero, con su título
+            configTab.closest('li').style.display = ['admin', 'superadmin'].includes(usuarioRol) ? '' : 'none';
         }
 
         console.log('✅ Sesión iniciada - Rol:', usuarioRol, '- Cargando datos iniciales');

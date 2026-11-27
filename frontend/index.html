@@ -106,6 +106,7 @@
             </div>
 
             <ul class="sidebar-menu">
+                <li class="menu-titulo">General</li>
                 <li><div class="sidebar-menu-item" data-tab="inicio" onclick="cambiarTab('inicio')">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -113,13 +114,11 @@
                     </svg>
                     <span>Inicio</span>
                 </div></li>
-                <!-- Un ítem por grupo (Orquesta, Coro); los arma app.js según la configuración -->
-                <li id="menuGruposFin" hidden></li>
                 <li><div class="sidebar-menu-item" data-tab="reportes" onclick="irAReportesPropios()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="9" y1="9" x2="9" y2="15"></line>
-                        <line x1="15" y1="9" x2="15" y2="15"></line>
+                        <line x1="6" y1="20" x2="6" y2="13"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="18" y1="20" x2="18" y2="9"></line>
                     </svg>
                     <span>Reportes</span>
                 </div></li>
@@ -132,20 +131,33 @@
                     </svg>
                     <span>Todas las iglesias</span>
                 </div></li>
-                <li><div class="sidebar-menu-item" data-tab="configuracion" onclick="cambiarTab('configuracion')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6"></path>
-                        <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
-                        <path d="M1 12h6m6 0h6"></path>
-                        <path d="M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
-                    </svg>
-                    <span>Configuración</span>
-                </div></li>
+                <li class="menu-titulo">Grupos</li>
+                <!-- Un ítem por grupo y ministerio; los arma grupos.js según la configuración -->
+                <li id="menuGruposFin" hidden></li>
+                <li id="menuAdmin" class="menu-bloque">
+                    <p class="menu-titulo">Administración</p>
+                    <div class="sidebar-menu-item" data-tab="configuracion" onclick="cambiarTab('configuracion')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span>Configuración</span>
+                    </div>
+                </li>
             </ul>
 
             <div class="sidebar-footer">
-                <button class="btn btn-danger" id="logoutBtn" style="width: 100%;" onclick="logout(); return false;">Salir</button>
+                <div class="menu-usuario">
+                    <span class="menu-usuario-avatar" id="menuUsuarioInicial" aria-hidden="true"></span>
+                    <div class="menu-usuario-datos">
+                        <span class="menu-usuario-nombre" id="menuUsuarioNombre"></span>
+                        <span class="menu-usuario-rol" id="menuUsuarioRol"></span>
+                    </div>
+                    <button type="button" class="menu-salir" id="logoutBtn" onclick="logout(); return false;" title="Salir" aria-label="Salir">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Salir</span>
+                    </button>
+                </div>
             </div>
         </div>
 

@@ -85,6 +85,13 @@
     --sh-xl: 0 20px 24px -4px rgba(16, 24, 40, .08), 0 8px 8px -4px rgba(16, 24, 40, .03);
 
     --sidebar-w: 248px;
+    /* Menú lateral oscuro */
+    --menu-fondo: #0f172a;
+    --menu-fondo-2: #131d35;
+    --menu-texto: #cbd5e1;
+    --menu-texto-tenue: #7c8aa5;
+    --menu-linea: rgba(255, 255, 255, .08);
+    --menu-hover: rgba(255, 255, 255, .06);
     --navbar-h: 64px;
 }
 
@@ -235,8 +242,8 @@ svg { flex-shrink: 0; }
     flex-direction: column;
     width: var(--sidebar-w);
     flex-shrink: 0;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--menu-fondo-2) 0%, var(--menu-fondo) 40%);
+    color: var(--menu-texto);
     position: sticky;
     top: 0;
     height: 100vh;
@@ -245,7 +252,7 @@ svg { flex-shrink: 0; }
 
 .sidebar-header {
     padding: var(--sp-5) var(--sp-5) var(--sp-4);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--menu-linea);
 }
 
 .marca-app {
@@ -258,93 +265,166 @@ svg { flex-shrink: 0; }
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     flex-shrink: 0;
-    border-radius: var(--r-md);
-    background: var(--brand-600);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, var(--brand-600));
+    box-shadow: 0 6px 16px rgba(37, 99, 235, .35);
     color: #fff;
 }
 
-.marca-logo svg { width: 19px; height: 19px; }
+.marca-logo svg { width: 20px; height: 20px; }
 
 .marca-texto { min-width: 0; }
 
 .sidebar-header h2 {
-    font-size: var(--fs-base);
+    font-size: var(--fs-lg);
     font-weight: 600;
-    color: var(--text);
+    color: #fff;
     margin: 0;
     line-height: 1.3;
 }
 
 .sidebar-header p {
     font-size: var(--fs-xs);
-    color: var(--text-3);
+    color: var(--menu-texto-tenue);
     line-height: 1.3;
 }
 
 .sidebar-menu {
     list-style: none;
     margin: 0;
-    padding: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3) var(--sp-3);
     flex: 1;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .15) transparent;
 }
 
 .sidebar-menu li { margin-bottom: 2px; }
 
+/* Títulos de cada apartado del menú */
+.sidebar-menu .menu-titulo {
+    margin: 0;
+    padding: var(--sp-4) var(--sp-3) 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--menu-texto-tenue);
+}
+
 .sidebar-menu-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--sp-3);
-    padding: 9px var(--sp-3);
-    border-radius: var(--r-sm);
+    padding: 7px var(--sp-2);
+    border-radius: 10px;
     font-size: var(--fs-base);
     font-weight: 500;
-    color: var(--text-2);
+    color: var(--menu-texto);
     cursor: pointer;
-    transition: background .15s ease, color .15s ease;
     user-select: none;
+    transition: background .15s ease, color .15s ease;
 }
 
-.sidebar-menu-item svg { width: 18px; height: 18px; color: var(--text-light); transition: color .15s ease; }
+.sidebar-menu-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.sidebar-menu-item:hover { background: var(--gray-100); color: var(--text); }
-.sidebar-menu-item:hover svg { color: var(--text-2); }
+/* Cada ícono va en su propio cuadrito */
+.sidebar-menu-item svg {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 7px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, .06);
+    color: #94a3b8;
+    transition: background .15s ease, color .15s ease;
+}
+
+.sidebar-menu-item:hover { background: var(--menu-hover); color: #fff; }
+.sidebar-menu-item:hover svg { color: #e2e8f0; }
 
 .sidebar-menu-item.active {
-    background: var(--brand-50);
-    color: var(--brand-700);
+    background: rgba(59, 130, 246, .18);
+    color: #fff;
     font-weight: 600;
 }
 
-.sidebar-menu-item.active svg { color: var(--brand-600); }
+.sidebar-menu-item.active svg { background: var(--brand-600); color: #fff; }
+
+/* Barra que marca dónde estás */
+.sidebar-menu-item.active::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--sp-3));
+    top: 9px;
+    bottom: 9px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #60a5fa;
+}
+
+/* Ministerios: su color, aclarado para que se lea sobre el fondo oscuro */
+.sidebar-menu li.con-color .sidebar-menu-item svg {
+    background: color-mix(in srgb, var(--color-grupo) 30%, transparent);
+    color: color-mix(in srgb, var(--color-grupo) 45%, #fff);
+}
+.sidebar-menu li.con-color .sidebar-menu-item.active { background: color-mix(in srgb, var(--color-grupo) 26%, transparent); }
+.sidebar-menu li.con-color .sidebar-menu-item.active svg { background: var(--color-grupo); color: #fff; }
+.sidebar-menu li.con-color .sidebar-menu-item.active::before { background: color-mix(in srgb, var(--color-grupo) 70%, #fff); }
 
 .sidebar-footer {
     padding: var(--sp-3);
     /* Deja libre la franja de los botones del sistema */
     padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--menu-linea);
     /* Con muchos ítems, el menú se desplaza y el pie no se achica */
     flex-shrink: 0;
 }
 
-/* El logout no debe dominar la pantalla: variante discreta */
-.sidebar-footer .btn {
-    width: 100%;
+.menu-usuario { display: flex; align-items: center; gap: var(--sp-2); }
+
+.menu-usuario-avatar {
+    display: flex;
+    align-items: center;
     justify-content: center;
-    background: var(--surface);
-    color: var(--text-2);
-    border: 1px solid var(--border-strong);
-    box-shadow: var(--sh-xs);
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(96, 165, 250, .22);
+    color: #bfdbfe;
+    font-weight: 600;
 }
 
-.sidebar-footer .btn:hover {
-    background: var(--red-50);
-    color: var(--red-700);
-    border-color: #fecdca;
+.menu-usuario-datos { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.3; }
+.menu-usuario-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); font-weight: 600; color: #fff; }
+/* "Super administrador" entra completo, en dos renglones */
+.menu-usuario-rol { font-size: var(--fs-xs); color: var(--menu-texto-tenue); }
+
+.menu-salir {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-height: 38px;
+    padding: 0 10px;
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--menu-texto);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
+.menu-salir svg { width: 15px; height: 15px; }
+.menu-salir:hover { color: #fecaca; background: rgba(239, 68, 68, .14); border-color: rgba(248, 113, 113, .4); }
 
 .sidebar-backdrop { display: none; }
 
@@ -2689,23 +2769,6 @@ input::placeholder { color: var(--text-light); }
 .radio-option[hidden], .tarjeta-evento[hidden] { display: none; }
 
 /* Color propio de cada ministerio (--color-grupo) */
-.sidebar-menu .menu-titulo {
-    margin: var(--sp-3) 0 var(--sp-1);
-    padding: var(--sp-3) var(--sp-3) 0;
-    border-top: 1px solid var(--border);
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    color: var(--text-3);
-}
-.sidebar-menu li.con-color .sidebar-menu-item svg { color: var(--color-grupo); }
-.sidebar-menu li.con-color .sidebar-menu-item.active {
-    background: color-mix(in srgb, var(--color-grupo) 12%, transparent);
-    color: var(--text);
-    box-shadow: inset 3px 0 0 var(--color-grupo);
-}
-
 .card-grupo.con-color { background: linear-gradient(180deg, color-mix(in srgb, var(--color-grupo) 10%, var(--surface)) 0%, var(--surface) 100%); }
 .card-grupo.con-color:hover { border-color: var(--color-grupo); }
 .card-grupo.con-color .card-icon { background: var(--color-grupo); }
