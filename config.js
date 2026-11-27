@@ -49,10 +49,18 @@ function normalizarGrupos(valor) {
 // Consulta de iglesias que incluye sus ministerios; todo lo que use
 // configDeIglesia para validar o mostrar grupos tiene que partir de acá
 function ministeriosSQL(alias) {
-  return `(SELECT COALESCE(json_agg(json_build_object('id', mi.id, 'nombre', mi.nombre, 'secciones', mi.secciones) ORDER BY mi.nombre), '[]'::json)
+  return `(SELECT COALESCE(json_agg(json_build_object('id', mi.id, 'nombre', mi.nombre, 'secciones', mi.secciones, 'color', mi.color) ORDER BY mi.nombre), '[]'::json)
            FROM ministerios mi WHERE mi.iglesia_id = ${alias}.id) AS ministerios`;
 }
 const SELECT_IGLESIA = `SELECT ig.*, ${ministeriosSQL('ig')} FROM iglesias ig`;
+
+// Colores para distinguir ministerios (la misma lista que ofrece la pantalla)
+const COLORES_MINISTERIO = ['#7C3AED', '#DB2777', '#EA580C', '#059669', '#0891B2', '#CA8A04', '#DC2626', '#4F46E5', '#65A30D', '#92400E'];
+
+// El elegido; si no tiene, uno fijo según su número
+function colorDeMinisterio(m) {
+  return m.color || COLORES_MINISTERIO[m.id % COLORES_MINISTERIO.length];
+}
 
 // Un ministerio visto como un grupo más
 function grupoDeMinisterio(m) {
@@ -61,7 +69,8 @@ function grupoDeMinisterio(m) {
     nombre: m.nombre,
     categoria: 'Subgrupo',
     secciones: Array.isArray(m.secciones) ? m.secciones : [],
-    ministerio: true
+    ministerio: true,
+    color: colorDeMinisterio(m)
   };
 }
 
@@ -120,6 +129,6 @@ function normalizarFechaNacimiento(valor) {
 }
 
 module.exports = {
-  ministeriosSQL, SELECT_IGLESIA, normalizarDni, normalizarFechaNacimiento, nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
+  ministeriosSQL, SELECT_IGLESIA, colorDeMinisterio, normalizarDni, normalizarFechaNacimiento, nuevoCodigo, GRUPOS_DISPONIBLES, normalizarGrupos, configDeIglesia, grupoValidoEn, columnaSeccion,
   DIAS_CULTO_POR_DEFECTO, NOMBRES_DIA, normalizarDiasCulto
 };

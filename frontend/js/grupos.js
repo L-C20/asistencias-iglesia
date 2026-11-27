@@ -125,6 +125,13 @@ function iconoGrupo(id, tam = 20) {
     return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${tam > 24 ? 1.5 : 2}">${ICONOS_GRUPO[id] || (esMinisterio(id) ? ICONO_MINISTERIO : ICONOS_GRUPO.orquesta)}</svg>`;
 }
 
+// Cada ministerio se pinta con su color; orquesta y coro quedan como siempre
+function marcarColor(elemento, grupo) {
+    if (!grupo.ministerio) return;
+    elemento.classList.add('con-color');
+    elemento.style.setProperty('--color-grupo', grupo.color);
+}
+
 // Botonera Orquesta | Coro. Solo se muestra cuando hay más de un grupo.
 function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFIG.grupos) {
     const cont = document.getElementById(contenedorId);
@@ -137,6 +144,7 @@ function renderSelectorGrupo(contenedorId, activo, alCambiar, grupos = APP_CONFI
         b.type = 'button';
         b.className = 'selector-grupo-btn' + (g.id === activo ? ' activo' : '');
         b.textContent = g.nombre;
+        marcarColor(b, g);
         b.addEventListener('click', () => {
             if (g.id === activo) return;
             alCambiar(g.id);
@@ -182,9 +190,20 @@ function aplicarConfigEnPantalla() {
     const fin = document.getElementById('menuGruposFin');
     if (fin) {
         document.querySelectorAll('.sidebar-menu li[data-grupo]').forEach(li => li.remove());
+        let tituloPuesto = false;
         APP_CONFIG.grupos.forEach(g => {
+            // Los ministerios van agrupados bajo su propio título
+            if (g.ministerio && !tituloPuesto) {
+                const titulo = document.createElement('li');
+                titulo.dataset.grupo = '';
+                titulo.className = 'menu-titulo';
+                titulo.textContent = 'Ministerios';
+                fin.before(titulo);
+                tituloPuesto = true;
+            }
             const li = document.createElement('li');
             li.dataset.grupo = g.id;
+            marcarColor(li, g);
             li.innerHTML = `<div class="sidebar-menu-item" data-tab="miembros" data-grupo="${g.id}" onclick="cambiarTab('miembros', '${g.id}')">
                 ${iconoGrupo(g.id)}
                 <span>${escaparHtml(g.nombre)}</span>
@@ -198,7 +217,7 @@ function aplicarConfigEnPantalla() {
     const tarjetas = document.getElementById('tarjetasGrupos');
     if (tarjetas) {
         tarjetas.innerHTML = APP_CONFIG.grupos.map(g => `
-            <button class="card-grupo" onclick="irAAsistencia('${g.id}'); return false;" type="button">
+            <button class="card-grupo ${g.ministerio ? 'con-color' : ''}" ${g.ministerio ? `style="--color-grupo: ${g.color}"` : ''} onclick="irAAsistencia('${g.id}'); return false;" type="button">
                 <div class="card-grupo-cabecera">
                     <div class="card-icon">${iconoGrupo(g.id, 48)}</div>
                     <div>

@@ -2687,3 +2687,69 @@ input::placeholder { color: var(--text-light); }
 .selector-grupo { flex-wrap: wrap; max-width: 100%; }
 .selector-grupo[hidden] { display: none; }
 .radio-option[hidden], .tarjeta-evento[hidden] { display: none; }
+
+/* Color propio de cada ministerio (--color-grupo) */
+.sidebar-menu .menu-titulo {
+    margin: var(--sp-3) 0 var(--sp-1);
+    padding: var(--sp-3) var(--sp-3) 0;
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+.sidebar-menu li.con-color .sidebar-menu-item svg { color: var(--color-grupo); }
+.sidebar-menu li.con-color .sidebar-menu-item.active {
+    background: color-mix(in srgb, var(--color-grupo) 12%, transparent);
+    color: var(--text);
+    box-shadow: inset 3px 0 0 var(--color-grupo);
+}
+
+.card-grupo.con-color { background: linear-gradient(180deg, color-mix(in srgb, var(--color-grupo) 10%, var(--surface)) 0%, var(--surface) 100%); }
+.card-grupo.con-color:hover { border-color: var(--color-grupo); }
+.card-grupo.con-color .card-icon { background: var(--color-grupo); }
+.card-grupo.con-color .card-accion,
+.card-grupo.con-color:hover .card-accion { background: var(--color-grupo); border-color: var(--color-grupo); }
+
+.selector-grupo-btn.con-color::before,
+.punto-color {
+    content: '';
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--color-grupo);
+}
+
+/* Formulario de ministerio: subgrupos de a uno y paleta */
+.lista-subgrupos:not(:empty) { margin-bottom: var(--sp-2); }
+.fila-subgrupo { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.fila-subgrupo input { flex: 1; min-width: 0; }
+.quitar-subgrupo {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--text-3);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+}
+.quitar-subgrupo:hover { color: var(--text); background: var(--gray-100); }
+
+.paleta-colores { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.muestra-color { position: relative; margin: 0; cursor: pointer; }
+.muestra-color input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.muestra-color span {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-grupo);
+}
+.muestra-color input:checked + span { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--color-grupo); }
+.muestra-color input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 6px; }

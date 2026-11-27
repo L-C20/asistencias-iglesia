@@ -212,6 +212,7 @@ async function migrarAIglesias() {
       fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  await pool.query(`ALTER TABLE ministerios ADD COLUMN IF NOT EXISTS color VARCHAR(7)`);
   // El grupo de un integrante ya no es solo orquesta o coro: también "m<id>"
   await pool.query(`ALTER TABLE miembros DROP CONSTRAINT IF EXISTS miembros_grupo_check`);
 

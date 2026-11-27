@@ -7,6 +7,7 @@ const express = require('express');
 const db = require('../database');
 const mov = require('../movimientos');
 const { verifyToken, verificarSuperadmin } = require('../middleware/auth');
+const { colorDeMinisterio } = require('../config');
 const router = express.Router();
 
 const MAXIMO_SUBGRUPOS = 30;
@@ -25,20 +26,26 @@ function limpiarSubgrupos(valor) {
     .slice(0, MAXIMO_SUBGRUPOS);
 }
 
+// "#7C3AED"; null si no es un color válido
+function limpiarColor(valor) {
+  const texto = String(valor ?? '').trim().toUpperCase();
+  return /^#[0-9A-F]{6}$/.test(texto) ? texto : null;
+}
+
 const RESERVADOS = ['orquesta', 'coro'];
 
 // Todos los ministerios con su iglesia - GET /api/ministerios
 router.get('/', verifyToken, verificarSuperadmin, async (req, res) => {
   try {
     const r = await db.query(`
-      SELECT mi.id, mi.nombre, mi.secciones, mi.iglesia_id, i.nombre AS iglesia,
+      SELECT mi.id, mi.nombre, mi.secciones, mi.color, mi.iglesia_id, i.nombre AS iglesia,
         (SELECT COUNT(*) FROM miembros m
           WHERE m.iglesia_id = mi.iglesia_id AND m.grupo = 'm' || mi.id AND m.activo = true) AS integrantes
       FROM ministerios mi
       JOIN iglesias i ON i.id = mi.iglesia_id
       ORDER BY mi.nombre, i.nombre
     `);
-    res.json(r.rows.map(f => ({ ...f, integrantes: Number(f.integrantes) })));
+    res.json(r.rows.map(f => ({ ...f, color: colorDeMinisterio(f), integrantes: Number(f.integrantes) })));
   } catch (error) {
     console.error('Error listando ministerios:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -61,12 +68,12 @@ router.post('/', verifyToken, verificarSuperadmin, async (req, res) => {
 
     // Las iglesias que ya tienen un ministerio con ese nombre se saltean
     const r = await db.query(
-      `INSERT INTO ministerios (iglesia_id, nombre, secciones)
-       SELECT i.id, $1::varchar, $2::jsonb FROM iglesias i
+      `INSERT INTO ministerios (iglesia_id, nombre, secciones, color)
+       SELECT i.id, $1::varchar, $2::jsonb, $4::varchar FROM iglesias i
        WHERE i.id = ANY($3::int[])
          AND NOT EXISTS (SELECT 1 FROM ministerios mi WHERE mi.iglesia_id = i.id AND LOWER(mi.nombre) = LOWER($1::varchar))
        RETURNING iglesia_id`,
-      [nombre, JSON.stringify(secciones), ids]
+      [nombre, JSON.stringify(secciones), ids, limpiarColor(req.body.color)]
     );
 
     if (r.rows.length === 0) {
@@ -100,10 +107,12 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
     );
     if (repetido.rows.length > 0) return res.status(409).json({ error: 'Esa iglesia ya tiene un ministerio con ese nombre' });
 
-    const r = await db.query(
-      'UPDATE ministerios SET nombre = $1, secciones = $2::jsonb WHERE id = $3 RETURNING iglesia_id',
-      [nombre, JSON.stringify(secciones), id]
-    );
+    // Subgrupos que cambiaron de nombre: sus integrantes tienen que acompañarlos
+    const renombres = (Array.isArray(req.body.renombres) ? req.body.renombres : [])
+      .map(x => ({ de: limpiar(x?.de, 60), a: limpiar(x?.a, 60) }))
+      .filter(x => x.de && x.a && x.de !== x.a && secciones.includes(x.a));
+
+    const r = await actualizarMinisterio(id, nombre, secciones, limpiarColor(req.body.color), renombres);
     if (r.rows.length === 0) return res.status(404).json({ error: 'Ministerio no encontrado' });
 
     await mov.registrar({ quien: req.user, iglesiaId: r.rows[0].iglesia_id, categoria: 'iglesias', accion: 'Modificó un ministerio', detalle: nombre });
@@ -113,6 +122,35 @@ router.put('/:id', verifyToken, verificarSuperadmin, async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
+
+async function actualizarMinisterio(id, nombre, secciones, color, renombres) {
+  const client = await db.pool.connect();
+  try {
+    await client.query('BEGIN');
+    const r = await client.query(
+      `UPDATE ministerios SET nombre = $1, secciones = $2::jsonb, color = COALESCE($3, color)
+       WHERE id = $4 RETURNING iglesia_id`,
+      [nombre, JSON.stringify(secciones), color, id]
+    );
+    if (r.rows.length > 0 && renombres.length > 0) {
+      // En una sola pasada, para que intercambiar dos nombres no los mezcle
+      const casos = renombres.map((_, i) => `WHEN $${i * 2 + 3} THEN $${i * 2 + 4}`).join(' ');
+      const params = [r.rows[0].iglesia_id, `m${id}`, ...renombres.flatMap(x => [x.de, x.a])];
+      for (const [tabla, columna] of [['miembros', 'instrumento'], ['inscripciones', 'seccion']]) {
+        await client.query(
+          `UPDATE ${tabla} SET ${columna} = CASE ${columna} ${casos} ELSE ${columna} END
+           WHERE iglesia_id = $1 AND grupo = $2`, params);
+      }
+    }
+    await client.query('COMMIT');
+    return r;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 
 // Elimina el ministerio con sus integrantes y su asistencia - DELETE /api/ministerios/:id
 // Si tiene datos cargados hay que mandar { confirmar: true }

@@ -733,9 +733,19 @@
                         <input type="text" id="ministerioNombre" maxlength="60" placeholder="Jóvenes, Ujieres…" autocomplete="off" required>
                     </div>
                     <div class="form-group">
-                        <label for="ministerioSubgrupos">Subgrupos <span class="opcional">(opcional)</span></label>
-                        <textarea id="ministerioSubgrupos" rows="3" placeholder="Uno por línea"></textarea>
-                        <p class="ayuda-campo">Sirven para ordenar a los integrantes. Si lo dejás vacío, es una sola lista.</p>
+                        <label>Subgrupos <span class="opcional">(opcional)</span></label>
+                        <p class="ayuda-campo">Sirven para ordenar a los integrantes. Sin subgrupos, es una sola lista.</p>
+                        <div class="lista-subgrupos" id="ministerioSubgrupos"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="agregarSubgrupo('', true)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M12 5v14M5 12h14"></path>
+                            </svg>
+                            Agregar subgrupo
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <div class="paleta-colores" id="ministerioColores"></div>
                     </div>
                     <div class="form-group" id="bloqueMinisterioIglesias">
                         <label>Iglesias que lo tienen</label>

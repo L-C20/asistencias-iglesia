@@ -5,6 +5,54 @@
 let ministeriosCargados = [];
 let ministerioEnEdicion = null;
 
+// La misma lista que usa el servidor (config.js)
+const COLORES_MINISTERIO = [
+    ['#7C3AED', 'Violeta'], ['#DB2777', 'Rosa'], ['#EA580C', 'Naranja'], ['#059669', 'Verde'], ['#0891B2', 'Celeste'],
+    ['#CA8A04', 'Mostaza'], ['#DC2626', 'Rojo'], ['#4F46E5', 'Índigo'], ['#65A30D', 'Lima'], ['#92400E', 'Marrón']
+];
+
+// Una fila por subgrupo; recuerda su nombre original para saber si se renombró
+function agregarSubgrupo(valor = '', enfocar = false) {
+    const lista = document.getElementById('ministerioSubgrupos');
+    const fila = document.createElement('div');
+    fila.className = 'fila-subgrupo';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = 60;
+    input.placeholder = 'Nombre del subgrupo';
+    input.setAttribute('aria-label', 'Nombre del subgrupo');
+    input.autocomplete = 'off';
+    input.value = valor;
+    input.dataset.original = valor;
+    // Enter agrega otro en lugar de guardar el ministerio a medio cargar
+    input.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (input.value.trim()) agregarSubgrupo('', true);
+    });
+
+    const quitar = document.createElement('button');
+    quitar.type = 'button';
+    quitar.className = 'quitar-subgrupo';
+    quitar.title = 'Quitar subgrupo';
+    quitar.setAttribute('aria-label', 'Quitar subgrupo');
+    quitar.textContent = '×';
+    quitar.addEventListener('click', () => fila.remove());
+
+    fila.append(input, quitar);
+    lista.appendChild(fila);
+    if (enfocar) input.focus();
+}
+
+function renderizarPaleta(elegido) {
+    document.getElementById('ministerioColores').innerHTML = COLORES_MINISTERIO.map(([valor, nombre]) => `
+        <label class="muestra-color" title="${nombre}" style="--color-grupo: ${valor}">
+            <input type="radio" name="ministerioColor" value="${valor}" aria-label="${nombre}" ${valor === elegido ? 'checked' : ''}>
+            <span></span>
+        </label>`).join('');
+}
+
 async function cargarMinisterios() {
     if (!esSuperadmin) return;
     const tbody = document.getElementById('ministeriosTableBody');
@@ -34,7 +82,7 @@ function renderizarMinisterios() {
 
     tbody.innerHTML = ministeriosCargados.map(m => `
         <tr>
-            <td class="celda-nombre">${escaparHtml(m.nombre)}</td>
+            <td class="celda-nombre"><span class="punto-color" style="--color-grupo: ${m.color}"></span>${escaparHtml(m.nombre)}</td>
             <td class="celda-detalle">${escaparHtml(m.iglesia)}</td>
             <td class="celda-detalle">${m.secciones.length ? m.secciones.map(escaparHtml).join(' · ') : '—'}</td>
             <td class="celda-detalle">${m.integrantes}</td>
@@ -64,7 +112,11 @@ function abrirModalMinisterio(id) {
 
     document.getElementById('tituloModalMinisterio').textContent = m ? `Editar ministerio · ${m.iglesia}` : 'Nuevo ministerio';
     document.getElementById('ministerioNombre').value = m ? m.nombre : '';
-    document.getElementById('ministerioSubgrupos').value = m ? m.secciones.join('\n') : '';
+    document.getElementById('ministerioSubgrupos').innerHTML = '';
+    if (m) m.secciones.forEach(s => agregarSubgrupo(s));
+    // Para uno nuevo se propone un color que todavía no esté en uso
+    const usados = new Set(ministeriosCargados.map(x => x.color));
+    renderizarPaleta(m ? m.color : (COLORES_MINISTERIO.find(([c]) => !usados.has(c)) || COLORES_MINISTERIO[0])[0]);
     document.getElementById('bloqueMinisterioIglesias').hidden = !!m;
     document.getElementById('ministerioIglesias').innerHTML = iglesiasCargadas.map(i => `
         <label class="casilla">
@@ -80,8 +132,13 @@ function abrirModalMinisterio(id) {
 async function guardarMinisterio(evento) {
     evento.preventDefault();
     const nombre = document.getElementById('ministerioNombre').value.trim();
-    // Uno por línea (también se aceptan separados por coma)
-    const secciones = document.getElementById('ministerioSubgrupos').value.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+    const campos = [...document.querySelectorAll('#ministerioSubgrupos input')];
+    const limpio = texto => texto.replace(/\s+/g, ' ').trim();
+    const secciones = campos.map(c => limpio(c.value)).filter(Boolean);
+    const renombres = campos
+        .filter(c => c.dataset.original && limpio(c.value) && limpio(c.value) !== c.dataset.original)
+        .map(c => ({ de: c.dataset.original, a: limpio(c.value) }));
+    const color = document.querySelector('input[name="ministerioColor"]:checked')?.value;
     const iglesias = [...document.querySelectorAll('input[name="ministerioIglesia"]:checked')].map(i => Number(i.value));
 
     if (!nombre) return mostrarToast('Indique el nombre del ministerio', 'error');
@@ -96,7 +153,7 @@ async function guardarMinisterio(evento) {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ nombre, secciones, iglesias })
+            body: JSON.stringify({ nombre, secciones, renombres, color, iglesias })
         });
         const data = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(data.error || 'No se pudo guardar el ministerio');
